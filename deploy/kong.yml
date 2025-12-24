@@ -1,0 +1,114 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+  # Supabase REST API
+  - name: rest-v1
+    url: http://rest:3000/
+    routes:
+      - name: rest-v1-all
+        strip_path: true
+        paths:
+          - /rest/v1/
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Encoding
+            - Authorization
+            - Content-Type
+            - apikey
+            - x-client-info
+          exposed_headers:
+            - Content-Range
+          credentials: true
+          max_age: 3600
+
+  # Supabase Auth API
+  - name: auth-v1
+    url: http://auth:9999/
+    routes:
+      - name: auth-v1-all
+        strip_path: true
+        paths:
+          - /auth/v1/
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Encoding
+            - Authorization
+            - Content-Type
+            - apikey
+            - x-client-info
+          credentials: true
+          max_age: 3600
+
+  # Supabase Storage API
+  - name: storage-v1
+    url: http://storage:5000/
+    routes:
+      - name: storage-v1-all
+        strip_path: true
+        paths:
+          - /storage/v1/
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Encoding
+            - Authorization
+            - Content-Type
+            - apikey
+            - x-client-info
+            - range
+            - content-range
+          exposed_headers:
+            - Content-Range
+          credentials: true
+          max_age: 3600
+
+consumers:
+  # Anonymous consumer for public access
+  - username: anon
+    keyauth_credentials:
+      - key: ${ANON_KEY}
+    acls:
+      - group: anon
+      
+  # Service role consumer for admin access
+  - username: service_role
+    keyauth_credentials:
+      - key: ${SERVICE_ROLE_KEY}
+    acls:
+      - group: admin

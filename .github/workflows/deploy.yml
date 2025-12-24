@@ -1,0 +1,32 @@
+name: Deploy to Hostinger VPS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            cd /opt/ontru
+            # If directory doesn't exist, this is a first time setup and should be handled manually or via a separate script
+            # assuming the repo is already cloned at /opt/ontru
+            
+            echo "Pulling latest changes..."
+            git pull origin main
+            
+            echo "Running update script..."
+            # Make sure the script is executable
+            chmod +x deploy/deploy.sh
+            
+            # Run deploy script in update mode
+            ./deploy/deploy.sh --update

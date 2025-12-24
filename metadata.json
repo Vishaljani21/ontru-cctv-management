@@ -1,0 +1,7 @@
+{
+  "name": "PART2 of OnTru - CCTV Project Management System",
+  "description": "A web application for CCTV dealers to manage installation projects, customers, technicians, inventory from multiple godowns, and track project progress.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

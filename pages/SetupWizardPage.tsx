@@ -1,0 +1,122 @@
+
+import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../App';
+import { api } from '../services/api';
+import { OnTruFullLogo } from '../components/icons';
+
+const SetupWizardPage: React.FC = () => {
+    const authContext = useContext(AuthContext);
+    const navigate = useNavigate();
+    
+    const [step, setStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Form Fields
+    const [name, setName] = useState(''); // Personal Name
+    const [companyName, setCompanyName] = useState('');
+    const [address, setAddress] = useState('');
+    const [gstin, setGstin] = useState('');
+    
+    // Derived from auth context, but editable
+    const [email, setEmail] = useState('');
+    const [mobile, setMobile] = useState('');
+
+    useEffect(() => {
+        if (authContext?.user) {
+            setEmail(authContext.user.email || '');
+            setMobile(authContext.user.phone || '');
+            if (authContext.user.isSetupComplete) {
+                navigate('/dashboard', { replace: true });
+            }
+        }
+    }, [authContext, navigate]);
+
+    const handleComplete = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!authContext?.user) return;
+
+        setIsLoading(true);
+        try {
+            await api.completeSetup(authContext.user.id, {
+                name,
+                companyName,
+                address,
+                gstin,
+                email,
+                mobile
+            });
+            // Force user refresh in context logic or simple reload for mock simplicity
+             window.location.href = '/dashboard'; 
+        } catch (error) {
+            console.error(error);
+            alert("Failed to save setup data.");
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+            <div className="sm:mx-auto sm:w-full sm:max-w-md">
+                <div className="flex justify-center"><OnTruFullLogo /></div>
+                <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
+                    Welcome to OnTru
+                </h2>
+                <p className="mt-2 text-center text-sm text-slate-600">
+                    Let's get your dealer profile set up in just a few steps.
+                </p>
+            </div>
+
+            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                    <form className="space-y-6" onSubmit={handleComplete}>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700">Your Full Name</label>
+                            <input type="text" required value={name} onChange={e => setName(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700">Company Name</label>
+                            <input type="text" required value={companyName} onChange={e => setCompanyName(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700">GSTIN (Optional)</label>
+                            <input type="text" value={gstin} onChange={e => setGstin(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700">Business Address</label>
+                            <textarea required value={address} onChange={e => setAddress(e.target.value)} rows={3} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700">Email</label>
+                                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-slate-50" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700">Mobile</label>
+                                <input type="tel" required value={mobile} onChange={e => setMobile(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-slate-50" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <button type="submit" disabled={isLoading} className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:bg-primary-400">
+                                {isLoading ? 'Setting up...' : 'Complete Setup & Go to Dashboard'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <p className="mt-6 text-center text-xs text-slate-500">
+                    By completing this setup, you agree to our Terms of Service and Privacy Policy.
+                    Dealer and Engineer portals will be automatically configured.
+                </p>
+            </div>
+        </div>
+    );
+};
+
+export default SetupWizardPage;
