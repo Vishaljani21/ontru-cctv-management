@@ -66,7 +66,7 @@ const InvoicePrintPage: React.FC = () => {
     if (!invoice || !dealerInfo) {
         return <div className="p-8">Could not load invoice data.</div>;
     }
-    
+
     const isIntraState = true; // Simplified for mock. In a real app, this would be determined by dealer/customer GSTIN.
 
     return (
@@ -74,7 +74,11 @@ const InvoicePrintPage: React.FC = () => {
             <div className="p-4 sm:p-8 md:p-12 max-w-4xl mx-auto printable-area">
                 <header className="flex justify-between items-start pb-6 border-b-2 border-slate-800">
                     <div>
-                        <OnTruFullLogo />
+                        {dealerInfo.logoUrl ? (
+                            <img src={dealerInfo.logoUrl} alt="Company Logo" className="h-16 w-auto object-contain mb-2" />
+                        ) : (
+                            <OnTruFullLogo />
+                        )}
                         <h1 className="text-2xl font-bold mt-2">{dealerInfo.companyName}</h1>
                         <p className="text-sm max-w-xs">{dealerInfo.address}</p>
                         <p className="text-sm font-semibold">GSTIN: {dealerInfo.gstin}</p>
@@ -136,14 +140,14 @@ const InvoicePrintPage: React.FC = () => {
                         </div>
                         {isIntraState ? (
                             <>
-                            <div className="flex justify-between">
-                                <span className="text-slate-600">CGST</span>
-                                <span>₹{(invoice.totalGst / 2).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-slate-600">SGST</span>
-                                <span>₹{(invoice.totalGst / 2).toFixed(2)}</span>
-                            </div>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-600">CGST</span>
+                                    <span>₹{(invoice.totalGst / 2).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-600">SGST</span>
+                                    <span>₹{(invoice.totalGst / 2).toFixed(2)}</span>
+                                </div>
                             </>
                         ) : (
                             <div className="flex justify-between">
@@ -157,22 +161,22 @@ const InvoicePrintPage: React.FC = () => {
                         </div>
                     </div>
                 </section>
-                
+
                 <section className="mt-4 text-sm font-semibold capitalize">
-                   Amount in Words: {numberToWords(Math.round(invoice.grandTotal))} Rupees Only.
+                    Amount in Words: {numberToWords(Math.round(invoice.grandTotal))} Rupees Only.
                 </section>
 
                 <footer className="mt-12 pt-6 border-t text-center text-xs text-slate-500">
                     <p>This is a computer-generated invoice and does not require a signature.</p>
                 </footer>
             </div>
-            
+
             <div className="fixed bottom-4 right-4 no-print">
                 <button onClick={() => window.print()} className="px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg shadow-lg hover:bg-primary-600">
                     Print Invoice
                 </button>
             </div>
-            
+
             <style>{`
                 @media print {
                     .no-print {

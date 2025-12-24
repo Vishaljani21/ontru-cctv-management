@@ -4,6 +4,8 @@ import { api } from '../services/api';
 import type { WarrantyEntry, WarrantyStatus, ServiceStation, WarrantyFollowUp } from '../types';
 import BarcodeScanner from './BarcodeScanner';
 import { CameraIcon } from './icons';
+import CustomSelect from './CustomSelect';
+import CustomDatePicker from './CustomDatePicker';
 
 interface WarrantyEntryModalProps {
   onClose: () => void;
@@ -15,7 +17,7 @@ const today = new Date().toISOString().split('T')[0];
 
 const WarrantyEntryModal: React.FC<WarrantyEntryModalProps> = ({ onClose, onSuccess, entry }) => {
   const isEditMode = !!entry;
-  
+
   // States for each section
   const [customerName, setCustomerName] = useState(entry?.customerName || '');
   const [productName, setProductName] = useState(entry?.productName || '');
@@ -24,7 +26,7 @@ const WarrantyEntryModal: React.FC<WarrantyEntryModalProps> = ({ onClose, onSucc
   const [pickupPerson, setPickupPerson] = useState(entry?.pickupPerson || '');
 
   const [officeIntakeDate, setOfficeIntakeDate] = useState(entry?.officeIntakeDate?.split('T')[0] || '');
-  
+
   const [serviceStations, setServiceStations] = useState<ServiceStation[]>([]);
   const [serviceStationId, setServiceStationId] = useState(entry?.serviceStationId?.toString() || '');
   const [dispatchDate, setDispatchDate] = useState(entry?.dispatchDate?.split('T')[0] || '');
@@ -52,17 +54,17 @@ const WarrantyEntryModal: React.FC<WarrantyEntryModalProps> = ({ onClose, onSucc
   };
 
   const handleUpdate = async (updateData: Partial<WarrantyEntry>) => {
-      if (!entry) return;
-      setIsLoading(true);
-      setError(null);
-      try {
-          await api.updateWarrantyEntry(entry.id, updateData);
-          onSuccess();
-          onClose();
-      } catch (err: any) {
-          setError(err.message || 'Failed to update entry.');
-          setIsLoading(false);
-      }
+    if (!entry) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await api.updateWarrantyEntry(entry.id, updateData);
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update entry.');
+      setIsLoading(false);
+    }
   }
 
   const handleCreate = async () => {
@@ -72,7 +74,7 @@ const WarrantyEntryModal: React.FC<WarrantyEntryModalProps> = ({ onClose, onSucc
       await api.addWarrantyEntry({ customerName, productName, serialNumber, issue, pickupPerson });
       onSuccess();
       onClose();
-    } catch(err: any) {
+    } catch (err: any) {
       setError(err.message || 'Failed to create entry.');
       setIsLoading(false);
     }
@@ -80,13 +82,13 @@ const WarrantyEntryModal: React.FC<WarrantyEntryModalProps> = ({ onClose, onSucc
 
   const addFollowUp = () => {
     if (!followUpRemarks) {
-        alert("Please enter remarks for the follow-up.");
-        return;
+      alert("Please enter remarks for the follow-up.");
+      return;
     }
     const newFollowUp: WarrantyFollowUp = {
-        date: new Date().toISOString(),
-        remarks: followUpRemarks,
-        personContacted
+      date: new Date().toISOString(),
+      remarks: followUpRemarks,
+      personContacted
     };
     handleUpdate({ followUps: [newFollowUp] });
   }
@@ -104,19 +106,19 @@ const WarrantyEntryModal: React.FC<WarrantyEntryModalProps> = ({ onClose, onSucc
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700">Serial Number</label>
-            <div className="mt-1 flex items-center gap-2">
-                <input type="text" value={serialNumber} onChange={e => setSerialNumber(e.target.value)} required className="flex-grow block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
-                <button type="button" onClick={() => setIsScannerOpen(true)} className="p-2.5 bg-slate-200 text-slate-700 rounded-md hover:bg-slate-300" title="Scan Serial Number">
-                    <CameraIcon />
-                </button>
-            </div>
+          <div className="mt-1 flex items-center gap-2">
+            <input type="text" value={serialNumber} onChange={e => setSerialNumber(e.target.value)} required className="flex-grow block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+            <button type="button" onClick={() => setIsScannerOpen(true)} className="p-2.5 bg-slate-200 text-slate-700 rounded-md hover:bg-slate-300" title="Scan Serial Number">
+              <CameraIcon />
+            </button>
+          </div>
         </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700">Description of Issue</label>
         <textarea value={issue} onChange={e => setIssue(e.target.value)} required rows={3} className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
       </div>
-       <div>
+      <div>
         <label className="block text-sm font-medium text-slate-700">Pickup Person Name</label>
         <input type="text" value={pickupPerson} onChange={e => setPickupPerson(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
       </div>
@@ -135,91 +137,109 @@ const WarrantyEntryModal: React.FC<WarrantyEntryModalProps> = ({ onClose, onSucc
         <div className="flex items-end gap-3">
           <div className="flex-grow">
             <label className="block text-xs font-medium text-slate-600">Received Date</label>
-            <input type="date" value={officeIntakeDate} onChange={e => setOfficeIntakeDate(e.target.value)} className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm" max={today}/>
+            <CustomDatePicker
+              selected={officeIntakeDate ? new Date(officeIntakeDate) : null}
+              onChange={(d) => setOfficeIntakeDate(d ? d.toISOString().split('T')[0] : '')}
+              maxDate={today ? new Date(today) : undefined}
+            />
           </div>
           <button onClick={() => handleUpdate({ officeIntakeDate: new Date(officeIntakeDate).toISOString(), status: 'Received at Office' })} disabled={!officeIntakeDate || officeIntakeDate === entry?.officeIntakeDate?.split('T')[0]} className="px-3 py-1.5 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:bg-slate-300">Update</button>
         </div>
       </div>
-      
+
       {/* Section: Service Dispatch */}
       <div className="p-4 border rounded-lg bg-slate-50">
-          <h4 className="font-semibold text-slate-800 mb-2">Service Station Dispatch</h4>
-          <div className="space-y-3">
-              <div>
-                  <label className="block text-xs font-medium text-slate-600">Service Station</label>
-                  <select value={serviceStationId} onChange={e => setServiceStationId(e.target.value)} className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm">
-                      <option value="" disabled>Select station</option>
-                      {serviceStations.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                  <div>
-                      <label className="block text-xs font-medium text-slate-600">Dispatch Date</label>
-                      <input type="date" value={dispatchDate} onChange={e => setDispatchDate(e.target.value)} className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm" max={today} />
-                  </div>
-                  <div>
-                      <label className="block text-xs font-medium text-slate-600">Courier Info</label>
-                      <input type="text" value={courierInfo} onChange={e => setCourierInfo(e.target.value)} className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm" />
-                  </div>
-              </div>
-              <div className="text-right">
-                <button onClick={() => handleUpdate({ serviceStationId: Number(serviceStationId), dispatchDate, courierInfo, status: 'Sent to Service' })} disabled={!serviceStationId || !dispatchDate} className="px-3 py-1.5 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:bg-slate-300">Update Dispatch</button>
-              </div>
+        <h4 className="font-semibold text-slate-800 mb-2">Service Station Dispatch</h4>
+        <div className="space-y-3">
+          <div>
+            <CustomSelect
+              options={serviceStations.map(s => ({ value: s.id.toString(), label: s.name }))}
+              value={serviceStationId}
+              onChange={setServiceStationId}
+              placeholder="Select station"
+            />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600">Dispatch Date</label>
+              <CustomDatePicker
+                selected={dispatchDate ? new Date(dispatchDate) : null}
+                onChange={(d) => setDispatchDate(d ? d.toISOString().split('T')[0] : '')}
+                maxDate={today ? new Date(today) : undefined}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600">Courier Info</label>
+              <input type="text" value={courierInfo} onChange={e => setCourierInfo(e.target.value)} className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm" />
+            </div>
+          </div>
+          <div className="text-right">
+            <button onClick={() => handleUpdate({ serviceStationId: Number(serviceStationId), dispatchDate, courierInfo, status: 'Sent to Service' })} disabled={!serviceStationId || !dispatchDate} className="px-3 py-1.5 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:bg-slate-300">Update Dispatch</button>
+          </div>
+        </div>
       </div>
-      
+
       {/* Section: Follow-up Log */}
       <div className="p-4 border rounded-lg bg-slate-50">
-          <h4 className="font-semibold text-slate-800 mb-2">Follow-Up Log</h4>
-          <div className="space-y-2 mb-3">
-            {entry?.followUps.map((f, i) => (
-                <div key={i} className="text-xs bg-white p-2 rounded border">
-                    <p className="font-semibold">{new Date(f.date).toLocaleString()}</p>
-                    <p>{f.remarks} {f.personContacted && `(Spoke to: ${f.personContacted})`}</p>
-                </div>
-            ))}
-            {entry?.followUps.length === 0 && <p className="text-xs text-slate-500 text-center">No follow-ups logged yet.</p>}
+        <h4 className="font-semibold text-slate-800 mb-2">Follow-Up Log</h4>
+        <div className="space-y-2 mb-3">
+          {entry?.followUps.map((f, i) => (
+            <div key={i} className="text-xs bg-white p-2 rounded border">
+              <p className="font-semibold">{new Date(f.date).toLocaleString()}</p>
+              <p>{f.remarks} {f.personContacted && `(Spoke to: ${f.personContacted})`}</p>
+            </div>
+          ))}
+          {entry?.followUps.length === 0 && <p className="text-xs text-slate-500 text-center">No follow-ups logged yet.</p>}
+        </div>
+        <div className="space-y-2">
+          <textarea placeholder="Add remarks..." value={followUpRemarks} onChange={e => setFollowUpRemarks(e.target.value)} rows={2} className="w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm"></textarea>
+          <div className="flex items-end gap-3">
+            <div className="flex-grow">
+              <label className="block text-xs font-medium text-slate-600">Person Contacted (optional)</label>
+              <input type="text" value={personContacted} onChange={e => setPersonContacted(e.target.value)} className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm" />
+            </div>
+            <button onClick={addFollowUp} className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600">Add Follow-Up</button>
           </div>
-          <div className="space-y-2">
-              <textarea placeholder="Add remarks..." value={followUpRemarks} onChange={e => setFollowUpRemarks(e.target.value)} rows={2} className="w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm"></textarea>
-              <div className="flex items-end gap-3">
-                <div className="flex-grow">
-                  <label className="block text-xs font-medium text-slate-600">Person Contacted (optional)</label>
-                  <input type="text" value={personContacted} onChange={e => setPersonContacted(e.target.value)} className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm" />
-                </div>
-                <button onClick={addFollowUp} className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600">Add Follow-Up</button>
-              </div>
-          </div>
+        </div>
       </div>
 
       {/* Section: Return & Closure */}
       <div className="p-4 border rounded-lg bg-slate-50">
-          <h4 className="font-semibold text-slate-800 mb-2">Return & Closure</h4>
-          <div className="flex items-end gap-3">
-             <div className="flex-grow">
-                <label className="block text-xs font-medium text-slate-600">Final Status</label>
-                <select value={finalStatus} onChange={e => setFinalStatus(e.target.value as WarrantyStatus)} className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm">
-                    <option value="Under Repair">Under Repair</option>
-                    <option value="Repaired">Repaired</option>
-                    <option value="Replaced">Replaced</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Returned to Customer">Returned to Customer</option>
-                </select>
-             </div>
-             <div>
-                <label className="block text-xs font-medium text-slate-600">Return Date</label>
-                <input type="date" value={returnDate} onChange={e => setReturnDate(e.target.value)} className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm" max={today}/>
-             </div>
+        <h4 className="font-semibold text-slate-800 mb-2">Return & Closure</h4>
+        <div className="flex items-end gap-3">
+          <div className="flex-grow">
+            <CustomSelect
+              label="Final Status"
+              options={[
+                { value: 'Under Repair', label: 'Under Repair' },
+                { value: 'Repaired', label: 'Repaired' },
+                { value: 'Replaced', label: 'Replaced' },
+                { value: 'Rejected', label: 'Rejected' },
+                { value: 'Returned to Customer', label: 'Returned to Customer' }
+              ]}
+              value={finalStatus}
+              onChange={(val) => setFinalStatus(val as WarrantyStatus)}
+              placeholder="Select Status"
+            />
           </div>
-          <div className="text-right mt-3">
-            <button onClick={() => handleUpdate({ status: finalStatus, returnDate })} className="px-3 py-1.5 text-sm bg-green-500 text-white rounded-md hover:bg-green-600">Update Final Status</button>
+          <div>
+            <label className="block text-xs font-medium text-slate-600">Return Date</label>
+            <CustomDatePicker
+              selected={returnDate ? new Date(returnDate) : null}
+              onChange={(d) => setReturnDate(d ? d.toISOString().split('T')[0] : '')}
+              maxDate={today ? new Date(today) : undefined}
+            />
           </div>
+        </div>
+        <div className="text-right mt-3">
+          <button onClick={() => handleUpdate({ status: finalStatus, returnDate })} className="px-3 py-1.5 text-sm bg-green-500 text-white rounded-md hover:bg-green-600">Update Final Status</button>
+        </div>
       </div>
-      
+
       {error && <p className="text-sm text-center text-red-600">{error}</p>}
 
       <div className="flex justify-end pt-4 border-t">
-          <button onClick={onClose} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-md hover:bg-slate-300">Close</button>
+        <button onClick={onClose} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-md hover:bg-slate-300">Close</button>
       </div>
     </div>
   );
@@ -236,7 +256,7 @@ const WarrantyEntryModal: React.FC<WarrantyEntryModalProps> = ({ onClose, onSucc
             </div>
             <button onClick={onClose} className="text-2xl font-light text-slate-500 hover:text-slate-800">&times;</button>
           </div>
-          
+
           {isEditMode ? renderManageForm() : renderCreateForm()}
 
         </div>

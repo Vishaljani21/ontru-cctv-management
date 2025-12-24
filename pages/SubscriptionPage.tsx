@@ -15,6 +15,7 @@ interface Plan {
     id: SubscriptionTier;
     name: string;
     price: string;
+    description: string;
     features: PlanFeature[];
     recommended?: boolean;
 }
@@ -23,7 +24,8 @@ const plans: Plan[] = [
     {
         id: 'starter',
         name: 'Starter',
-        price: '₹999/mo',
+        price: '₹999',
+        description: 'Perfect for small teams getting started.',
         features: [
             { name: 'Dashboard & Projects', included: true },
             { name: 'Customer Management', included: true },
@@ -40,7 +42,8 @@ const plans: Plan[] = [
     {
         id: 'professional',
         name: 'Professional',
-        price: '₹2,499/mo',
+        price: '₹2,499',
+        description: 'Everything you need to scale your operations.',
         recommended: true,
         features: [
             { name: 'Dashboard & Projects', included: true },
@@ -58,7 +61,8 @@ const plans: Plan[] = [
     {
         id: 'enterprise',
         name: 'Enterprise',
-        price: '₹4,999/mo',
+        price: '₹4,999',
+        description: 'Advanced features for large organizations.',
         features: [
             { name: 'Dashboard & Projects', included: true },
             { name: 'Customer Management', included: true },
@@ -79,15 +83,14 @@ const SubscriptionPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [licenseKey, setLicenseKey] = useState('');
     const [redeemStatus, setRedeemStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-    
-    // Fallback if context is not yet loaded, though parent handles it
+
     const currentTier = appContext?.subscriptionTier || 'starter';
 
     const handleUpgrade = async (tier: SubscriptionTier) => {
         setLoading(true);
         try {
             await api.updateSubscription(tier);
-            window.location.reload(); 
+            window.location.reload();
         } catch (error) {
             console.error("Failed to upgrade subscription", error);
         } finally {
@@ -111,94 +114,126 @@ const SubscriptionPage: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8">
-            <div className="text-center space-y-4">
-                <h2 className="text-3xl font-bold text-slate-800">Choose Your Plan</h2>
-                <p className="text-slate-600 max-w-2xl mx-auto">Scale your business with the right set of tools. Upgrade using a plan selection or redeem a license key.</p>
+        <div className="space-y-12 animate-fade-in-up pb-10">
+            <div className="text-center space-y-4 max-w-3xl mx-auto">
+                <h2 className="text-4xl font-bold text-slate-800 dark:text-white tracking-tight">Simple Pricing, Powerful Features</h2>
+                <p className="text-lg text-slate-600 dark:text-slate-400">Choose the perfect plan to streamline your CCTV project management and grow your business.</p>
             </div>
 
             {/* License Key Redemption */}
-            <div className="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md border border-slate-200">
-                <h3 className="text-lg font-semibold text-slate-700 flex items-center mb-4">
-                    <KeyIcon className="w-5 h-5 mr-2" />
-                    Have a License Key?
-                </h3>
-                <form onSubmit={handleRedeemKey} className="flex gap-4">
-                    <input 
-                        type="text" 
-                        value={licenseKey}
-                        onChange={e => setLicenseKey(e.target.value)}
-                        placeholder="Enter your license key here (e.g., PRO-ABCD-1234)"
-                        className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
-                    <button 
-                        type="submit" 
-                        disabled={loading || !licenseKey}
-                        className="px-6 py-2 bg-slate-800 text-white font-semibold rounded-lg hover:bg-slate-900 disabled:bg-slate-400"
-                    >
-                        {loading ? 'Redeeming...' : 'Redeem'}
-                    </button>
-                </form>
+            <div className="max-w-xl mx-auto">
+                <div className="bg-white dark:bg-slate-900 p-1 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <form onSubmit={handleRedeemKey} className="relative flex items-center">
+                        <KeyIcon className="absolute left-4 w-5 h-5 text-slate-400" />
+                        <input
+                            type="text"
+                            value={licenseKey}
+                            onChange={e => setLicenseKey(e.target.value)}
+                            placeholder="Enter your license key"
+                            className="w-full pl-12 pr-32 py-4 bg-transparent border-none rounded-xl focus:ring-0 text-slate-800 dark:text-white placeholder-slate-400 font-medium"
+                        />
+                        <button
+                            type="submit"
+                            disabled={loading || !licenseKey}
+                            className="absolute right-2 top-2 bottom-2 px-6 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                        >
+                            {loading ? '...' : 'Redeem'}
+                        </button>
+                    </form>
+                </div>
                 {redeemStatus && (
-                    <div className={`mt-3 text-sm font-medium ${redeemStatus.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className={`mt-3 text-center text-sm font-bold ${redeemStatus.type === 'success' ? 'text-emerald-500' : 'text-red-500'}`}>
                         {redeemStatus.message}
                     </div>
                 )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                {plans.map((plan) => {
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto px-4">
+                {plans.map((plan, index) => {
                     const isCurrent = currentTier === plan.id;
                     return (
-                        <div key={plan.id} className={`relative bg-white rounded-2xl shadow-lg overflow-hidden border-2 flex flex-col ${isCurrent ? 'border-primary-500 ring-2 ring-primary-100' : 'border-slate-100'}`}>
+                        <div
+                            key={plan.id}
+                            className={`relative bg-white dark:bg-slate-900 rounded-3xl overflow-hidden transition-all duration-300 flex flex-col group hover:-translate-y-2
+                            ${isCurrent ? 'ring-2 ring-primary-500 shadow-xl shadow-primary-500/10 scale-[1.02] z-10' : 'border border-slate-200 dark:border-slate-800 shadow-lg hover:shadow-xl'}
+                            ${plan.recommended && !isCurrent ? 'border-primary-200 dark:border-primary-900 shadow-lg shadow-primary-500/5' : ''}
+                            `}
+                            style={{ animationDelay: `${index * 100}ms` }}
+                        >
                             {plan.recommended && (
-                                <div className="absolute top-0 right-0 bg-primary-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
-                                    RECOMMENDED
-                                </div>
+                                <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-primary-400 to-primary-600"></div>
                             )}
-                            <div className="p-6 text-center border-b border-slate-100">
-                                <h3 className="text-xl font-bold text-slate-800">{plan.name}</h3>
-                                <p className="text-3xl font-bold text-slate-900 mt-4">{plan.price}</p>
-                                <button
-                                    onClick={() => !isCurrent && handleUpgrade(plan.id)}
-                                    disabled={loading || isCurrent}
-                                    className={`mt-6 w-full py-2 px-4 rounded-lg font-semibold transition-colors ${
-                                        isCurrent 
-                                        ? 'bg-green-100 text-green-700 cursor-default' 
-                                        : 'bg-primary-500 text-white hover:bg-primary-600'
-                                    }`}
-                                >
-                                    {isCurrent ? 'Current Plan' : 'Select Plan'}
-                                </button>
+
+                            <div className="p-8 pb-0">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h3 className="text-xl font-bold text-slate-800 dark:text-white">{plan.name}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 h-10">{plan.description}</p>
+                                    </div>
+                                    {plan.recommended && (
+                                        <span className="bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full border border-primary-100 dark:border-primary-800">
+                                            Recommended
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex items-baseline gap-1 mt-6">
+                                    <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">{plan.price}</span>
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium">/month</span>
+                                </div>
                             </div>
-                            <div className="p-6 flex-1 bg-slate-50">
+
+                            <div className="p-8 flex-1">
+                                <hr className="border-slate-100 dark:border-slate-800 mb-8" />
                                 <ul className="space-y-4">
                                     {plan.features.map((feature, idx) => (
-                                        <li key={idx} className="flex items-center">
-                                            <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mr-3 ${feature.included ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-400'}`}>
+                                        <li key={idx} className="flex items-start">
+                                            <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mr-3 mt-0.5 ${feature.included ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-300 dark:bg-slate-800 dark:text-slate-600'}`}>
                                                 {feature.included ? <CheckIcon className="w-3 h-3" /> : <CrossIcon className="w-3 h-3" />}
                                             </div>
-                                            <span className={`text-sm ${feature.included ? 'text-slate-700 font-medium' : 'text-slate-400'}`}>{feature.name}</span>
+                                            <span className={`text-sm ${feature.included ? 'text-slate-700 dark:text-slate-300 font-medium' : 'text-slate-400 dark:text-slate-600'}`}>
+                                                {feature.name}
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>
+                            </div>
+
+                            <div className="p-8 pt-0 mt-auto">
+                                <button
+                                    onClick={() => !isCurrent && handleUpgrade(plan.id)}
+                                    disabled={loading || isCurrent}
+                                    className={`w-full py-4 rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] ${isCurrent
+                                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400 cursor-default shadow-none hover:shadow-none hover:scale-100'
+                                        : plan.recommended
+                                            ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-primary-500/25'
+                                            : 'bg-slate-800 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-900 dark:hover:bg-slate-100'
+                                        }`}
+                                >
+                                    {isCurrent ? 'Current Plan' : `Upgrade to ${plan.name}`}
+                                </button>
                             </div>
                         </div>
                     );
                 })}
             </div>
-            
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-6 max-w-4xl mx-auto flex items-start gap-4">
-                <div className="bg-white p-2 rounded-full shadow-sm text-blue-500">
-                    <CrownIcon className="w-6 h-6" />
-                </div>
-                <div>
-                    <h4 className="text-lg font-semibold text-blue-900">Need a Custom Enterprise Solution?</h4>
-                    <p className="text-blue-700 mt-1">For large organizations with multiple branches and over 50 technicians, contact our sales team for a custom quote and dedicated account manager.</p>
+
+            <div className="max-w-4xl mx-auto mt-16 px-4">
+                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border border-indigo-100 dark:border-indigo-800 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+                    <div className="bg-white dark:bg-indigo-900 p-4 rounded-2xl shadow-lg shadow-indigo-200/50 dark:shadow-none text-indigo-600 dark:text-indigo-400 transform -rotate-3">
+                        <CrownIcon className="w-8 h-8" />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="text-xl font-bold text-indigo-900 dark:text-white">Need a Custom Enterprise Solution?</h4>
+                        <p className="text-indigo-700 dark:text-indigo-300 mt-2 text-sm leading-relaxed">
+                            For large organizations with multiple branches and over 50 technicians, we offer custom deployment, dedicated support, and volume pricing.
+                        </p>
+                    </div>
+                    <button className="whitespace-nowrap px-6 py-3 bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all text-sm">
+                        Contact Sales
+                    </button>
                 </div>
             </div>
         </div>
     );
 };
-
 export default SubscriptionPage;

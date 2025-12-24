@@ -2,33 +2,18 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { DashboardSummary, Visit, Technician, JobCardStatus } from '../types';
 import { api } from '../services/api';
-import { ProjectIcon, UsersIcon, BoxIcon, CurrencyRupeeIcon, TrophyIcon, DocumentTextIcon } from '../components/icons';
+import { ProjectIcon, UsersIcon, BoxIcon, CurrencyRupeeIcon, TrophyIcon, DocumentTextIcon, ChevronRightIcon } from '../components/icons';
+import Skeleton from '../components/Skeleton';
 
-const cardColors = {
-    red: 'bg-card-red',
-    teal: 'bg-card-teal',
-    orange: 'bg-card-orange',
-    purple: 'bg-card-purple',
-    blue: 'bg-card-blue',
-};
+import StatsCard from '../components/StatsCard';
 
-const DashboardCard: React.FC<{ title: string; value: number | string; icon: React.ReactNode; color: keyof typeof cardColors }> = ({ title, value, icon, color }) => (
-    <div className={`${cardColors[color]} text-white p-5 rounded-xl shadow-md flex items-center space-x-4 relative overflow-hidden`}>
-        <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-white bg-opacity-10 rounded-full"></div>
-        <div className="flex-shrink-0 w-14 h-14 flex items-center justify-center bg-white bg-opacity-20 rounded-lg">
-            <div className="text-white w-8 h-8">{icon}</div>
+const SectionContainer: React.FC<{ title: string; children: React.ReactNode; action?: React.ReactNode }> = ({ title, children, action }) => (
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
+        <div className="px-6 py-5 border-b border-slate-50 dark:border-white/5 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-800 dark:text-white text-lg">{title}</h3>
+            {action}
         </div>
-        <div className="relative z-10">
-            <p className="text-3xl font-bold">{value}</p>
-            <p className="text-sm font-medium opacity-90">{title}</p>
-        </div>
-    </div>
-);
-
-const ChartCard: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-6 h-full flex flex-col">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">{title}</h3>
-        <div className="flex-grow flex items-center justify-center">
+        <div className="p-6 flex-grow flex flex-col justify-center">
             {children}
         </div>
     </div>
@@ -36,8 +21,8 @@ const ChartCard: React.FC<{ title: string, children: React.ReactNode }> = ({ tit
 
 const PieChart: React.FC<{ data: { label: string; value: number; color: string }[] }> = ({ data }) => {
     const total = data.reduce((acc, item) => acc + item.value, 0);
-    if (total === 0) return <div className="text-slate-500">No data available</div>;
-    
+    if (total === 0) return <div className="text-center text-slate-400 py-10 font-medium">No projects found.</div>;
+
     let cumulative = 0;
     const segments = data.map(item => {
         const percentage = item.value / total;
@@ -59,18 +44,38 @@ const PieChart: React.FC<{ data: { label: string; value: number; color: string }
     };
 
     return (
-        <div className="w-full flex flex-col md:flex-row items-center justify-around">
-            <svg viewBox="0 0 100 100" className="w-40 h-40">
+        <div className="flex flex-col md:flex-row items-center justify-around w-full" role="graphics-document" aria-label="Pie chart showing project status distribution">
+            <div className="relative w-48 h-48 drop-shadow-xl filter">
+                <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+                    {segments.map(s => (
+                        <path
+                            key={s.label}
+                            d={getArcPath(s.startAngle, s.endAngle)}
+                            fill={s.color}
+                            stroke="white"
+                            strokeWidth="2"
+                            className="transition-all duration-300 hover:opacity-80 cursor-pointer"
+                            aria-label={`${s.label}: ${s.value} projects`}
+                        >
+                            <title>{`${s.label}: ${s.value} projects`}</title>
+                        </path>
+                    ))}
+                    <circle cx="50" cy="50" r="20" fill="white" />
+                </svg>
+                {/* Center Total */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold text-slate-700">{total}</span>
+                </div>
+            </div>
+
+            <div className="mt-8 md:mt-0 md:ml-6 space-y-3 w-full md:w-auto">
                 {segments.map(s => (
-                    <path key={s.label} d={getArcPath(s.startAngle, s.endAngle)} fill={s.color} />
-                ))}
-            </svg>
-            <div className="mt-4 md:mt-0 md:ml-6 space-y-2">
-                {segments.map(s => (
-                    <div key={s.label} className="flex items-center text-sm">
-                        <span className="w-3 h-3 rounded-sm mr-2" style={{ backgroundColor: s.color }}></span>
-                        <span className="font-medium text-slate-700 capitalize">{s.label.replace('_', ' ')}:</span>
-                        <span className="ml-1 text-slate-500">{s.value} ({(s.percentage * 100).toFixed(0)}%)</span>
+                    <div key={s.label} className="flex items-center justify-between group cursor-default">
+                        <div className="flex items-center">
+                            <span className="w-3 h-3 rounded-full shadow-sm mr-3 transition-transform group-hover:scale-125" style={{ backgroundColor: s.color }}></span>
+                            <span className="text-sm font-medium text-slate-600 capitalize mr-4">{s.label.replace('_', ' ')}</span>
+                        </div>
+                        <span className="text-sm font-bold text-slate-800">{s.value}</span>
                     </div>
                 ))}
             </div>
@@ -81,15 +86,27 @@ const PieChart: React.FC<{ data: { label: string; value: number; color: string }
 const BarChart: React.FC<{ data: { label: string, value: number }[] }> = ({ data }) => {
     const maxValue = Math.max(...data.map(d => d.value), 1);
     return (
-        <div className="w-full h-64 flex items-end justify-around gap-2 px-4 pt-4 border-t border-slate-200">
-            {data.map(item => (
-                <div key={item.label} className="flex-1 flex flex-col items-center justify-end">
-                    <div 
-                        className="w-full bg-primary-400 hover:bg-primary-500 rounded-t-md"
-                        style={{ height: `${(item.value / maxValue) * 100}%` }}
-                        title={`${item.label}: ${item.value} projects`}
-                    ></div>
-                    <span className="text-xs font-medium text-slate-500 mt-1">{item.label}</span>
+        <div className="w-full h-64 flex items-end justify-between gap-4 px-2 pt-8" role="graphics-document" aria-label="Bar chart showing monthly project completions">
+            {data.map((item, idx) => (
+                <div key={item.label} className="flex-1 flex flex-col items-center justify-end group">
+                    <div className="relative w-full flex justify-center">
+                        {/* Bar */}
+                        <div
+                            className={`
+                                w-full max-w-[40px] rounded-t-lg transition-all duration-500 ease-out group-hover:opacity-90 relative
+                                ${idx === 5 ? 'bg-primary-500 shadow-lg shadow-primary-500/30' : 'bg-slate-200 group-hover:bg-primary-300'}
+                            `}
+                            style={{ height: `${(item.value / maxValue) * 100}%` }}
+                            role="graphics-symbol"
+                            aria-label={`${item.label}: ${item.value} completed projects`}
+                        >
+                            {/* Tooltip */}
+                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10" role="tooltip">
+                                {item.value} Projects
+                            </div>
+                        </div>
+                    </div>
+                    <span className={`text-[10px] md:text-xs font-semibold mt-3 ${idx === 5 ? 'text-primary-600' : 'text-slate-400'}`}>{item.label}</span>
                 </div>
             ))}
         </div>
@@ -99,7 +116,7 @@ const BarChart: React.FC<{ data: { label: string, value: number }[] }> = ({ data
 const statusColors: Record<JobCardStatus, string> = {
     scheduled: '#60a5fa', // blue-400
     in_progress: '#f97316', // orange-500
-    completed: '#22c55e', // green-500
+    completed: '#10b981', // green-500 - Updated to emerald/teal shade
     cancelled: '#ef4444' // red-500
 };
 
@@ -112,10 +129,14 @@ const DashboardPage: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Determine simulation delay to show off skeleton loader (remove in production if desired)
+                const delay = new Promise(resolve => setTimeout(resolve, 800));
+
                 const [summaryData, visitsData, techniciansData] = await Promise.all([
                     api.getDashboardSummary(),
                     api.getVisits(),
                     api.getTechnicians(),
+                    delay
                 ]);
                 setSummary(summaryData);
                 setVisits(visitsData);
@@ -134,7 +155,7 @@ const DashboardPage: React.FC = () => {
             acc[visit.status] = (acc[visit.status] || 0) + 1;
             return acc;
         }, {} as Record<JobCardStatus, number>);
-        
+
         return (Object.keys(counts) as JobCardStatus[]).map(status => ({
             label: status,
             value: counts[status],
@@ -162,11 +183,11 @@ const DashboardPage: React.FC = () => {
                 monthMap.set(monthKey, (monthMap.get(monthKey) || 0) + 1);
             }
         });
-        
+
         return Array.from(monthMap, ([label, value]) => ({ label, value }));
     }, [visits]);
-    
-    // FIX: Refactored to use a Map for better type safety with numeric keys, resolving the arithmetic operation type error during sorting.
+
+    // Tech performance with strict number key typing for Map
     const technicianPerformance = useMemo(() => {
         const performance = new Map<number, number>();
         visits
@@ -175,7 +196,7 @@ const DashboardPage: React.FC = () => {
             .forEach(techId => {
                 performance.set(techId, (performance.get(techId) || 0) + 1);
             });
-            
+
         return Array.from(performance.entries())
             .map(([techId, count]) => ({
                 id: techId,
@@ -188,83 +209,149 @@ const DashboardPage: React.FC = () => {
 
 
     if (loading) {
-        return <div>Loading dashboard...</div>;
+        return (
+            <div className="space-y-8 animate-pulse">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <Skeleton width={200} height={40} className="mb-2" />
+                        <Skeleton width={300} height={20} />
+                    </div>
+                    <Skeleton width={150} height={50} variant="rectangular" />
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    {[1, 2, 3, 4].map(i => (
+                        <Skeleton key={i} height={160} variant="rectangular" className="rounded-2xl" />
+                    ))}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                    <div className="lg:col-span-2 h-80 bg-white rounded-2xl p-6 border border-slate-100">
+                        <Skeleton width={150} height={24} className="mb-8" />
+                        <div className="flex justify-center items-center h-full">
+                            <Skeleton variant="circular" width={160} height={160} />
+                        </div>
+                    </div>
+                    <div className="lg:col-span-3 h-80 bg-white rounded-2xl p-6 border border-slate-100">
+                        <Skeleton width={200} height={24} className="mb-8" />
+                        <div className="flex items-end justify-between h-48 gap-4">
+                            {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} width="100%" height={`${Math.random() * 80 + 20}%`} variant="rectangular" />)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-fade-in-up">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
-                <h2 className="text-3xl font-bold text-slate-800">Dashboard</h2>
-                <Link to="/projects" className="inline-flex items-center justify-center px-5 py-2 text-sm font-semibold text-white bg-primary-500 border border-transparent rounded-lg shadow-sm hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                    Create Project
+                <div>
+                    <h2 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Overview</h2>
+                    <p className="text-slate-500 dark:text-zinc-400 text-sm mt-1">Here's what's happening with your projects today.</p>
+                </div>
+
+                <Link to="/projects" className="inline-flex items-center justify-center px-5 py-2 text-sm font-semibold text-white bg-primary-500 border border-transparent rounded-lg shadow-sm hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
+                    <span className="flex items-center">
+                        Create Project <ChevronRightIcon className="ml-2 w-4 h-4" />
+                    </span>
                 </Link>
             </div>
-            
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                <DashboardCard title="Total Projects" value={summary?.projects || 0} icon={<ProjectIcon />} color="red" />
-                <DashboardCard title="Pending Invoices" value={summary?.pendingInvoicesCount || 0} icon={<DocumentTextIcon />} color="blue" />
-                <DashboardCard title="Pending Payments" value={`₹${(summary?.pendingPayments || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`} icon={<CurrencyRupeeIcon />} color="purple" />
-                <DashboardCard title="Technicians" value={summary?.technicians || 0} icon={<UsersIcon />} color="teal" />
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <StatsCard title="Total Projects" value={summary?.projects || 0} icon={<ProjectIcon />} gradient="red" />
+                <StatsCard title="Pending Invoices" value={summary?.pendingInvoicesCount || 0} icon={<DocumentTextIcon />} gradient="blue" />
+                <StatsCard title="Pending Payments" value={`₹${(summary?.pendingPayments || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`} icon={<CurrencyRupeeIcon />} gradient="purple" />
+                <StatsCard title="Technicians" value={summary?.technicians || 0} icon={<UsersIcon />} gradient="teal" />
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 <div className="lg:col-span-2">
-                    <ChartCard title="Project Status Overview">
+                    <SectionContainer title="Project Status">
                         <PieChart data={projectStatusData} />
-                    </ChartCard>
+                    </SectionContainer>
                 </div>
                 <div className="lg:col-span-3">
-                    <ChartCard title="Monthly Project Completions (Last 6 Months)">
+                    <SectionContainer title="Monthly Completions">
                         <BarChart data={monthlyCompletionsData} />
-                    </ChartCard>
+                    </SectionContainer>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                    <h3 className="p-6 text-lg font-semibold text-slate-800 border-b border-slate-200">Recent Activity</h3>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-slate-200">
-                            <thead className="bg-slate-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Project</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-slate-200">
-                                {visits.slice(0, 5).map(visit => (
-                                    <tr key={visit.id} className="hover:bg-slate-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{visit.projectName || `Project #${visit.id}`}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{new Date(visit.scheduledAt).toLocaleDateString()}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize`} style={{backgroundColor: `${statusColors[visit.status]}20`, color: statusColors[visit.status] }}>
-                                                {visit.status.replace('_', ' ')}
-                                            </span>
-                                        </td>
+                <div className="lg:col-span-2">
+                    <SectionContainer title="Recent Activity" action={<Link to="/projects" className="text-xs font-semibold text-primary-500 hover:text-primary-700 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-primary-500 rounded">View All</Link>}>
+                        <div className="overflow-x-auto -mx-6">
+                            <table className="min-w-full divide-y divide-slate-100" role="table" aria-label="Recent activity table">
+                                <thead className="bg-slate-50/50 dark:bg-white/5">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Project</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Date</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Status</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody className="bg-white dark:bg-transparent divide-y divide-slate-50 dark:divide-white/5">
+                                    {visits.slice(0, 5).map((visit, idx) => (
+                                        <tr key={visit.id} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors duration-150 group code-font-sm">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs mr-3">
+                                                        {visit.projectName ? visit.projectName.charAt(0).toUpperCase() : '#'}
+                                                    </div>
+                                                    <span className="text-sm font-semibold text-slate-700 dark:text-zinc-200 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                                        {visit.projectName || `Project #${visit.id}`}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-slate-500">{new Date(visit.scheduledAt).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span
+                                                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize shadow-sm"
+                                                    style={{
+                                                        backgroundColor: `${statusColors[visit.status] || '#94a3b8'}20`,
+                                                        color: statusColors[visit.status] || '#64748b'
+                                                    }}
+                                                >
+                                                    <span className="w-1.5 h-1.5 rounded-full mr-2" style={{ backgroundColor: statusColors[visit.status] || '#64748b' }}></span>
+                                                    {visit.status.replace('_', ' ')}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {visits.length === 0 && (
+                                        <tr>
+                                            <td colSpan={3} className="px-6 py-8 text-center text-slate-400 text-sm">No recent activity.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </SectionContainer>
                 </div>
-                <div className="lg:col-span-1 bg-white border border-slate-200 rounded-lg shadow-sm">
-                     <h3 className="p-6 text-lg font-semibold text-slate-800 border-b border-slate-200 flex items-center">
-                        <TrophyIcon className="w-6 h-6 mr-2 text-yellow-500"/>
-                        Top Technicians
-                     </h3>
-                     <div className="p-4 space-y-3">
-                        {technicianPerformance.map((tech, index) => (
-                            <div key={tech.id} className="flex items-center">
-                                <span className="text-lg font-bold text-slate-400 w-8">{index + 1}.</span>
-                                <div className="flex-grow">
-                                    <p className="font-semibold text-slate-700">{tech.name}</p>
-                                    <p className="text-sm text-slate-500">{tech.completed} Projects Completed</p>
+
+                <div className="lg:col-span-1">
+                    <SectionContainer title="Top Performers">
+                        <div className="space-y-4 mt-2">
+                            {technicianPerformance.map((tech, index) => (
+                                <div key={tech.id} className="flex items-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-200 border border-transparent hover:border-slate-100 dark:hover:border-white/5">
+                                    <div className={`
+                                        w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm mr-4 shadow-sm
+                                        ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                                            index === 1 ? 'bg-slate-200 text-slate-600' :
+                                                index === 2 ? 'bg-orange-100 text-orange-700' : 'bg-slate-50 text-slate-400'}
+                                    `}>
+                                        {index + 1}
+                                    </div>
+                                    <div className="flex-grow">
+                                        <p className="font-semibold text-slate-700 dark:text-zinc-200 text-sm">{tech.name}</p>
+                                        <p className="text-xs text-slate-400 dark:text-zinc-500 font-medium">{tech.completed} Projects</p>
+                                    </div>
+                                    {index === 0 && <TrophyIcon className="w-5 h-5 text-yellow-500 animate-pulse" />}
                                 </div>
-                            </div>
-                        ))}
-                        {technicianPerformance.length === 0 && <p className="text-center text-slate-500 py-4">No completed projects yet.</p>}
-                     </div>
+                            ))}
+                            {technicianPerformance.length === 0 && <p className="text-center text-slate-400 py-6 text-sm">No completed projects yet.</p>}
+                        </div>
+                    </SectionContainer>
                 </div>
             </div>
         </div>

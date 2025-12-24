@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import type { LicenseKey, SubscriptionTier } from '../types';
 import { ClipboardCopyIcon, KeyIcon } from '../components/icons';
+import CustomSelect from '../components/CustomSelect';
 
 const AdminLicensePage: React.FC = () => {
     const [keys, setKeys] = useState<LicenseKey[]>([]);
     const [loading, setLoading] = useState(true);
-    
+
     // Generation Form
     const [tier, setTier] = useState<SubscriptionTier>('professional');
     const [duration, setDuration] = useState<number>(365);
@@ -61,32 +62,34 @@ const AdminLicensePage: React.FC = () => {
                 </h3>
                 <form onSubmit={handleGenerate} className="flex flex-col md:flex-row items-end gap-4">
                     <div className="w-full md:w-1/3">
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Subscription Tier</label>
-                        <select 
-                            value={tier} 
-                            onChange={e => setTier(e.target.value as SubscriptionTier)}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
-                        >
-                            <option value="starter">Starter</option>
-                            <option value="professional">Professional</option>
-                            <option value="enterprise">Enterprise</option>
-                        </select>
+                        <CustomSelect
+                            label="Subscription Tier"
+                            options={[
+                                { value: 'starter', label: 'Starter' },
+                                { value: 'professional', label: 'Professional' },
+                                { value: 'enterprise', label: 'Enterprise' }
+                            ]}
+                            value={tier}
+                            onChange={(val) => setTier(val as SubscriptionTier)}
+                            placeholder="Select Tier"
+                        />
                     </div>
                     <div className="w-full md:w-1/3">
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Duration (Days)</label>
-                        <select 
-                            value={duration} 
-                            onChange={e => setDuration(parseInt(e.target.value))}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
-                        >
-                            <option value={30}>30 Days (Monthly)</option>
-                            <option value={90}>90 Days (Quarterly)</option>
-                            <option value={180}>180 Days (Half-Yearly)</option>
-                            <option value={365}>365 Days (Yearly)</option>
-                        </select>
+                        <CustomSelect
+                            label="Duration"
+                            options={[
+                                { value: '30', label: '30 Days (Monthly)' },
+                                { value: '90', label: '90 Days (Quarterly)' },
+                                { value: '180', label: '180 Days (Half-Yearly)' },
+                                { value: '365', label: '365 Days (Yearly)' }
+                            ]}
+                            value={duration.toString()}
+                            onChange={(val) => setDuration(parseInt(val))}
+                            placeholder="Select Duration"
+                        />
                     </div>
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         disabled={isGenerating}
                         className="w-full md:w-auto px-6 py-2 bg-primary-600 text-white font-semibold rounded-md hover:bg-primary-700 disabled:bg-primary-300"
                     >
@@ -117,11 +120,11 @@ const AdminLicensePage: React.FC = () => {
                                 <tr key={key.id} className="hover:bg-slate-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center space-x-2">
-                                            <span className="font-mono text-sm font-medium text-slate-900 bg-slate-100 px-2 py-1 rounded">
+                                            <span className="text-sm font-medium text-slate-900 bg-slate-100 px-2 py-1 rounded">
                                                 {key.key}
                                             </span>
-                                            <button 
-                                                onClick={() => copyToClipboard(key.key)} 
+                                            <button
+                                                onClick={() => copyToClipboard(key.key)}
                                                 className="text-slate-400 hover:text-primary-600"
                                                 title="Copy"
                                             >
@@ -133,10 +136,9 @@ const AdminLicensePage: React.FC = () => {
                                     <td className="px-6 py-4 whitespace-nowrap capitalize text-sm text-slate-700">{key.tier}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{key.durationDays} Days</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-1 text-xs rounded-full font-semibold capitalize ${
-                                            key.status === 'active' ? 'bg-green-100 text-green-800' : 
+                                        <span className={`px-2 py-1 text-xs rounded-full font-semibold capitalize ${key.status === 'active' ? 'bg-green-100 text-green-800' :
                                             key.status === 'used' ? 'bg-slate-100 text-slate-800' : 'bg-red-100 text-red-800'
-                                        }`}>
+                                            }`}>
                                             {key.status}
                                         </span>
                                     </td>

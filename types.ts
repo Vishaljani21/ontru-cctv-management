@@ -20,9 +20,9 @@ export interface JobCardItem {
 }
 
 export interface Chalan {
-    id: number;
-    chalanNo: string;
-    pdfPath: string;
+  id: number;
+  chalanNo: string;
+  pdfPath: string;
 }
 
 export interface WorkLogEntry {
@@ -60,6 +60,7 @@ export interface Technician {
   name: string;
   phone: string;
   specialization: string;
+  status: 'active' | 'inactive';
 }
 
 export interface Customer {
@@ -88,9 +89,9 @@ export interface GodownStock {
 }
 
 export interface InventorySerial {
-    serial: string;
-    productId: number;
-    status: 'in_stock' | 'allocated' | 'installed' | 'returned';
+  serial: string;
+  productId: number;
+  status: 'in_stock' | 'allocated' | 'installed' | 'returned';
 }
 
 export interface Brand {
@@ -99,47 +100,47 @@ export interface Brand {
 }
 
 export interface Product {
-    id: number;
-    brandId: number;
-    brandName: string;
-    model: string;
-    category: 'camera' | 'nvr' | 'cable' | 'other';
-    isSerialized: boolean;
-    lowStockThreshold: number;
-    hsnSacCode: string;
-    gstRate: 0 | 5 | 12 | 18 | 28;
+  id: number;
+  brandId: number;
+  brandName: string;
+  model: string;
+  category: 'camera' | 'nvr' | 'cable' | 'other';
+  isSerialized: boolean;
+  lowStockThreshold: number;
+  hsnSacCode: string;
+  gstRate: 0 | 5 | 12 | 18 | 28;
 }
 
 export interface StockSummary {
-    productId: number;
-    productName: string;
-    brandName: string;
-    category: string;
-    totalStock: number;
+  productId: number;
+  productName: string;
+  brandName: string;
+  category: string;
+  totalStock: number;
 }
 
 export interface LowStockProduct {
-    productId: number;
-    productName: string;
-    brandName: string;
-    totalStock: number;
-    lowStockThreshold: number;
+  productId: number;
+  productName: string;
+  brandName: string;
+  totalStock: number;
+  lowStockThreshold: number;
 }
 
 export type PaymentStatus = 'paid' | 'pending';
 
 export interface Payment {
-    id: number;
-    technicianName: string;
-    jobCardId: number;
-    amount: number;
-    status: PaymentStatus;
+  id: number;
+  technicianName: string;
+  jobCardId: number;
+  amount: number;
+  status: PaymentStatus;
 }
 
 export interface TechnicianDashboardSummary {
-    assignedVisits: number;
-    completedToday: number;
-    pendingPayments: number;
+  assignedVisits: number;
+  completedToday: number;
+  pendingPayments: number;
 }
 
 export interface SignaturePadRef {
@@ -246,22 +247,22 @@ export interface Invoice {
 export type SubscriptionTier = 'starter' | 'professional' | 'enterprise';
 
 export interface SubscriptionDetails {
-    tier: SubscriptionTier;
-    startDate: string;
-    expiryDate: string;
-    status: 'active' | 'expired' | 'trial';
+  tier: SubscriptionTier;
+  startDate: string;
+  expiryDate: string;
+  status: 'active' | 'expired' | 'trial';
 }
 
 export interface LicenseKey {
-    id: number;
-    key: string;
-    tier: SubscriptionTier;
-    durationDays: number;
-    status: 'active' | 'used' | 'revoked';
-    generatedBy: string; // Admin User Name
-    generatedAt: string;
-    usedBy?: string; // Dealer Company Name
-    usedAt?: string;
+  id: number;
+  key: string;
+  tier: SubscriptionTier;
+  durationDays: number;
+  status: 'active' | 'used' | 'revoked';
+  generatedBy: string; // Admin User Name
+  generatedAt: string;
+  usedBy?: string; // Dealer Company Name
+  usedAt?: string;
 }
 
 export interface DealerInfo {
@@ -277,6 +278,10 @@ export interface DealerInfo {
   email?: string;
   mobile?: string;
   ownerName?: string;
+  logoUrl?: string;
+  isBillingEnabled?: boolean;
+  isAmcEnabled?: boolean;
+  isHrEnabled?: boolean;
 }
 
 export interface SalaryDetails {

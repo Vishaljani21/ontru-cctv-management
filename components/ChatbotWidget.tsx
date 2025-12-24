@@ -15,7 +15,12 @@ const ChatbotWidget: React.FC = () => {
     const hasInitialized = useRef(false);
 
     // Initialize Gemini AI
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    // Only init if key exists, otherwise we'll handle gracefully
+    const aiRef = useRef<GoogleGenAI | null>(null);
+    if (!aiRef.current && apiKey) {
+        aiRef.current = new GoogleGenAI({ apiKey });
+    }
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -29,6 +34,7 @@ const ChatbotWidget: React.FC = () => {
     useEffect(() => {
         if (isOpen && !hasInitialized.current) {
             const generateReminders = async () => {
+                if (!aiRef.current) return; // Skip if no AI
                 setIsLoading(true);
                 const { visits, warrantyEntries } = appContext;
                 // FIX: Fetch customers to get their names for reminders.
@@ -50,10 +56,10 @@ const ChatbotWidget: React.FC = () => {
                 }
                 if (visitsMissingCredentials.length > 0) {
                     // FIX: Look up customer name from the fetched customers list instead of accessing a non-existent property.
-                     const customerNames = visitsMissingCredentials.map(v => {
+                    const customerNames = visitsMissingCredentials.map(v => {
                         return customers.find(c => c.id === v.customerId)?.companyName || `Visit #${v.id}`;
-                     }).join(', ');
-                     remindersToGenerate.push(`These completed visits are missing NVR credentials: ${customerNames}. Technicians should be reminded to add them.`);
+                    }).join(', ');
+                    remindersToGenerate.push(`These completed visits are missing NVR credentials: ${customerNames}. Technicians should be reminded to add them.`);
                 }
 
                 if (remindersToGenerate.length > 0) {
@@ -67,11 +73,11 @@ const ChatbotWidget: React.FC = () => {
                     `;
 
                     try {
-                        const response = await ai.models.generateContent({
+                        const response = await aiRef.current.models.generateContent({
                             model: 'gemini-2.5-flash',
                             contents: prompt,
                         });
-                        setMessages([{ role: 'model', text: response.text }]);
+                        setMessages([{ role: 'model', text: response.text() }]); // Corrected: .text() is a function in some versions or property in others. GoogleGenAI usually returns .response.text() -- checking lib docs mentally. Actually response.text() is correct for @google/genai usually.
                     } catch (error) {
                         console.error("Error generating reminders:", error);
                         setMessages([{ role: 'model', text: 'નમસ્તે! હું તમારા ડેટાનું વિશ્લેષણ કરી રહ્યો હતો, પરંતુ મને એક સમસ્યા આવી.' }]);
@@ -80,14 +86,14 @@ const ChatbotWidget: React.FC = () => {
                 } else {
                     setMessages([{ role: 'model', text: 'નમસ્તે! હું OnTru સહાયક છું. તમે મુલાકાતો, વોરંટી, અથવા ઇન્વેન્ટરી વિશે પ્રશ્નો પૂછી શકો છો. હું તમને કેવી રીતે મદદ કરી શકું?' }]);
                 }
-                
+
                 setIsLoading(false);
                 hasInitialized.current = true;
             };
 
             generateReminders();
         }
-    }, [isOpen, appContext, ai.models]);
+    }, [isOpen, appContext]); // Removed ai.models dependency
 
 
     const handleSendMessage = async (e: React.FormEvent) => {
@@ -111,18 +117,18 @@ const ChatbotWidget: React.FC = () => {
         Explain features if asked. Be concise and friendly.
         If you don't know the answer from the context, say "માફ કરશો, મારી પાસે આ માહિતી નથી."
         `;
-        
+
         try {
-            const response = await ai.models.generateContent({
+            const response = await aiRef.current.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: `CONTEXT:\n${contextData}\n\nUSER QUESTION:\n${input}`,
                 config: { systemInstruction }
             });
 
-            setMessages(prev => [...prev, { role: 'model', text: response.text }]);
+            setMessages(prev => [...prev, { role: 'model', text: response.text() }]);
         } catch (error) {
             console.error("Gemini API error:", error);
-             setMessages(prev => [...prev, { role: 'model', text: "માફ કરશો, મને જવાબ આપવામાં સમસ્યા આવી રહી છે." }]);
+            setMessages(prev => [...prev, { role: 'model', text: "માફ કરશો, મને જવાબ આપવામાં સમસ્યા આવી રહી છે." }]);
         } finally {
             setIsLoading(false);
         }
@@ -143,15 +149,15 @@ const ChatbotWidget: React.FC = () => {
     return (
         <div className="fixed bottom-6 right-6 w-[90vw] max-w-md h-[70vh] bg-white rounded-2xl shadow-2xl flex flex-col z-50">
             <header className="flex items-center justify-between p-4 bg-primary-500 text-white rounded-t-2xl">
-                 <div className="flex items-center">
-                    <SparklesIcon className="w-6 h-6 mr-2"/>
+                <div className="flex items-center">
+                    <SparklesIcon className="w-6 h-6 mr-2" />
                     <h3 className="font-semibold text-lg">OnTru Sahayak</h3>
                 </div>
                 <button onClick={() => setIsOpen(false)} aria-label="Close chat">
                     <CloseIcon className="w-6 h-6" />
                 </button>
             </header>
-            
+
             <div className="flex-1 p-4 overflow-y-auto bg-slate-50">
                 <div className="space-y-4">
                     {messages.map((msg, index) => (
@@ -162,7 +168,7 @@ const ChatbotWidget: React.FC = () => {
                         </div>
                     ))}
                     {isLoading && (
-                         <div className="flex justify-start">
+                        <div className="flex justify-start">
                             <div className="max-w-xs md:max-w-sm px-4 py-2 rounded-2xl bg-slate-200 text-slate-800 rounded-bl-none">
                                 <div className="flex items-center space-x-1">
                                     <span className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></span>

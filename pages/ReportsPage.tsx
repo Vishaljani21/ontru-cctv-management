@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../services/api';
 import type { Invoice, Visit, Technician, StockSummary, AMC } from '../types';
 import { DownloadIcon, CurrencyRupeeIcon, DocumentTextIcon, CheckCircleIcon, UsersIcon, InventoryIcon, AMCIcon } from '../components/icons';
+import CustomDatePicker from '../components/CustomDatePicker';
 
 const ReportCard: React.FC<{ title: string; value: string | number; color?: string }> = ({ title, value, color = 'bg-white' }) => (
     <div className={`${color} border border-slate-200 rounded-lg p-4 shadow-sm`}>
@@ -82,7 +83,7 @@ const ReportsPage: React.FC = () => {
         const completed = filteredVisits.filter(v => v.status === 'completed').length;
         const scheduled = filteredVisits.filter(v => v.status === 'scheduled').length;
         const total = filteredVisits.length;
-        
+
         const techPerformance = technicians.map(t => {
             const jobs = filteredVisits.filter(v => v.technicianIds.includes(t.id));
             const completedJobs = jobs.filter(v => v.status === 'completed').length;
@@ -148,21 +149,25 @@ const ReportsPage: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2 bg-white p-1 rounded-md border border-slate-300">
                         <span className="text-sm text-slate-500 pl-2">From</span>
-                        <input 
-                            type="date" 
-                            value={startDate} 
-                            onChange={e => setStartDate(e.target.value)}
-                            className="text-sm border-none focus:ring-0 text-slate-700"
-                        />
+                        <div className="w-36">
+                            <CustomDatePicker
+                                selected={startDate ? new Date(startDate) : null}
+                                onChange={(d) => setStartDate(d ? d.toISOString().split('T')[0] : '')}
+                                placeholder="Start Date"
+                                className="border-none shadow-none"
+                            />
+                        </div>
                         <span className="text-sm text-slate-500">To</span>
-                        <input 
-                            type="date" 
-                            value={endDate} 
-                            onChange={e => setEndDate(e.target.value)}
-                            className="text-sm border-none focus:ring-0 text-slate-700"
-                        />
+                        <div className="w-36">
+                            <CustomDatePicker
+                                selected={endDate ? new Date(endDate) : null}
+                                onChange={(d) => setEndDate(d ? d.toISOString().split('T')[0] : '')}
+                                placeholder="End Date"
+                                className="border-none shadow-none"
+                            />
+                        </div>
                     </div>
-                    <button 
+                    <button
                         onClick={handleExport}
                         className="inline-flex items-center px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-md hover:bg-slate-900"
                     >
@@ -184,7 +189,7 @@ const ReportsPage: React.FC = () => {
                     <button onClick={() => setActiveTab('inventory')} className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'inventory' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>
                         <InventoryIcon className="w-4 h-4 mr-2" /> Inventory
                     </button>
-                     <button onClick={() => setActiveTab('amc')} className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'amc' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>
+                    <button onClick={() => setActiveTab('amc')} className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'amc' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>
                         <AMCIcon className="w-4 h-4 mr-2" /> AMC Expiry
                     </button>
                 </nav>
@@ -214,7 +219,7 @@ const ReportsPage: React.FC = () => {
                                 {filteredInvoices.map(inv => (
                                     <tr key={inv.id}>
                                         <td className="px-6 py-4 text-sm text-slate-500">{new Date(inv.date).toLocaleDateString()}</td>
-                                        <td className="px-6 py-4 text-sm font-mono text-primary-600">{inv.invoiceNo}</td>
+                                        <td className="px-6 py-4 text-sm text-primary-600">{inv.invoiceNo}</td>
                                         <td className="px-6 py-4 text-sm text-slate-900">{inv.customer.companyName}</td>
                                         <td className="px-6 py-4 text-sm font-semibold text-slate-900">₹{inv.grandTotal.toLocaleString('en-IN')}</td>
                                         <td className="px-6 py-4 text-sm">
@@ -237,7 +242,7 @@ const ReportsPage: React.FC = () => {
                         <ReportCard title="Projects Scheduled" value={operationsData.scheduled} color="bg-blue-50" />
                         <ReportCard title="Total Visits" value={operationsData.total} color="bg-slate-50" />
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                             <h3 className="p-4 bg-slate-50 font-semibold text-slate-700 border-b">Technician Performance</h3>
@@ -260,9 +265,9 @@ const ReportsPage: React.FC = () => {
                                 </tbody>
                             </table>
                         </div>
-                         <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                             <h3 className="p-4 bg-slate-50 font-semibold text-slate-700 border-b">Recent Completed Projects</h3>
-                             <ul className="divide-y divide-slate-200">
+                            <ul className="divide-y divide-slate-200">
                                 {filteredVisits.filter(v => v.status === 'completed').slice(0, 5).map(visit => (
                                     <li key={visit.id} className="p-4 flex items-center justify-between">
                                         <div>
@@ -275,7 +280,7 @@ const ReportsPage: React.FC = () => {
                                 {filteredVisits.filter(v => v.status === 'completed').length === 0 && (
                                     <li className="p-4 text-center text-sm text-slate-500">No completed projects in this period.</li>
                                 )}
-                             </ul>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -284,7 +289,7 @@ const ReportsPage: React.FC = () => {
             {/* Inventory Tab */}
             {activeTab === 'inventory' && (
                 <div className="space-y-6">
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <ReportCard title="Total Stock Items" value={inventoryData.totalItems} color="bg-blue-50" />
                         <ReportCard title="Low Stock Alerts" value={inventoryData.lowStockCount} color="bg-orange-50" />
                     </div>
@@ -318,7 +323,7 @@ const ReportsPage: React.FC = () => {
 
             {/* AMC Tab */}
             {activeTab === 'amc' && (
-                 <div className="space-y-6">
+                <div className="space-y-6">
                     <p className="text-sm text-slate-500">Showing AMCs expiring between {startDate} and {endDate}</p>
                     <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                         <table className="min-w-full divide-y divide-slate-200">
@@ -345,7 +350,7 @@ const ReportsPage: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                 </div>
+                </div>
             )}
         </div>
     );

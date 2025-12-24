@@ -74,6 +74,10 @@ const transformDealerInfo = (row: any): DealerInfo => ({
     accountNo: row.account_no || '',
     ifscCode: row.ifsc_code || '',
     qrCodeUrl: row.qr_code_url,
+    logoUrl: row.logo_url,
+    isBillingEnabled: row.is_billing_enabled,
+    isAmcEnabled: row.is_amc_enabled,
+    isHrEnabled: row.is_hr_enabled,
     subscription: {
         tier: row.subscription_tier || 'starter',
         startDate: row.subscription_start_date || new Date().toISOString(),
@@ -337,8 +341,66 @@ export const api = {
             id: row.id,
             name: row.name,
             phone: row.phone || '',
-            specialization: row.specialization || ''
+            specialization: row.specialization || '',
+            status: row.status || 'active'
         }));
+    },
+
+    addTechnician: async (technicianData: Omit<Technician, 'id'>): Promise<Technician> => {
+        const userId = await getCurrentUserId();
+
+        const { data, error } = await supabase
+            .from('technicians')
+            .insert({
+                user_id: userId,
+                name: technicianData.name,
+                phone: technicianData.phone,
+                specialization: technicianData.specialization
+                // status: 'active' - Removed to prevent schema mismatch error
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return {
+            id: data.id,
+            name: data.name,
+            phone: data.phone || '',
+            specialization: data.specialization || '',
+            status: data.status || 'active'
+        };
+    },
+
+    updateTechnician: async (id: number, updates: Partial<Technician>): Promise<Technician> => {
+        const { data, error } = await supabase
+            .from('technicians')
+            .update({
+                name: updates.name,
+                phone: updates.phone,
+                specialization: updates.specialization,
+                status: updates.status
+            })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return {
+            id: data.id,
+            name: data.name,
+            phone: data.phone || '',
+            specialization: data.specialization || '',
+            status: data.status || 'active'
+        };
+    },
+
+    deleteTechnician: async (id: number): Promise<void> => {
+        const { error } = await supabase
+            .from('technicians')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
     },
 
     // ==========================================
@@ -384,6 +446,15 @@ export const api = {
         return { id: data.id, name: data.name };
     },
 
+    deleteBrand: async (id: number): Promise<void> => {
+        const { error } = await supabase
+            .from('brands')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
     // ==========================================
     // PRODUCTS
     // ==========================================
@@ -399,7 +470,7 @@ export const api = {
         return (data || []).map(transformProduct);
     },
 
-    addProduct: async (productData: Omit<Product, 'id' | 'brandName'>): Promise<Product> => {
+    addProduct: async (productData: Omit<Product, 'id' | 'brandName'>, initialStock: number = 0): Promise<Product> => {
         const userId = await getCurrentUserId();
 
         const { data, error } = await supabase
@@ -418,10 +489,34 @@ export const api = {
             .single();
 
         if (error) throw error;
+
+        // Handle Initial Stock
+        if (initialStock > 0) {
+            // Get or Create Default Godown
+            const { data: godowns } = await supabase.from('godowns').select('id').eq('user_id', userId).limit(1);
+            let godownId;
+
+            if (godowns && godowns.length > 0) {
+                godownId = godowns[0].id;
+            } else {
+                // Create default godown
+                const { data: newGodown } = await supabase.from('godowns').insert({ user_id: userId, name: 'Main Godown', location: 'Office' }).select().single();
+                godownId = newGodown?.id;
+            }
+
+            if (godownId) {
+                await supabase.from('godown_stock').insert({
+                    godown_id: godownId,
+                    product_id: data.id,
+                    quantity: initialStock
+                });
+            }
+        }
+
         return transformProduct(data);
     },
 
-    updateProduct: async (productData: Omit<Product, 'brandName'>): Promise<Product> => {
+    updateProduct: async (productData: Omit<Product, 'brandName'>, newStock?: number): Promise<Product> => {
         const { data, error } = await supabase
             .from('products')
             .update({
@@ -438,6 +533,35 @@ export const api = {
             .single();
 
         if (error) throw error;
+
+        // Update Stock if provided
+        if (typeof newStock === 'number') {
+            const userId = await getCurrentUserId();
+            // Find stock entry to update (assuming first/default godown for simplicity of this feature)
+            const { data: godowns } = await supabase.from('godowns').select('id').eq('user_id', userId).limit(1);
+            const godownId = godowns?.[0]?.id;
+
+            if (godownId) {
+                // Check if entry exists
+                const { data: stockEntry } = await supabase
+                    .from('godown_stock')
+                    .select('id')
+                    .eq('godown_id', godownId)
+                    .eq('product_id', productData.id)
+                    .maybeSingle();
+
+                if (stockEntry) {
+                    await supabase.from('godown_stock').update({ quantity: newStock }).eq('id', stockEntry.id);
+                } else {
+                    await supabase.from('godown_stock').insert({
+                        godown_id: godownId,
+                        product_id: productData.id,
+                        quantity: newStock
+                    });
+                }
+            }
+        }
+
         return transformProduct(data);
     },
 
@@ -541,7 +665,7 @@ export const api = {
         return (data || []).map(p => ({
             productId: p.id,
             productName: p.model,
-            brandName: p.brands?.name || 'Unknown',
+            brandName: (Array.isArray(p.brands) ? p.brands[0] : p.brands)?.name || 'Unknown',
             category: p.category,
             totalStock: (p.godown_stock || []).reduce((sum: number, s: any) => sum + (s.quantity || 0), 0)
         }));
@@ -1284,9 +1408,12 @@ export const api = {
             .from('dealer_info')
             .select('*')
             .eq('user_id', userId)
-            .single();
+            .maybeSingle();
 
-        if (error) {
+        if (error) throw error;
+
+        if (!data) {
+            // Return default if not found
             // Return default if not found
             return {
                 companyName: 'My Company',
@@ -1299,6 +1426,7 @@ export const api = {
                 bankName: '',
                 accountNo: '',
                 ifscCode: '',
+                logoUrl: '',
                 subscription: {
                     tier: 'starter',
                     startDate: new Date().toISOString(),
@@ -1329,16 +1457,40 @@ export const api = {
                 account_no: newInfo.accountNo,
                 ifsc_code: newInfo.ifscCode,
                 qr_code_url: newInfo.qrCodeUrl,
+                logo_url: newInfo.logoUrl,
+                is_billing_enabled: newInfo.isBillingEnabled,
+                is_amc_enabled: newInfo.isAmcEnabled,
+                is_hr_enabled: newInfo.isHrEnabled,
                 subscription_tier: newInfo.subscription.tier,
                 subscription_start_date: newInfo.subscription.startDate,
                 subscription_expiry_date: newInfo.subscription.expiryDate,
                 subscription_status: newInfo.subscription.status
-            })
+            }, { onConflict: 'user_id' })
             .select()
             .single();
 
         if (error) throw error;
         return transformDealerInfo(data);
+    },
+
+    uploadDealerLogo: async (file: File): Promise<string> => {
+        const userId = await getCurrentUserId();
+        const fileExt = file.name.split('.').pop();
+        // Use timestamp to avoid cache issues and ensure uniqueness
+        const fileName = `${userId}-${Date.now()}-logo.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('dealer-logos')
+            .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('dealer-logos')
+            .getPublicUrl(filePath);
+
+        return publicUrl;
     },
 
     updateSubscription: async (tier: SubscriptionTier): Promise<DealerInfo> => {

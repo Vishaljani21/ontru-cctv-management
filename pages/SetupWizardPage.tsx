@@ -8,7 +8,7 @@ import { OnTruFullLogo } from '../components/icons';
 const SetupWizardPage: React.FC = () => {
     const authContext = useContext(AuthContext);
     const navigate = useNavigate();
-    
+
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -17,7 +17,7 @@ const SetupWizardPage: React.FC = () => {
     const [companyName, setCompanyName] = useState('');
     const [address, setAddress] = useState('');
     const [gstin, setGstin] = useState('');
-    
+
     // Derived from auth context, but editable
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
@@ -34,23 +34,46 @@ const SetupWizardPage: React.FC = () => {
 
     const handleComplete = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!authContext?.user) return;
+        console.log("handleComplete called");
+        if (!authContext?.user) {
+            console.error("No user in authContext");
+            return;
+        }
 
         setIsLoading(true);
+
+        // Timeout safety
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Request timed out - Server not responding")), 10000)
+        );
+
         try {
-            await api.completeSetup(authContext.user.id, {
-                name,
-                companyName,
-                address,
-                gstin,
-                email,
-                mobile
-            });
-            // Force user refresh in context logic or simple reload for mock simplicity
-             window.location.href = '/dashboard'; 
-        } catch (error) {
-            console.error(error);
-            alert("Failed to save setup data.");
+            console.log("Calling api.completeSetup with user:", authContext.user.id);
+
+            // Race between API call and timeout
+            const updatedUser = await Promise.race([
+                api.completeSetup(authContext.user.id, {
+                    name,
+                    companyName,
+                    address,
+                    gstin,
+                    email,
+                    mobile
+                }),
+                timeoutPromise
+            ]);
+
+            console.log("Setup complete. API returned:", updatedUser);
+
+            // Update context AND localStorage via the new method
+            console.log("Updating AuthContext...");
+            authContext.updateUser(updatedUser);
+
+            console.log("Redirecting to dashboard...");
+            window.location.href = '/dashboard';
+        } catch (error: any) {
+            console.error("Setup failed:", error);
+            alert(`Setup Failed: ${error.message || error}. Please try again.`);
             setIsLoading(false);
         }
     };
@@ -70,7 +93,7 @@ const SetupWizardPage: React.FC = () => {
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
                     <form className="space-y-6" onSubmit={handleComplete}>
-                        
+
                         <div>
                             <label className="block text-sm font-medium text-slate-700">Your Full Name</label>
                             <input type="text" required value={name} onChange={e => setName(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
@@ -109,7 +132,7 @@ const SetupWizardPage: React.FC = () => {
                         </div>
                     </form>
                 </div>
-                
+
                 <p className="mt-6 text-center text-xs text-slate-500">
                     By completing this setup, you agree to our Terms of Service and Privacy Policy.
                     Dealer and Engineer portals will be automatically configured.

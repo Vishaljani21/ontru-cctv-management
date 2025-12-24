@@ -4,6 +4,7 @@ import type { WarrantyEntry, WarrantyStatus } from '../types';
 import { api } from '../services/api';
 import { AppContext, AppContextType } from '../App';
 import WarrantyEntryModal from '../components/WarrantyEntryModal';
+import CustomSelect from '../components/CustomSelect';
 
 const warrantyStatuses: WarrantyStatus[] = [
     'Awaiting Pickup', 'Received at Office', 'Sent to Service', 'Under Repair', 'Repaired', 'Replaced', 'Rejected', 'Returned to Customer'
@@ -79,22 +80,23 @@ const WarrantyPage: React.FC = () => {
                     className="inline-flex items-center justify-center px-5 py-2 text-sm font-semibold text-white bg-primary-500 border border-transparent rounded-lg shadow-sm hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                     Add New Entry
-                    <kbd className="ml-2 bg-primary-700 border border-primary-600 border-b-2 rounded px-1.5 py-0.5 text-xs font-mono">F2</kbd>
+                    <kbd className="ml-2 bg-primary-700 border border-primary-600 border-b-2 rounded px-1.5 py-0.5 text-xs">F2</kbd>
                 </button>
             </div>
 
             <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                 <div className="p-4 border-b">
-                    <label htmlFor="status-filter" className="block text-sm font-medium text-slate-700">Filter by status:</label>
-                    <select 
-                        id="status-filter"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as WarrantyStatus | 'all')}
-                        className="mt-1 block w-full md:w-1/3 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
-                    >
-                        <option value="all">All Statuses</option>
-                        {warrantyStatuses.map(status => <option key={status} value={status}>{status}</option>)}
-                    </select>
+                    <div className="w-full md:w-64">
+                        <CustomSelect
+                            options={[
+                                { value: 'all', label: 'All Statuses' },
+                                ...warrantyStatuses.map(status => ({ value: status, label: status }))
+                            ]}
+                            value={statusFilter}
+                            onChange={(val) => setStatusFilter(val as WarrantyStatus | 'all')}
+                            placeholder="Filter by Status"
+                        />
+                    </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-slate-200">
@@ -113,7 +115,7 @@ const WarrantyPage: React.FC = () => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-slate-900">{entry.customerName}</div>
                                         <div className="text-sm text-slate-500">{entry.productName}</div>
-                                        <div className="text-xs font-mono text-slate-500">{entry.serialNumber}</div>
+                                        <div className="text-xs text-slate-500">{entry.serialNumber}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-normal text-sm text-slate-500 max-w-xs">{entry.issue}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{new Date(entry.pickupDate).toLocaleDateString()}</td>

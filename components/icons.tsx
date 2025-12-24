@@ -2,18 +2,18 @@
 // FIX: Create all SVG icon components
 import React from 'react';
 
-export const OnTruFullLogo: React.FC = () => (
-    <svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <text x="10" y="28" fontFamily="Arial, sans-serif" fontSize="24" fontWeight="bold" fill="#0EA5E9">
+export const OnTruFullLogo: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <text x="10" y="28" fontFamily="sans-serif" fontSize="24" fontWeight="bold" fill="#0EA5E9">
             OnTru
         </text>
     </svg>
 );
 
-export const OnTruLogo: React.FC = () => (
-     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="40" height="40" rx="8" fill="#0EA5E9"/>
-        <text x="20" y="28" fontFamily="Arial, sans-serif" fontSize="20" fontWeight="bold" fill="white" textAnchor="middle">
+export const OnTruLogo: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" rx="8" fill="#0EA5E9" />
+        <text x="20" y="28" fontFamily="sans-serif" fontSize="20" fontWeight="bold" fill="white" textAnchor="middle">
             O
         </text>
     </svg>
@@ -25,9 +25,10 @@ const IconWrapper: React.FC<{ children: React.ReactNode, className?: string }> =
     </svg>
 );
 
-export const ProjectIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M4 7v10c0 1.105.895 2 2 2h12c1.105 0 2-.895 2-2V7M9 21v-2a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M9 3v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V3"></path></IconWrapper>;
+export const ProjectIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"></path></IconWrapper>;
 export const UsersIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2m8-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path></IconWrapper>;
 export const BoxIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"></path></IconWrapper>;
+export const PlusIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M12 5v14M5 12h14"></path></IconWrapper>;
 export const CurrencyRupeeIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M15 8.04H9.5a3.5 3.5 0 1 0 0 7h8m-8 0H9.5A3.5 3.5 0 1 1 6 11.54M8 4h8m-8 16h8"></path></IconWrapper>;
 export const TrophyIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M12 8V4m0 4c4 0 6 2 6 6v2H6v-2c0-4 2-6 6-6zM6 18h12"></path></IconWrapper>;
 export const DocumentTextIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"></path></IconWrapper>;
@@ -46,16 +47,16 @@ export const VisitsIcon: React.FC<{ className?: string }> = ({ className }) => <
 export const CheckCircleIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></IconWrapper>;
 export const DashboardIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></IconWrapper>;
 export const InventoryIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></IconWrapper>;
-export const GodownIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15.5" x2="9" y2="7"></line></IconWrapper>;
+export const GodownIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"></path></IconWrapper>;
 export const ProductIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18m-9 6a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path></IconWrapper>;
 export const CustomersIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2m8-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path></IconWrapper>;
-export const TechniciansIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M16 17l-4-4-4 4m8-6l-4-4-4 4m-2 7h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z"></path></IconWrapper>;
+export const TechniciansIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z"></path></IconWrapper>;
 export const PaymentsIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M15 8.04H9.5a3.5 3.5 0 1 0 0 7h8m-8 0H9.5A3.5 3.5 0 1 1 6 11.54M8 4h8m-8 16h8"></path></IconWrapper>;
 export const SiteHealthIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></IconWrapper>;
-export const AMCIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"></path></IconWrapper>;
+export const AMCIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path></IconWrapper>;
 export const WarrantyIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M9 12.75L11.25 15L15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path></IconWrapper>;
 export const SettingsIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></IconWrapper>;
-export const BillingIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M17 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2m8-6h8m0 0-4-4m4 4-4 4m-8-12v4"></path></IconWrapper>;
+export const BillingIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></IconWrapper>;
 export const PayrollIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></IconWrapper>;
 export const AttendanceIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></IconWrapper>;
 export const ChecklistIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2m-4-3v6m-3-3h6"></path></IconWrapper>;
@@ -66,3 +67,12 @@ export const ReportIcon: React.FC<{ className?: string }> = ({ className }) => <
 export const CrownIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></IconWrapper>;
 export const CheckIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M5 13l4 4L19 7"></path></IconWrapper>;
 export const CrossIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M6 18L18 6M6 6l12 12"></path></IconWrapper>;
+export const EyeIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></IconWrapper>;
+export const EyeSlashIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></IconWrapper>;
+export const EnvelopeIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></IconWrapper>;
+export const PhoneIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></IconWrapper>;
+export const UserIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></IconWrapper>;
+export const ChevronRightIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><polyline points="9 18 15 12 9 6"></polyline></IconWrapper>;
+export const SunIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></IconWrapper>;
+export const MoonIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></IconWrapper>;
+export const MenuIcon: React.FC<{ className?: string }> = ({ className }) => <IconWrapper className={className}><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></IconWrapper>;
