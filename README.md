@@ -1,20 +1,64 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Ontru CCTV Project Management System
 
-# Run and deploy your AI Studio app
+A comprehensive web application for managing CCTV installations, technicians, inventory, and customer relationships. Built for dealers and service providers in the surveillance industry.
 
-This contains everything you need to run your app locally.
+## 🚀 Features
+- **Project Management**: Track installation visits, job status, and technician assignments.
+- **Inventory Management**: Manage stock across multiple godowns (warehouses), track serialized items.
+- **Technician Portal**: Dedicated interface for technicians to view schedules and log work.
+- **Billing & Invoicing**: Generate GST-compliant invoices and track payments.
+- **AMC Tracking**: Monitor Annual Maintenance Contracts and renewals.
+- **Reporting**: Visual dashboards for business health and performance.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1OO3CXAPTBbKZYi_pNvT-V7ChsWCFtuHv
+## 🛠️ Tech Stack
+- **Frontend**: React 19, Vite, TailwindCSS
+- **Backend & Database**: Supabase (PostgreSQL 15), Supabase Auth
+- **Infrastructure**: Docker, Nginx, Hostinger VPS (Ubuntu)
 
-## Run Locally
+## 🏃‍♂️ Run Locally
 
-**Prerequisites:**  Node.js
+### Prerequisites
+- Node.js & npm
+- Docker & Docker Compose (for local Supabase)
+- Supabase CLI (optional but recommended)
 
+### Setup
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/visha/ontru-cctv-management.git
+   cd ontru-cctv-management
+   ```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**
+   Copy the example environment file:
+   ```bash
+   cp .env.example .env.local
+   ```
+   *Note: For local development using a remote Supabase instance, fill in your `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.*
+
+4. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+
+## 🚢 Deployment (Hostinger VPS)
+
+This project is configured for automated deployment to a Hostinger VPS via GitHub Actions.
+
+### Quick Start
+1. **Connect to VPS** and clone the repo.
+2. **Run the deployment script**:
+   ```bash
+   ./deploy/deploy.sh yourdomain.com
+   ```
+3. **Configure CI/CD**: Add `HOST`, `USERNAME`, and `SSH_KEY` to GitHub Repository Secrets.
+
+For detailed instructions, see [deployment_guide.md](deployment_guide.md).
+
+## 📄 License
+Private - Proprietary Software.
