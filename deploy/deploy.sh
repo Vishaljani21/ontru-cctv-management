@@ -57,6 +57,24 @@ echo -e "${GREEN}  Mode: $([ "$IS_UPDATE" = true ] && echo "Update" || echo "Ini
 echo -e "${GREEN}========================================${NC}"
 
 # ==========================================
+# PRE-FLIGHT CHECKS & CLEANUP
+# ==========================================
+
+# Stop conflicting web servers (Port 80/443 collision)
+echo -e "${YELLOW}Checking for conflicting web servers...${NC}"
+if systemctl is-active --quiet apache2; then
+    echo -e "${YELLOW}Stopping Apache2 to free up port 80...${NC}"
+    sudo systemctl stop apache2
+    sudo systemctl disable apache2
+fi
+
+if systemctl is-active --quiet nginx; then
+    echo -e "${YELLOW}Stopping local Nginx to free up port 80 (we use Docker Nginx)...${NC}"
+    sudo systemctl stop nginx
+    sudo systemctl disable nginx
+fi
+
+# ==========================================
 # SYSTEM DEPENDENCIES (Skip on Update)
 # ==========================================
 if [ "$IS_UPDATE" = false ]; then
