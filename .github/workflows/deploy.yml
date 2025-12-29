@@ -16,6 +16,8 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           port: 22
+          command_timeout: 30m
+          debug: true
           script: |
             export DOMAIN="${{ secrets.DOMAIN }}"
             export REPO="https://github.com/${{ github.repository }}.git"
