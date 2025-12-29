@@ -218,20 +218,21 @@ if [ "$IS_UPDATE" = false ] && [ ! -d "deploy/ssl/live/$DOMAIN" ]; then
     echo -e "${YELLOW}Setting up SSL certificate...${NC}"
     mkdir -p deploy/ssl
 
-    # Start services temporarily for certbot
-    docker-compose -f docker-compose.prod.yml up -d nginx
+    # Ensure no containers are running (free up port 80)
+    docker-compose -f docker-compose.prod.yml down
 
-    # Get SSL certificate
-    docker run --rm -v $(pwd)/deploy/ssl:/etc/letsencrypt -v $(pwd)/deploy/certbot:/var/www/certbot certbot/certbot certonly \
-        --webroot --webroot-path=/var/www/certbot \
+    # Get SSL certificate using Standalone mode
+    # This spins up a temporary server on port 80, avoiding Nginx "chicken-and-egg" (SSL config) issues
+    echo -e "${YELLOW}Running Certbot in standalone mode...${NC}"
+    docker run --rm -p 80:80 \
+        -v $(pwd)/deploy/ssl:/etc/letsencrypt \
+        certbot/certbot certonly \
+        --standalone \
         --email admin@$DOMAIN \
         --agree-tos \
         --no-eff-email \
         --non-interactive \
         -d $DOMAIN
-
-    # Stop nginx temporarily
-    docker-compose -f docker-compose.prod.yml down
 fi
 
 # ==========================================
