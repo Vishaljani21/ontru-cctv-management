@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import BarcodeScanner from './BarcodeScanner';
 import { CameraIcon, CrossIcon } from './icons';
 import CustomSelect from './CustomSelect';
+import Modal from './Modal';
 
 const ManageItemsModal: React.FC<{
   visit: Visit;
@@ -112,19 +113,19 @@ const ManageItemsModal: React.FC<{
     onClose();
   }
 
+
+
   return (
     <>
       {isScannerOpen && <BarcodeScanner onScanSuccess={handleScanSuccess} onClose={() => setIsScannerOpen(false)} />}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-300" onClick={onClose} />
-        <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-5 animate-fade-in-up border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 shrink-0">
-            <h3 className="text-xl font-bold font-heading text-slate-800 dark:text-white">Manage Items</h3>
-            <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-              <CrossIcon className="w-5 h-5" />
-            </button>
-          </div>
 
+      <Modal
+        isOpen={true}
+        onClose={onClose}
+        title="Manage Items"
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-5">
           <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0">
             <button
               onClick={() => setAddMode('product')}
@@ -140,7 +141,7 @@ const ManageItemsModal: React.FC<{
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar px-1">
+          <div className="flex-1 overflow-y-auto custom-scrollbar px-1 max-h-[60vh]">
             {addMode === 'product' ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -228,7 +229,7 @@ const ManageItemsModal: React.FC<{
             <button onClick={handleSave} className="px-5 py-2.5 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-500/30 transition-all active:scale-95">Save Changes</button>
           </div>
         </div>
-      </div>
+      </Modal>
     </>
   );
 };

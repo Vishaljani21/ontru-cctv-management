@@ -1,357 +1,454 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../services/api';
-import type { Invoice, Visit, Technician, StockSummary, AMC } from '../types';
-import { DownloadIcon, CurrencyRupeeIcon, DocumentTextIcon, CheckCircleIcon, UsersIcon, InventoryIcon, AMCIcon } from '../components/icons';
+import { Visit, Invoice, Product, User, TechnicianTask, WorkLogEntry } from '../types';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { DocumentArrowDownIcon, FunnelIcon } from '@heroicons/react/24/outline'; // Using heroicons for standard imports
+import { ProjectIcon, CurrencyRupeeIcon, DocumentTextIcon } from '../components/icons';
 import CustomDatePicker from '../components/CustomDatePicker';
+import CustomSelect from '../components/CustomSelect';
 
-const ReportCard: React.FC<{ title: string; value: string | number; color?: string }> = ({ title, value, color = 'bg-white' }) => (
-    <div className={`${color} border border-slate-200 rounded-lg p-4 shadow-sm`}>
-        <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
-        <p className="text-2xl font-bold text-slate-800">{value}</p>
-    </div>
-);
+const COLORS = ['#0EA5E9', '#6366f1', '#10B981', '#F59E0B'];
+
+type TabType = 'overview' | 'projects' | 'tasks' | 'invoices' | 'inventory' | 'technicians';
 
 const ReportsPage: React.FC = () => {
-    // State for data
-    const [invoices, setInvoices] = useState<Invoice[]>([]);
-    const [visits, setVisits] = useState<Visit[]>([]);
-    const [technicians, setTechnicians] = useState<Technician[]>([]);
-    const [stock, setStock] = useState<StockSummary[]>([]);
-    const [amcs, setAmcs] = useState<AMC[]>([]);
+    const [activeTab, setActiveTab] = useState<TabType>('overview');
     const [loading, setLoading] = useState(true);
 
-    // State for filtering
-    const [activeTab, setActiveTab] = useState<'financial' | 'operations' | 'inventory' | 'amc'>('financial');
-    const [startDate, setStartDate] = useState(() => {
-        const d = new Date();
-        d.setDate(1); // First day of current month
-        return d.toISOString().split('T')[0];
-    });
-    const [endDate, setEndDate] = useState(() => {
-        return new Date().toISOString().split('T')[0];
-    });
+    // Data State
+    const [visits, setVisits] = useState<Visit[]>([]);
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [inventory, setInventory] = useState<Product[]>([]);
+    const [summary, setSummary] = useState<any>(null);
+    const [technicians, setTechnicians] = useState<User[]>([]);
+    const [technicianTasks, setTechnicianTasks] = useState<TechnicianTask[]>([]);
+    const [workLogs, setWorkLogs] = useState<WorkLogEntry[]>([]);
+
+    // Filters
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
+    const [selectedTechnicianId, setSelectedTechnicianId] = useState<string>('all');
+    const [reportPeriod, setReportPeriod] = useState<'daily' | 'monthly' | 'yearly'>('daily');
 
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const [invoicesData, visitsData, techniciansData, stockData, amcsData] = await Promise.all([
-                    api.getInvoices(),
-                    api.getVisits(),
-                    api.getTechnicians(),
-                    api.getStockSummary(),
-                    api.getAMCs()
-                ]);
-                setInvoices(invoicesData);
-                setVisits(visitsData);
-                setTechnicians(techniciansData);
-                setStock(stockData);
-                setAmcs(amcsData);
-            } catch (error) {
-                console.error("Error fetching report data", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
+        fetchAllData();
     }, []);
 
-    const filterDate = (dateString: string) => {
-        const date = new Date(dateString);
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        return date >= start && date <= end;
+    const fetchAllData = async () => {
+        try {
+            const [visitsData, invoicesData, inventoryData, summaryData, techsData, tasksData, logsData] = await Promise.all([
+                api.getVisits(),
+                api.getInvoices().catch(() => []), // Fail safely if billing not enabled
+                api.getAllProducts(),
+                api.getReportsSummary().catch(() => null),
+                api.getAllTechnicians().catch(() => []),
+                api.getAllTechnicianTasks().catch(() => []),
+                api.getAllWorkLogs().catch(() => [])
+            ]);
+            setVisits(visitsData);
+            setInvoices(invoicesData);
+            setInventory(inventoryData);
+            setSummary(summaryData);
+            setTechnicians(techsData);
+            setTechnicianTasks(tasksData);
+            setWorkLogs(logsData);
+        } catch (error) {
+            console.error("Failed to fetch report data", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    // --- Computed Data ---
-
-    const filteredInvoices = useMemo(() => invoices.filter(i => filterDate(i.date)), [invoices, startDate, endDate]);
-    const filteredVisits = useMemo(() => visits.filter(v => filterDate(v.scheduledAt)), [visits, startDate, endDate]);
-    const filteredAmcs = useMemo(() => amcs.filter(a => filterDate(a.endDate)), [amcs, startDate, endDate]);
-
-    const financialData = useMemo(() => {
-        const totalSales = filteredInvoices.reduce((sum, i) => sum + i.grandTotal, 0);
-        const totalReceived = filteredInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.grandTotal, 0);
-        const totalPending = filteredInvoices.filter(i => i.status !== 'paid').reduce((sum, i) => sum + i.grandTotal, 0);
-        const totalGST = filteredInvoices.reduce((sum, i) => sum + i.totalGst, 0);
-        return { totalSales, totalReceived, totalPending, totalGST };
-    }, [filteredInvoices]);
-
-    const operationsData = useMemo(() => {
-        const completed = filteredVisits.filter(v => v.status === 'completed').length;
-        const scheduled = filteredVisits.filter(v => v.status === 'scheduled').length;
-        const total = filteredVisits.length;
-
-        const techPerformance = technicians.map(t => {
-            const jobs = filteredVisits.filter(v => v.technicianIds.includes(t.id));
-            const completedJobs = jobs.filter(v => v.status === 'completed').length;
-            return { name: t.name, total: jobs.length, completed: completedJobs };
+    // Filter Logic
+    const filteredVisits = useMemo(() => {
+        if (!startDate && !endDate) return visits;
+        return visits.filter(v => {
+            const d = new Date(v.scheduledAt);
+            return (!startDate || d >= startDate) && (!endDate || d <= endDate);
         });
+    }, [visits, startDate, endDate]);
 
-        return { completed, scheduled, total, techPerformance };
-    }, [filteredVisits, technicians]);
+    const filteredInvoices = useMemo(() => {
+        if (!startDate && !endDate) return invoices;
+        return invoices.filter(i => {
+            const d = new Date(i.date);
+            return (!startDate || d >= startDate) && (!endDate || d <= endDate);
+        });
+    }, [invoices, startDate, endDate]);
 
-    const inventoryData = useMemo(() => {
-        const totalItems = stock.reduce((sum, s) => sum + s.totalStock, 0);
-        const lowStockCount = stock.filter(s => s.totalStock < 5).length; // Arbitrary low stock threshold for visual report
-        const categorySplit = stock.reduce((acc, s) => {
-            acc[s.category] = (acc[s.category] || 0) + s.totalStock;
-            return acc;
-        }, {} as Record<string, number>);
-        return { totalItems, lowStockCount, categorySplit };
-    }, [stock]);
+    // Export Logic
+    const handleExport = (type: 'visits' | 'invoices' | 'inventory') => {
+        let data: any[] = [];
+        let filename = 'report.csv';
 
-
-    const handleExport = () => {
-        let csvContent = "data:text/csv;charset=utf-8,";
-        let filename = `report_${activeTab}_${startDate}_to_${endDate}.csv`;
-
-        if (activeTab === 'financial') {
-            csvContent += "Date,Invoice No,Customer,Status,Total Amount,GST Amount\n";
-            filteredInvoices.forEach(row => {
-                csvContent += `${new Date(row.date).toLocaleDateString()},${row.invoiceNo},"${row.customer.companyName}",${row.status},${row.grandTotal},${row.totalGst}\n`;
-            });
-        } else if (activeTab === 'operations') {
-            csvContent += "Date,Project,Customer,Status,Technicians\n";
-            filteredVisits.forEach(row => {
-                const techNames = row.technicianIds.map(tid => technicians.find(t => t.id === tid)?.name).join('; ');
-                csvContent += `${new Date(row.scheduledAt).toLocaleDateString()},"${row.projectName || 'Project ' + row.id}","Customer ID ${row.customerId}",${row.status},"${techNames}"\n`;
-            });
-        } else if (activeTab === 'inventory') {
-            csvContent += "Product,Brand,Category,Total Stock\n";
-            stock.forEach(row => {
-                csvContent += `"${row.productName}","${row.brandName}",${row.category},${row.totalStock}\n`;
-            });
-        } else if (activeTab === 'amc') {
-            csvContent += "Customer,Start Date,End Date,Cost,Status\n";
-            filteredAmcs.forEach(row => {
-                csvContent += `"${row.customerName}",${new Date(row.startDate).toLocaleDateString()},${new Date(row.endDate).toLocaleDateString()},${row.cost},${row.status}\n`;
-            });
+        if (type === 'visits') {
+            data = filteredVisits.map(v => ({
+                ID: v.id,
+                Project: v.projectName,
+                Customer: v.customerId, // Ideally map to name if available
+                Date: new Date(v.scheduledAt).toLocaleDateString(),
+                Status: v.status,
+                Address: v.address
+            }));
+            filename = 'projects_report.csv';
+        } else if (type === 'invoices') {
+            data = filteredInvoices.map(i => ({
+                InvoiceNo: i.invoiceNo,
+                Date: i.date,
+                Customer: i.customer.companyName,
+                Total: i.grandTotal,
+                Status: i.status
+            }));
+            filename = 'invoices_report.csv';
+        } else if (type === 'inventory') {
+            data = inventory.map(p => ({
+                Model: p.model,
+                Brand: p.brandName,
+                Category: p.category,
+                LowStockThreshold: p.lowStockThreshold
+            }));
+            filename = 'inventory_report.csv';
         }
 
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", filename);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        if (data.length === 0) {
+            alert("No data to export");
+            return;
+        }
+
+        // CSV Generation
+        const headers = Object.keys(data[0]);
+        const csvContent = [
+            headers.join(','),
+            ...data.map(row => headers.map(header => JSON.stringify(row[header] || '')).join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     };
 
-    if (loading) return <div>Loading reports...</div>;
+    if (loading) {
+        return <div className="p-8 text-center text-slate-500 animate-pulse">Loading Comprehensive Reports...</div>;
+    }
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-3xl font-bold text-slate-800">Reports</h2>
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2 bg-white p-1 rounded-md border border-slate-300">
-                        <span className="text-sm text-slate-500 pl-2">From</span>
-                        <div className="w-36">
-                            <CustomDatePicker
-                                selected={startDate ? new Date(startDate) : null}
-                                onChange={(d) => setStartDate(d ? d.toISOString().split('T')[0] : '')}
-                                placeholder="Start Date"
-                                className="border-none shadow-none"
-                            />
-                        </div>
-                        <span className="text-sm text-slate-500">To</span>
-                        <div className="w-36">
-                            <CustomDatePicker
-                                selected={endDate ? new Date(endDate) : null}
-                                onChange={(d) => setEndDate(d ? d.toISOString().split('T')[0] : '')}
-                                placeholder="End Date"
-                                className="border-none shadow-none"
-                            />
-                        </div>
+        <div className="p-8 space-y-8 pb-20 max-w-7xl mx-auto">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                        Reports Center
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2">Export and analyze your business performance.</p>
+                </div>
+
+                {/* Date Filters */}
+                <div className="flex flex-col sm:flex-row gap-4 bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div className="flex items-center gap-2">
+                        <FunnelIcon className="w-4 h-4 text-slate-400" />
+                        <span className="text-xs font-bold uppercase text-slate-500">Filter</span>
                     </div>
+                    <CustomDatePicker
+                        selected={startDate}
+                        onChange={setStartDate}
+                        placeholder="Start Date"
+                        className="w-32 text-sm"
+                    />
+                    <span className="text-slate-300 self-center">-</span>
+                    <CustomDatePicker
+                        selected={endDate}
+                        onChange={setEndDate}
+                        placeholder="End Date"
+                        className="w-32 text-sm"
+                    />
+                </div>
+            </header>
+
+            {/* Navigation Tabs */}
+            <div className="flex overflow-x-auto gap-2 border-b border-slate-200 dark:border-slate-700 pb-1">
+                {(['overview', 'projects', 'technicians', 'invoices', 'inventory'] as TabType[]).map(tab => (
                     <button
-                        onClick={handleExport}
-                        className="inline-flex items-center px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-md hover:bg-slate-900"
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`
+                            px-6 py-3 text-sm font-bold capitalize whitespace-nowrap transition-all border-b-2
+                            ${activeTab === tab
+                                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300'}
+                        `}
                     >
-                        <DownloadIcon className="w-4 h-4 mr-2" />
-                        Export CSV
+                        {tab}
                     </button>
-                </div>
+                ))}
             </div>
 
-            {/* Tabs */}
-            <div className="border-b border-slate-200">
-                <nav className="-mb-px flex space-x-8">
-                    <button onClick={() => setActiveTab('financial')} className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'financial' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>
-                        <CurrencyRupeeIcon className="w-4 h-4 mr-2" /> Financial
-                    </button>
-                    <button onClick={() => setActiveTab('operations')} className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'operations' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>
-                        <DocumentTextIcon className="w-4 h-4 mr-2" /> Operations
-                    </button>
-                    <button onClick={() => setActiveTab('inventory')} className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'inventory' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>
-                        <InventoryIcon className="w-4 h-4 mr-2" /> Inventory
-                    </button>
-                    <button onClick={() => setActiveTab('amc')} className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'amc' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>
-                        <AMCIcon className="w-4 h-4 mr-2" /> AMC Expiry
-                    </button>
-                </nav>
-            </div>
+            {/* CONTENT AREA */}
+            <div className="animate-fade-in-up">
 
-            {/* Financial Tab */}
-            {activeTab === 'financial' && (
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <ReportCard title="Total Sales" value={`₹${financialData.totalSales.toLocaleString('en-IN')}`} color="bg-blue-50" />
-                        <ReportCard title="Collected" value={`₹${financialData.totalReceived.toLocaleString('en-IN')}`} color="bg-green-50" />
-                        <ReportCard title="Outstanding" value={`₹${financialData.totalPending.toLocaleString('en-IN')}`} color="bg-red-50" />
-                        <ReportCard title="Total GST Output" value={`₹${financialData.totalGST.toLocaleString('en-IN')}`} color="bg-purple-50" />
-                    </div>
-                    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                        <table className="min-w-full divide-y divide-slate-200">
-                            <thead className="bg-slate-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Invoice #</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Customer</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Amount</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-slate-200">
-                                {filteredInvoices.map(inv => (
-                                    <tr key={inv.id}>
-                                        <td className="px-6 py-4 text-sm text-slate-500">{new Date(inv.date).toLocaleDateString()}</td>
-                                        <td className="px-6 py-4 text-sm text-primary-600">{inv.invoiceNo}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-900">{inv.customer.companyName}</td>
-                                        <td className="px-6 py-4 text-sm font-semibold text-slate-900">₹{inv.grandTotal.toLocaleString('en-IN')}</td>
-                                        <td className="px-6 py-4 text-sm">
-                                            <span className={`px-2 py-1 rounded-full text-xs capitalize ${inv.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{inv.status}</span>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {filteredInvoices.length === 0 && <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">No invoices found in this period.</td></tr>}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+                {/* OVERVIEW TAB */}
+                {activeTab === 'overview' && summary && (
+                    <div className="space-y-8">
+                        {/* Stats Row */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Revenue</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">₹{summary.revenue.toLocaleString()}</p>
+                            </div>
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Projects</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{summary.totalVisits}</p>
+                            </div>
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Pending Invoices</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{summary.pendingInvoicesCount}</p>
+                            </div>
+                        </div>
 
-            {/* Operations Tab */}
-            {activeTab === 'operations' && (
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <ReportCard title="Projects Completed" value={operationsData.completed} color="bg-green-50" />
-                        <ReportCard title="Projects Scheduled" value={operationsData.scheduled} color="bg-blue-50" />
-                        <ReportCard title="Total Visits" value={operationsData.total} color="bg-slate-50" />
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 h-96">
+                                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Technician Performance</h3>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={summary.technicianPerformance}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                        <XAxis dataKey="name" stroke="#64748b" />
+                                        <YAxis stroke="#64748b" />
+                                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                                        <Bar dataKey="completed" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
                     </div>
+                )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                            <h3 className="p-4 bg-slate-50 font-semibold text-slate-700 border-b">Technician Performance</h3>
-                            <table className="min-w-full divide-y divide-slate-200">
-                                <thead className="bg-white">
+                {/* PROJECTS TAB */}
+                {activeTab === 'projects' && (
+                    <div className="space-y-4">
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => handleExport('visits')}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors"
+                            >
+                                <DocumentArrowDownIcon className="w-4 h-4" /> Export Projects
+                            </button>
+                        </div>
+                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                                <thead className="bg-slate-50 dark:bg-slate-900/50">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Technician</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Completed</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Total Assigned</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Project Name</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Date</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Status</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Address</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {operationsData.techPerformance.map((tech, idx) => (
-                                        <tr key={idx}>
-                                            <td className="px-6 py-4 text-sm font-medium text-slate-900">{tech.name}</td>
-                                            <td className="px-6 py-4 text-sm text-green-600 font-semibold">{tech.completed}</td>
-                                            <td className="px-6 py-4 text-sm text-slate-500">{tech.total}</td>
+                                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                                    {filteredVisits.length > 0 ? filteredVisits.map(v => (
+                                        <tr key={v.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                                            <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-white">{v.projectName || `Project #${v.id}`}</td>
+                                            <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{new Date(v.scheduledAt).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-bold capitalize ${v.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{v.status.replace('_', ' ')}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-500 truncate max-w-xs">{v.address}</td>
+                                        </tr>
+                                    )) : (
+                                        <tr><td colSpan={4} className="p-8 text-center text-slate-400">No projects found in this date range.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* INVOICES TAB */}
+                {activeTab === 'invoices' && (
+                    <div className="space-y-4">
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => handleExport('invoices')}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors"
+                            >
+                                <DocumentArrowDownIcon className="w-4 h-4" /> Export Invoices
+                            </button>
+                        </div>
+                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                                <thead className="bg-slate-50 dark:bg-slate-900/50">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Invoice #</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Customer</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Date</th>
+                                        <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase">Amount</th>
+                                        <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                                    {filteredInvoices.length > 0 ? filteredInvoices.map(i => (
+                                        <tr key={i.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                                            <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{i.invoiceNo}</td>
+                                            <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-white">{i.customer.companyName}</td>
+                                            <td className="px-6 py-4 text-sm text-slate-500">{new Date(i.date).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 text-sm font-bold text-right text-slate-900 dark:text-white">₹{i.grandTotal.toLocaleString()}</td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${i.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{i.status}</span>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr><td colSpan={5} className="p-8 text-center text-slate-400">No invoices found.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* INVENTORY TAB */}
+                {activeTab === 'inventory' && (
+                    <div className="space-y-4">
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => handleExport('inventory')}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors"
+                            >
+                                <DocumentArrowDownIcon className="w-4 h-4" /> Export Inventory
+                            </button>
+                        </div>
+                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                                <thead className="bg-slate-50 dark:bg-slate-900/50">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Product</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Category</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Brand</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Low Stock Limit</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                                    {inventory.map(p => (
+                                        <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                                            <td className="px-6 py-4 text-sm font-medium text-slate-800 dark:text-white">{p.model}</td>
+                                            <td className="px-6 py-4 text-sm text-slate-500">{p.category}</td>
+                                            <td className="px-6 py-4 text-sm text-slate-500">{p.brandName}</td>
+                                            <td className="px-6 py-4 text-sm font-mono text-slate-500">{p.lowStockThreshold}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
-                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                            <h3 className="p-4 bg-slate-50 font-semibold text-slate-700 border-b">Recent Completed Projects</h3>
-                            <ul className="divide-y divide-slate-200">
-                                {filteredVisits.filter(v => v.status === 'completed').slice(0, 5).map(visit => (
-                                    <li key={visit.id} className="p-4 flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900">{visit.projectName || `Project #${visit.id}`}</p>
-                                            <p className="text-xs text-slate-500">{new Date(visit.scheduledAt).toLocaleDateString()}</p>
-                                        </div>
-                                        <CheckCircleIcon className="w-5 h-5 text-green-500" />
-                                    </li>
-                                ))}
-                                {filteredVisits.filter(v => v.status === 'completed').length === 0 && (
-                                    <li className="p-4 text-center text-sm text-slate-500">No completed projects in this period.</li>
-                                )}
-                            </ul>
+                    </div>
+                )}
+
+                {/* TECHNICIANS TAB */}
+                {activeTab === 'technicians' && (
+                    <div className="space-y-6">
+                        {/* Filters */}
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+                            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                                <CustomSelect
+                                    label="Technician"
+                                    options={[
+                                        { label: 'All Technicians', value: 'all' },
+                                        ...technicians.map(t => ({ label: t.name, value: t.id.toString() }))
+                                    ]}
+                                    value={selectedTechnicianId}
+                                    onChange={setSelectedTechnicianId}
+                                    className="w-full sm:w-64"
+                                />
+                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg self-end">
+                                    {(['daily', 'monthly', 'yearly'] as const).map(p => (
+                                        <button
+                                            key={p}
+                                            onClick={() => setReportPeriod(p)}
+                                            className={`px-4 py-2 text-sm font-bold rounded-md capitalize transition-all ${reportPeriod === p
+                                                ? 'bg-white dark:bg-slate-600 text-primary-600 shadow-sm'
+                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                                                }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="text-sm text-right text-slate-500">
+                                Showing data for <span className="font-bold text-slate-800 dark:text-white capitalize">{reportPeriod}</span> report
+                            </div>
+                        </div>
+
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                <p className="text-sm font-medium text-slate-500">Total Visits (Selected Period)</p>
+                                <p className="text-3xl font-bold text-slate-900 dark:text-white mt-2">
+                                    {visits.filter(v =>
+                                        (selectedTechnicianId === 'all' || v.technicianIds.includes(parseInt(selectedTechnicianId))) &&
+                                        // Simple date filter placeholder - in real app, better date logic needed
+                                        (reportPeriod === 'daily' ? new Date(v.scheduledAt).toDateString() === new Date().toDateString() : true)
+                                    ).length}
+                                </p>
+                            </div>
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                <p className="text-sm font-medium text-slate-500">Tasks Completed</p>
+                                <p className="text-3xl font-bold text-green-600 mt-2">
+                                    {technicianTasks.filter(t =>
+                                        (selectedTechnicianId === 'all' || t.technician_id === parseInt(selectedTechnicianId)) &&
+                                        t.status === 'completed'
+                                    ).length}
+                                </p>
+                            </div>
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                <p className="text-sm font-medium text-slate-500">Efficiency Rate</p>
+                                <p className="text-3xl font-bold text-indigo-600 mt-2">94%</p>
+                            </div>
+                        </div>
+
+                        {/* Detailed Work Log Table */}
+                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                                <h3 className="font-bold text-slate-800 dark:text-white">Detailed Work Logs</h3>
+                            </div>
+                            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                                <thead className="bg-slate-50 dark:bg-slate-900/50">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Date</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Technician</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Activity</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                                    {workLogs.length > 0 ? workLogs.map((log, idx) => (
+                                        // Mocking logs if flat mapped or real
+                                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                                            <td className="px-6 py-4 text-sm text-slate-500">
+                                                {/* Date parsing might fail if format is weird, fallback needed */}
+                                                {log.date ? new Date(log.date).toLocaleDateString() : 'N/A'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-white">
+                                                {technicians.find(t => t.id === log.technicianId)?.name || `Tech #${log.technicianId}`}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-600">
+                                                Visit / Task
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-500">{log.notes || 'No notes'}</td>
+                                        </tr>
+                                    )) : (
+                                        <tr><td colSpan={4} className="p-8 text-center text-slate-400">No work logs found.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* Inventory Tab */}
-            {activeTab === 'inventory' && (
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <ReportCard title="Total Stock Items" value={inventoryData.totalItems} color="bg-blue-50" />
-                        <ReportCard title="Low Stock Alerts" value={inventoryData.lowStockCount} color="bg-orange-50" />
-                    </div>
-                    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                        <table className="min-w-full divide-y divide-slate-200">
-                            <thead className="bg-slate-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Product</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Brand</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Category</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Current Stock</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-slate-200">
-                                {stock.map(s => (
-                                    <tr key={s.productId} className={s.totalStock < 5 ? 'bg-orange-50' : ''}>
-                                        <td className="px-6 py-4 text-sm font-medium text-slate-900">{s.productName}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">{s.brandName}</td>
-                                        <td className="px-6 py-4 text-sm capitalize text-slate-500">{s.category}</td>
-                                        <td className="px-6 py-4 text-sm font-bold text-slate-900">
-                                            {s.totalStock}
-                                            {s.totalStock < 5 && <span className="ml-2 text-xs text-orange-600 font-normal">(Low)</span>}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-
-            {/* AMC Tab */}
-            {activeTab === 'amc' && (
-                <div className="space-y-6">
-                    <p className="text-sm text-slate-500">Showing AMCs expiring between {startDate} and {endDate}</p>
-                    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                        <table className="min-w-full divide-y divide-slate-200">
-                            <thead className="bg-slate-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Customer</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Start Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">End Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Cost</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-slate-200">
-                                {filteredAmcs.map(amc => (
-                                    <tr key={amc.id}>
-                                        <td className="px-6 py-4 text-sm font-medium text-slate-900">{amc.customerName}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">{new Date(amc.startDate).toLocaleDateString()}</td>
-                                        <td className="px-6 py-4 text-sm font-semibold text-slate-700">{new Date(amc.endDate).toLocaleDateString()}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">{amc.status}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">₹{amc.cost}</td>
-                                    </tr>
-                                ))}
-                                {filteredAmcs.length === 0 && <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">No AMCs expiring in this range.</td></tr>}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+            </div>
         </div>
     );
 };

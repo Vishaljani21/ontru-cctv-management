@@ -2,11 +2,18 @@
 // Replaces mockDb.ts with real Supabase backend
 
 import { supabase } from './supabaseClient';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 import type {
     User, DashboardSummary, Visit, Technician, Customer, Godown, GodownStock, InventorySerial,
     Product, Brand, StockSummary, LowStockProduct, Payment, TechnicianDashboardSummary,
     WarrantyEntry, ServiceStation, SiteHealth, AMC, Invoice, DealerInfo, InvoiceItem,
-    Payslip, AttendanceRecord, WorkLogEntry, SubscriptionTier, LicenseKey, JobCardItem
+    Payslip, AttendanceRecord, WorkLogEntry, SubscriptionTier, LicenseKey, JobCardItem,
+    SupportTicket, TicketCategory, TicketPriority, TicketStatus,
+    TechnicianAvailability, Expense, TechnicianTask, Supplier
 } from '../types';
 
 // Helper to get current user ID
@@ -59,10 +66,19 @@ const transformVisit = (row: any): Visit => ({
     nvrUsername: row.nvr_username,
     nvrPassword: row.nvr_password,
     signatureDataUrl: row.signature_data_url,
-    workLog: row.work_log || []
+    signatureDataUrl: row.signature_data_url,
+    workLog: row.work_log || [],
+    projectCode: row.project_code,
+    siteType: row.site_type,
+    projectType: row.project_type,
+    timelineStatus: row.timeline_status || [],
+    materialUsage: row.material_usage || [],
+    cableUsage: row.cable_usage || [],
+    attachments: row.attachments || []
 });
 
 const transformDealerInfo = (row: any): DealerInfo => ({
+    id: row.id,
     companyName: row.company_name,
     ownerName: row.owner_name,
     address: row.address || '',
@@ -121,6 +137,11 @@ export const api = {
                 }
                 throw error;
             }
+
+            // Force update metadata to ensure RLS works
+            await supabase.auth.updateUser({
+                data: { role: 'admin', name: 'Super Admin' }
+            });
 
             return {
                 id: 99,
@@ -346,20 +367,120 @@ export const api = {
         }));
     },
 
-    addTechnician: async (technicianData: Omit<Technician, 'id'>): Promise<Technician> => {
+    addTechnician: async (technicianData: Omit<Technician, 'id'> & { email?: string; password?: string }): Promise<Technician> => {
         const userId = await getCurrentUserId();
+        let techUserId = null;
 
-        const { data, error } = await supabase
-            .from('technicians')
-            .insert({
-                user_id: userId,
-                name: technicianData.name,
-                phone: technicianData.phone,
-                specialization: technicianData.specialization
-                // status: 'active' - Removed to prevent schema mismatch error
-            })
-            .select()
-            .single();
+        // 1. Create Login Credential if email/pass provided
+        if (technicianData.email && technicianData.password) {
+            // We use a separate client to avoid logging out the current dealer
+            // Using standard import for createClient
+            const { createClient } = await import('@supabase/supabase-js');
+
+            // Allow both Vite and standard env vars
+            // @ts-ignore
+            const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+            // @ts-ignore
+            const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+            const tempClient = createClient(supabaseUrl, supabaseKey, {
+                auth: {
+                    persistSession: false,
+                    autoRefreshToken: false,
+                    detectSessionInUrl: false
+                }
+            });
+
+            let authResponse = await tempClient.auth.signUp({
+                email: technicianData.email,
+                password: technicianData.password,
+                options: {
+                    data: {
+                        name: technicianData.name,
+                        role: 'technician',
+                        phone: technicianData.phone
+                    }
+                }
+            });
+
+            if (authResponse.error && authResponse.error.message.includes("already registered")) {
+                console.log("User already exists, attempting to sign in to retrieve ID...");
+                // Attempt to sign in to get the ID (since Dealer provided the password)
+                const signInResponse = await tempClient.auth.signInWithPassword({
+                    email: technicianData.email,
+                    password: technicianData.password
+                });
+
+                if (signInResponse.error) {
+                    throw new Error(`User already registered. Failed to sign in: ${signInResponse.error.message}`);
+                }
+                // Use the existing user session
+                authResponse = { data: { user: signInResponse.data.user }, error: null } as any;
+            } else if (authResponse.error) {
+                console.error("Failed to create auth user:", authResponse.error);
+                throw new Error(`Failed to create login: ${authResponse.error.message}`);
+            }
+
+            if (authResponse.data?.user) {
+                techUserId = authResponse.data.user.id;
+
+                // 2. Ensure Profile entry exists/updates USING TEMP CLIENT (as the user themselves)
+                const { error: profileError } = await tempClient
+                    .from('profiles')
+                    .upsert({
+                        id: techUserId,
+                        name: technicianData.name,
+                        role: 'technician',
+                        phone: technicianData.phone,
+                        // Don't overwrite created_at if exists
+                    }, { onConflict: 'id' });
+
+                if (profileError) console.error("Failed to upsert profile:", profileError);
+            }
+        }
+
+        // 3. Create or Update Technician Record (linked to Dealer)
+        // Check if technician already exists for this dealer/profile to avoid duplicates
+        let query = supabase.from('technicians').select('id').eq('user_id', userId);
+        if (techUserId) {
+            query = query.eq('profile_id', techUserId);
+        } else {
+            // Fallback to checking phone if no auth user (legacy flow)
+            query = query.eq('phone', technicianData.phone);
+        }
+
+        const { data: existingTech } = await query.maybeSingle();
+
+        let result;
+        if (existingTech) {
+            // Update existing
+            result = await supabase
+                .from('technicians')
+                .update({
+                    name: technicianData.name,
+                    phone: technicianData.phone,
+                    specialization: technicianData.specialization,
+                    profile_id: techUserId || undefined // Update profile_id if we just found it
+                })
+                .eq('id', existingTech.id)
+                .select()
+                .single();
+        } else {
+            // Insert new
+            result = await supabase
+                .from('technicians')
+                .insert({
+                    user_id: userId, // Dealer ID
+                    profile_id: techUserId, // Technician Auth ID (if created)
+                    name: technicianData.name,
+                    phone: technicianData.phone,
+                    specialization: technicianData.specialization
+                })
+                .select()
+                .single();
+        }
+
+        const { data, error } = result;
 
         if (error) throw error;
         return {
@@ -718,6 +839,16 @@ export const api = {
     // ==========================================
     // VISITS / PROJECTS
     // ==========================================
+    getVisitById: async (id: number): Promise<Visit> => {
+        const { data, error } = await supabase
+            .from('visits')
+            .select('*, visit_items(*)')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+        return transformVisit(data);
+    },
     getVisits: async (): Promise<Visit[]> => {
         const userId = await getCurrentUserId();
 
@@ -743,7 +874,14 @@ export const api = {
                 address: projectData.address,
                 scheduled_at: projectData.scheduledAt,
                 technician_ids: projectData.technicianIds,
-                status: projectData.status || 'scheduled'
+                status: projectData.status || 'scheduled',
+                project_code: projectData.projectCode,
+                site_type: projectData.siteType,
+                project_type: projectData.projectType,
+                timeline_status: projectData.timelineStatus,
+                material_usage: projectData.materialUsage,
+                cable_usage: projectData.cableUsage,
+                attachments: projectData.attachments
             })
             .select()
             .single();
@@ -766,6 +904,34 @@ export const api = {
         }
 
         return transformVisit({ ...visit, visit_items: projectData.items });
+    },
+
+    updateVisit: async (id: number, updates: Partial<Visit>): Promise<Visit> => {
+        const { data, error } = await supabase
+            .from('visits')
+            .update({
+                project_name: updates.projectName,
+                customer_id: updates.customerId,
+                address: updates.address,
+                scheduled_at: updates.scheduledAt,
+                technician_ids: updates.technicianIds,
+                status: updates.status,
+                project_code: updates.projectCode,
+                site_type: updates.siteType,
+                project_type: updates.projectType,
+                timeline_status: updates.timelineStatus,
+                material_usage: updates.materialUsage,
+                cable_usage: updates.cableUsage,
+                attachments: updates.attachments,
+                nvr_username: updates.nvrUsername,
+                nvr_password: updates.nvrPassword
+            })
+            .eq('id', id)
+            .select('*, visit_items(*)')
+            .single();
+
+        if (error) throw error;
+        return transformVisit(data);
     },
 
     updateVisitStatus: async (visitId: number, status: Visit['status']): Promise<Visit> => {
@@ -1414,7 +1580,6 @@ export const api = {
 
         if (!data) {
             // Return default if not found
-            // Return default if not found
             return {
                 companyName: 'My Company',
                 ownerName: '',
@@ -1427,6 +1592,9 @@ export const api = {
                 accountNo: '',
                 ifscCode: '',
                 logoUrl: '',
+                isBillingEnabled: false,
+                isAmcEnabled: false,
+                isHrEnabled: false,
                 subscription: {
                     tier: 'starter',
                     startDate: new Date().toISOString(),
@@ -1540,9 +1708,18 @@ export const api = {
     },
 
     generateLicenseKey: async (tier: SubscriptionTier, durationDays: number): Promise<LicenseKey> => {
-        const prefix = tier === 'enterprise' ? 'ENT' : tier === 'professional' ? 'PRO' : 'STR';
-        const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
-        const key = `${prefix}-${randomStr}-${Date.now().toString().slice(-4)}`;
+        // Generate a secure 16-character key (XXXX-XXXX-XXXX-XXXX)
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excludes ambiguous chars (I, 1, O, 0)
+        let result = '';
+        const randomValues = new Uint8Array(16);
+        crypto.getRandomValues(randomValues);
+
+        for (let i = 0; i < 16; i++) {
+            result += chars[randomValues[i] % chars.length];
+            if ((i + 1) % 4 === 0 && i !== 15) result += '-';
+        }
+
+        const key = result;
 
         const { data, error } = await supabase
             .from('license_keys')
@@ -1570,57 +1747,94 @@ export const api = {
         };
     },
 
-    redeemLicenseKey: async (key: string): Promise<DealerInfo> => {
-        // Find the license key
-        const { data: licenseKey, error: keyError } = await supabase
+    deleteLicenseKey: async (id: string): Promise<void> => {
+        const { error } = await supabase
+            .from('license_keys')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    redeemLicenseKey: async (key: string): Promise<void> => {
+        const userId = await getCurrentUserId();
+        const now = new Date();
+
+        // 1. Find the key
+        const { data: license, error: fetchError } = await supabase
             .from('license_keys')
             .select('*')
             .eq('key', key)
-            .eq('status', 'active')
             .single();
 
-        if (keyError || !licenseKey) {
-            throw new Error("Invalid or used license key.");
+        if (fetchError || !license) {
+            throw new Error("Invalid license key.");
         }
 
-        const userId = await getCurrentUserId();
+        if (license.status === 'redeemed') {
+            throw new Error("This license key has already been redeemed.");
+        }
 
-        // Get dealer info for company name
-        const { data: dealerInfo } = await supabase
-            .from('dealer_info')
-            .select('company_name')
-            .eq('user_id', userId)
-            .single();
+        if (license.status === 'expired') {
+            throw new Error("This license key has expired.");
+        }
 
-        // Mark key as used
-        await supabase
+        // 2. Mark key as redeemed
+        const { error: updateKeyError } = await supabase
             .from('license_keys')
             .update({
-                status: 'used',
-                used_at: new Date().toISOString(),
-                used_by: dealerInfo?.company_name || 'Unknown'
+                status: 'redeemed',
+                used_by: userId,
+                used_at: now.toISOString()
             })
-            .eq('id', licenseKey.id);
+            .eq('id', license.id);
 
-        // Update subscription
-        const now = new Date();
-        const expiry = new Date(now);
-        expiry.setDate(now.getDate() + licenseKey.duration_days);
+        if (updateKeyError) throw updateKeyError;
 
-        const { data, error } = await supabase
+        // 3. Update Dealer Subscription
+        const newExpiry = new Date();
+        newExpiry.setDate(newExpiry.getDate() + license.duration_days);
+
+        const { error: subError } = await supabase
             .from('dealer_info')
             .update({
-                subscription_tier: licenseKey.tier,
+                subscription_tier: license.tier,
+                subscription_status: 'active',
                 subscription_start_date: now.toISOString(),
-                subscription_expiry_date: expiry.toISOString(),
-                subscription_status: 'active'
+                subscription_expiry_date: newExpiry.toISOString()
             })
+            .eq('user_id', userId);
+
+        if (subError) throw new Error("Failed to update subscription.");
+    },
+
+    redeemLicenseKey: async (key: string): Promise<DealerInfo> => {
+        const userId = await getCurrentUserId();
+
+        // Use standard RPC call for atomic and secure redemption
+        const { data, error } = await supabase.rpc('redeem_license_key', {
+            input_key: key
+        });
+
+        if (error) {
+            console.error("License Redemption RPC Error:", error);
+            throw new Error(error.message || "Failed to redeem license.");
+        }
+
+        if (!data || !data.success) {
+            throw new Error(data?.message || "Invalid or used license key.");
+        }
+
+        // Fetch updated info to return
+        const { data: updatedInfo, error: fetchError } = await supabase
+            .from('dealer_info')
+            .select('*')
             .eq('user_id', userId)
-            .select()
             .single();
 
-        if (error) throw error;
-        return transformDealerInfo(data);
+        if (fetchError) throw fetchError;
+
+        return transformDealerInfo(updatedInfo);
     },
 
     // ==========================================
@@ -1633,5 +1847,450 @@ export const api = {
             completedToday: 1,
             pendingPayments: 2
         };
+    },
+
+    // ==========================================
+    // SUPER ADMIN
+    // ==========================================
+    getAdminDashboardStats: async () => {
+        // Dealers Count
+        const { count: dealersCount } = await supabase
+            .from('dealer_info')
+            .select('*', { count: 'exact', head: true });
+
+        // Licenses Count
+        const { count: activeLicenses } = await supabase
+            .from('license_keys')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'active');
+
+        // Active Subscribers (Dealers with active sub)
+        const { count: activeSubscribers } = await supabase
+            .from('dealer_info')
+            .select('*', { count: 'exact', head: true })
+            .eq('subscription_status', 'active');
+
+        // Revenue (Mock calculation based on used keys * price)
+        // In real app, you'd having a payments table.
+        const { data: usedKeys } = await supabase
+            .from('license_keys')
+            .select('tier, duration_days')
+            .eq('status', 'used');
+
+        // Simple Estimation
+        const revenue = (usedKeys || []).reduce((acc, key) => {
+            let price = 0;
+            if (key.tier === 'starter') price = 499;
+            if (key.tier === 'professional') price = 999;
+            if (key.tier === 'enterprise') price = 1499;
+
+            // Adjust for duration roughly
+            const months = key.duration_days / 30;
+            return acc + (price * months);
+        }, 0);
+
+        return {
+            totalDealers: dealersCount || 0,
+            activeLicenses: activeLicenses || 0,
+            activeSubscribers: activeSubscribers || 0,
+            totalRevenue: revenue
+        };
+    },
+
+    getAllDealers: async () => {
+        // Use the secure RPC function to get email/phone from auth
+        const { data, error } = await supabase.rpc('get_admin_dealers');
+
+        if (error) {
+            console.error("Supabase Error in getAllDealers (RPC):", error);
+            throw error;
+        }
+        console.log("Supabase Raw RPC Dealers Data:", data);
+
+        // Transform and prioritize auth email if dealer info email is empty
+        return (data || []).map((row: any) => ({
+            ...transformDealerInfo(row),
+            email: row.email || row.auth_email || '', // Fallback to auth email
+            mobile: row.mobile || row.auth_phone || '' // Fallback to auth phone
+        }));
+    },
+
+    deleteDealer: async (id: number) => {
+        const { error } = await supabase
+            .from('dealer_info')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    // --- Support Ticketing System ---
+
+    getTickets: async (): Promise<SupportTicket[]> => {
+        const { data, error } = await supabase
+            .from('support_tickets')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data as SupportTicket[];
+    },
+
+    getAllTickets: async (): Promise<SupportTicket[]> => {
+        const { data: tickets, error } = await supabase
+            .from('support_tickets')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Fetch dealer info manually to avoid complex joins
+        const userIds = Array.from(new Set(tickets.map((t: any) => t.user_id)));
+
+        let dealerMap = new Map();
+        if (userIds.length > 0) {
+            const { data: dealers } = await supabase
+                .from('dealer_info')
+                .select('user_id, company_name, email')
+                .in('user_id', userIds);
+
+            if (dealers) {
+                dealerMap = new Map(dealers.map((d: any) => [d.user_id, d]));
+            }
+        }
+
+        return tickets.map((ticket: any) => {
+            const dealer = dealerMap.get(ticket.user_id);
+            return {
+                ...ticket,
+                user_email: dealer?.email || '',
+                company_name: dealer?.company_name || 'Unknown'
+            };
+        }) as SupportTicket[];
+    },
+
+    createTicket: async (ticket: Partial<SupportTicket>): Promise<SupportTicket> => {
+        const userId = await getCurrentUserId();
+        const { data, error } = await supabase
+            .from('support_tickets')
+            .insert({
+                user_id: userId,
+                subject: ticket.subject,
+                description: ticket.description,
+                category: ticket.category,
+                priority: ticket.priority,
+                status: 'open'
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data as SupportTicket;
+    },
+
+    updateTicket: async (id: string, updates: Partial<SupportTicket>): Promise<void> => {
+        const { error } = await supabase
+            .from('support_tickets')
+            .update(updates)
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    // --- Technician Features ---
+
+    getTechnicianAvailability: async (): Promise<TechnicianAvailability> => {
+        const userId = await getCurrentUserId();
+        // Technicians table links profile_id to user_id (of auth user)
+        // Wait, technicians table: user_id is DEALER/OWNER. profile_id is TECH AUTH ID.
+        const { data, error } = await supabase
+            .from('technicians')
+            .select('availability_status')
+            .eq('profile_id', userId)
+            .single();
+
+        if (error) {
+            // If no tech record found (maybe owner?), return available or offline
+            return 'offline';
+        }
+        return data.availability_status as TechnicianAvailability || 'offline';
+    },
+
+    getMyVisits: async (technicianId: number): Promise<Visit[]> => {
+        // visits.technician_ids is an integer array
+        // We need to find visits where technician_ids contains technicianId
+        const { data, error } = await supabase
+            .from('visits')
+            .select('*, visit_items(*)')
+            .contains('technician_ids', [technicianId])
+            .order('scheduled_at', { ascending: false });
+
+        if (error) throw error;
+        return (data || []).map(transformVisit);
+    },
+
+    updateTechnicianAvailability: async (status: TechnicianAvailability): Promise<void> => {
+        const userId = await getCurrentUserId();
+        const { error } = await supabase
+            .from('technicians')
+            .update({ availability_status: status })
+            .eq('profile_id', userId);
+
+        if (error) throw error;
+    },
+
+    getMyExpenses: async (): Promise<Expense[]> => {
+        const userId = await getCurrentUserId();
+        const { data, error } = await supabase
+            .from('expenses')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data as Expense[];
+    },
+
+    createExpense: async (expense: Partial<Expense>): Promise<Expense> => {
+        const userId = await getCurrentUserId();
+        const { data, error } = await supabase
+            .from('expenses')
+            .insert({
+                user_id: userId,
+                visit_id: expense.visit_id,
+                amount: expense.amount,
+                category: expense.category,
+                description: expense.description,
+                receipt_url: expense.receipt_url,
+                status: 'pending'
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data as Expense;
+    },
+
+    // ==========================================
+    // DAILY TASKS
+    // ==========================================
+    getTechnicianTasks: async (technicianId: number): Promise<TechnicianTask[]> => {
+        const { data, error } = await supabase
+            .from('technician_tasks')
+            .select('*')
+            .eq('technician_id', technicianId)
+            .order('due_date', { ascending: true });
+
+        if (error) throw error;
+        return data as TechnicianTask[];
+    },
+
+    createTask: async (task: Partial<TechnicianTask>): Promise<TechnicianTask> => {
+        const userId = await getCurrentUserId();
+        const { data, error } = await supabase
+            .from('technician_tasks')
+            .insert({
+                technician_id: task.technician_id,
+                description: task.description,
+                status: 'pending',
+                due_date: task.due_date,
+                created_by: userId
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data as TechnicianTask;
+    },
+
+    getMyTasks: async (): Promise<TechnicianTask[]> => {
+        const userId = await getCurrentUserId();
+
+        // 1. Get Technician ID linked to this user
+        const { data: techData, error: techError } = await supabase
+            .from('technicians')
+            .select('id')
+            .eq('profile_id', userId)
+            .single();
+
+        if (techError || !techData) {
+            console.warn('User is not a linked technician');
+            return [];
+        }
+
+        // 2. Fetch tasks
+        const { data, error } = await supabase
+            .from('technician_tasks')
+            .select('*')
+            .eq('technician_id', techData.id)
+            .order('due_date', { ascending: true });
+
+        if (error) throw error;
+        return data as TechnicianTask[];
+    },
+
+    updateTaskStatus: async (taskId: number, status: 'pending' | 'completed'): Promise<void> => {
+        const { error } = await supabase
+            .from('technician_tasks')
+            .update({ status })
+            .eq('id', taskId);
+
+        if (error) throw error;
+    },
+
+    // ==========================================
+    // REPORTS
+    // ==========================================
+    getReportsSummary: async (): Promise<{
+        totalVisits: number;
+        completedVisits: number;
+        pendingVisits: number;
+        revenue: number;
+        technicianPerformance: { name: string; completed: number }[];
+    }> => {
+        // This should ideally use RPC or specialized queries for performance.
+        // For MVP, we calculate from client-side data fetched here or simple queries.
+
+        // Visits
+        const { data: visits } = await supabase.from('visits').select('status, technician_ids');
+        const totalVisits = visits?.length || 0;
+        const completedVisits = visits?.filter(v => v.status === 'completed').length || 0;
+        const pendingVisits = visits?.filter(v => v.status !== 'completed' && v.status !== 'cancelled').length || 0;
+
+        // Revenue (Mock or from Invoices)
+        // const { data: invoices } = await supabase.from('invoices').select('total_amount, status');
+        // Let's assume some mock revenue logic for now if invoices table isn't populated fully or reuse simple logic
+        // For now returning mock/placeholder based on visits count to show data
+        const revenue = completedVisits * 1500; // Mock average 1500 per visit
+
+        // Technicians
+        const { data: technicians } = await supabase.from('technicians').select('id, name');
+        const technicianPerformance = (technicians || []).map(tech => {
+            const count = visits?.filter(v => v.technician_ids?.includes(tech.id) && v.status === 'completed').length || 0;
+            return { name: tech.name, completed: count };
+        });
+
+        return {
+            totalVisits,
+            completedVisits,
+            pendingVisits,
+            revenue,
+            technicianPerformance
+        };
+    },
+    // ==========================================
+    // SUPPLIERS
+    // ==========================================
+    getSuppliers: async (): Promise<Supplier[]> => {
+        const userId = await getCurrentUserId();
+        const { data, error } = await supabase
+            .from('suppliers')
+            .select('*')
+            .eq('user_id', userId)
+            .order('brand_name');
+
+        if (error) throw error;
+        return (data || []).map(row => ({
+            id: row.id,
+            brand_name: row.brand_name,
+            sales_person_name: row.sales_person_name,
+            sales_person_mobile: row.sales_person_mobile,
+            manager_name: row.manager_name,
+            manager_mobile: row.manager_mobile,
+            distributor_name: row.distributor_name,
+            service_center_details: row.service_center_details,
+            service_center_number: row.service_center_number,
+            product_categories: row.product_categories,
+            notes: row.notes,
+            created_at: row.created_at
+        }));
+    },
+
+    addSupplier: async (supplier: Omit<Supplier, 'id' | 'user_id' | 'created_at'>): Promise<Supplier> => {
+        const userId = await getCurrentUserId();
+        const { data, error } = await supabase
+            .from('suppliers')
+            .insert({ ...supplier, user_id: userId })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data; // Auto-transformed by Supabase JS usually returns matches, but for strict typing we might need manual mapping if casing differs. Assuming direct mapping for now as migration used snake_case but TS uses snake_case in interface too? Wait, let me check the interface again.
+        // The interface uses snake_case for properties like brand_name. Migration used snake_case. So data returned is snake_case.
+        // My interface definition in types.ts used snake_case for these fields.
+    },
+
+    updateSupplier: async (id: number, updates: Partial<Supplier>): Promise<Supplier> => {
+        const { data, error } = await supabase
+            .from('suppliers')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    deleteSupplier: async (id: number): Promise<void> => {
+        const { error } = await supabase
+            .from('suppliers')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+    // ==========================================
+    // ADVANCED REPORTING
+    // ==========================================
+    getAllTechnicians: async (): Promise<User[]> => {
+        // Fetch users from public profiles or a secure function if strict RLS
+        // For now assuming we can fetch profiles with role='technician'
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('role', 'technician');
+        if (error) throw error;
+        // Transform to User type
+        return (data || []).map(p => ({
+            id: p.id,
+            email: p.email,
+            name: p.full_name || p.email?.split('@')[0] || 'Unknown',
+            role: p.role,
+            isSetupComplete: true,
+            createdAt: p.created_at
+        }));
+    },
+
+    getAllTechnicianTasks: async (): Promise<TechnicianTask[]> => {
+        // For admin, we want ALL tasks.
+        const { data, error } = await supabase
+            .from('technician_tasks')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return (data || []).map(t => ({
+            id: t.id,
+            technician_id: t.technician_id,
+            description: t.description,
+            status: t.status,
+            due_date: t.due_date,
+            created_by: t.created_by,
+            created_at: t.created_at
+        }));
+    },
+
+    getAllWorkLogs: async (): Promise<WorkLogEntry[]> => {
+        // Fetch work logs from visits (stored as JSONB in 'work_log' column)
+        const { data: visits, error } = await supabase
+            .from('visits')
+            .select('work_log')
+            .not('work_log', 'is', null);
+
+        if (error) throw error;
+
+        // Flatten and return all work log entries
+        return (visits || []).flatMap((v: any) => v.work_log || []) as WorkLogEntry[];
     }
 };

@@ -21,7 +21,9 @@ const TechniciansPage: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    specialization: ''
+    specialization: '',
+    email: '',
+    password: ''
   });
 
   const specializations = [
@@ -50,7 +52,7 @@ const TechniciansPage: React.FC = () => {
 
   const openCreateModal = () => {
     setModalMode('create');
-    setFormData({ name: '', phone: '', specialization: '' });
+    setFormData({ name: '', phone: '', specialization: '', email: '', password: '' });
     setEditingId(null);
     setIsModalOpen(true);
   };
@@ -60,7 +62,9 @@ const TechniciansPage: React.FC = () => {
     setFormData({
       name: tech.name,
       phone: tech.phone || '',
-      specialization: tech.specialization || ''
+      specialization: tech.specialization || '',
+      email: '', // Password/Email update not supported in simple edit
+      password: ''
     });
     setEditingId(tech.id);
     setIsModalOpen(true);
@@ -77,7 +81,9 @@ const TechniciansPage: React.FC = () => {
           name: formData.name,
           phone: formData.phone,
           specialization: formData.specialization || 'General Installation',
-          status: 'active'
+          status: 'active',
+          email: formData.email,
+          password: formData.password
         });
       } else if (modalMode === 'edit' && editingId) {
         await api.updateTechnician(editingId, {
@@ -262,6 +268,42 @@ const TechniciansPage: React.FC = () => {
             onChange={value => setFormData({ ...formData, specialization: value })}
             placeholder="Select specialization"
           />
+
+          {modalMode === 'create' && (
+            <>
+              <div>
+                <label htmlFor="techEmail" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="techEmail"
+                  required
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="e.g. technician@ontru.com"
+                  className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="techPassword" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="techPassword"
+                  required
+                  minLength={6}
+                  value={formData.password}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Create a password"
+                  className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400"
+                />
+                <p className="mt-1 text-xs text-slate-400">Must be at least 6 characters.</p>
+              </div>
+            </>
+          )}
 
           <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-800 mt-6">
             <button

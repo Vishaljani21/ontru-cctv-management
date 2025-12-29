@@ -3,20 +3,20 @@ import type { Visit, VisitStatus, JobCardItem, Customer, WorkLogEntry } from '..
 import { api } from '../../services/api';
 import { AuthContext } from '../../App';
 import ManageItemsModal from '../../components/ManageItemsModal';
-import { DownloadIcon } from '../../components/icons';
+import { DownloadIcon, SearchIcon, FilterIcon, RefreshIcon, LocationMarkerIcon } from '../../components/icons';
 import SignaturePad, { SignaturePadRef } from '../../components/SignaturePad';
 
 const StatusIndicator: React.FC<{ status: VisitStatus }> = ({ status }) => {
     const styles: { [key: string]: { bg: string, text: string, label: string } } = {
-        completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Completed' },
-        in_progress: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'In Progress' },
-        scheduled: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Scheduled' },
-        cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelled' },
+        completed: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-400', label: 'Completed' },
+        in_progress: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-800 dark:text-orange-400', label: 'In Progress' },
+        scheduled: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-400', label: 'Scheduled' },
+        cancelled: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-800 dark:text-red-400', label: 'Cancelled' },
     };
     const style = styles[status] || { bg: 'bg-slate-100', text: 'text-slate-800', label: status };
 
     return (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}>
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${style.bg} ${style.text}`}>
             {style.label}
         </span>
     );
@@ -53,43 +53,46 @@ const CompleteProjectModal: React.FC<{
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
-                <h3 className="text-xl font-semibold text-slate-800 mb-4">Complete Project & Sign Off</h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-in">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">Complete Project & Sign Off</h3>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label htmlFor="nvrUsername" className="block text-sm font-medium text-slate-700">NVR Username</label>
-                            <input type="text" id="nvrUsername" value={username} onChange={e => setUsername(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">NVR Username</label>
+                            <input type="text" value={username} onChange={e => setUsername(e.target.value)} required className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500" />
                         </div>
                         <div>
-                            <label htmlFor="nvrPassword" className="block text-sm font-medium text-slate-700">NVR Password</label>
-                            <input type="text" id="nvrPassword" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">NVR Password</label>
+                            <input type="text" value={password} onChange={e => setPassword(e.target.value)} required className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500" />
                         </div>
                     </div>
                     <div>
-                        <label htmlFor="notes" className="block text-sm font-medium text-slate-700">Work Done Notes</label>
-                        <textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} rows={2} required className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
-                    </div>
-                     <div>
-                        <label htmlFor="cableUsed" className="block text-sm font-medium text-slate-700">Cable Used (in meters)</label>
-                        <input type="number" id="cableUsed" value={cableUsed} onChange={e => setCableUsed(e.target.value)} placeholder="e.g., 90" className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Work Done Notes</label>
+                        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} required className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Describe the work completed..." />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700">Technician Signature</label>
-                        <div className="mt-1">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Cable Used (meters)</label>
+                        <input type="number" value={cableUsed} onChange={e => setCableUsed(e.target.value)} placeholder="0" className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Technician Signature</label>
+                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white">
                             <SignaturePad ref={signaturePadRef} />
                         </div>
                         <div className="text-right mt-1">
-                            <button type="button" onClick={() => signaturePadRef.current?.clear()} className="text-sm text-primary-600 hover:text-primary-800">
+                            <button type="button" onClick={() => signaturePadRef.current?.clear()} className="text-xs font-bold text-primary-600 hover:text-primary-700">
                                 Clear Signature
                             </button>
                         </div>
                     </div>
-                    <div className="flex justify-end space-x-3 pt-4 border-t">
-                        <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-md hover:bg-slate-300">Cancel</button>
-                        <button type="submit" disabled={isSaving} className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:bg-green-300">
-                            {isSaving ? 'Saving...' : 'Save & Complete'}
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">Cancel</button>
+                        <button type="submit" disabled={isSaving} className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-lg shadow-green-500/20 transition-all flex items-center">
+                            {isSaving ? <RefreshIcon className="w-5 h-5 animate-spin" /> : 'Complete & Save'}
                         </button>
                     </div>
                 </form>
@@ -99,8 +102,8 @@ const CompleteProjectModal: React.FC<{
 };
 
 
-const ProjectCard: React.FC<{ 
-    visit: Visit; 
+const ProjectCard: React.FC<{
+    visit: Visit;
     customer?: Customer;
     onStatusChange: (visitId: number, newStatus: VisitStatus, updatedVisit?: Visit) => void;
     onCompleteClick: (visit: Visit) => void;
@@ -122,68 +125,96 @@ const ProjectCard: React.FC<{
             setIsUpdating(false);
         }
     };
-    
+
     return (
-        <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-3 flex flex-col justify-between">
-            <div>
-                <div className="flex justify-between items-start">
-                    <h3 className="text-lg font-bold text-slate-800">{customer?.companyName || `Project #${visit.id}`}</h3>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between overflow-hidden group">
+            <div className="p-5">
+                <div className="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white line-clamp-1">{customer?.companyName || `Project #${visit.id}`}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{customer?.contactPerson}</p>
+                    </div>
                     <StatusIndicator status={visit.status} />
                 </div>
-                <p className="text-sm text-slate-500">{visit.address}</p>
-                <p className="text-sm text-slate-500 mt-1">Scheduled for: {new Date(visit.scheduledAt).toLocaleDateString()}</p>
-            </div>
-            <div className="space-y-3">
-                 <div className="pt-2">
-                    <h4 className="text-sm font-semibold text-slate-600">Items ({visit.items.reduce((acc, i) => acc + i.qty, 0)}):</h4>
+
+                <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                    <div className="flex items-start gap-2">
+                        <span className="font-semibold min-w-[60px]">Address:</span>
+                        <div className="flex items-start gap-2 flex-1">
+                            <span className="line-clamp-2">{visit.address}</span>
+                            <button
+                                onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(visit.address)}`, '_blank')}
+                                className="text-primary-600 hover:text-primary-700 flex-shrink-0"
+                                title="Get Directions"
+                            >
+                                <LocationMarkerIcon className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="font-semibold min-w-[60px]">Date:</span>
+                        <span>{new Date(visit.scheduledAt).toLocaleDateString()}</span>
+                    </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <h4 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Allocated Items ({visit.items.reduce((acc, i) => acc + i.qty, 0)})</h4>
                     {visit.items.length > 0 ? (
-                        <ul className="list-disc list-inside text-sm text-slate-600 mt-1 max-h-24 overflow-y-auto">
+                        <ul className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar pr-1">
                             {visit.items.map((item, index) => (
-                                <li key={index}>{item.productName} (Qty: {item.qty}){item.serial && <span className="text-xs italic"> S/N: {item.serial}</span>}</li>
+                                <li key={index} className="text-sm flex justify-between items-center text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded">
+                                    <span className="line-clamp-1 flex-1 mr-2">{item.productName}</span>
+                                    <span className="font-bold whitespace-nowrap">x{item.qty}</span>
+                                </li>
                             ))}
                         </ul>
-                    ) : <p className="text-sm text-slate-500 mt-1">No items allocated.</p>}
+                    ) : <p className="text-sm italic text-slate-400">No items allocated.</p>}
                 </div>
-                <div className="pt-3 border-t border-slate-200 flex items-center justify-end flex-wrap gap-2">
-                    {visit.status !== 'completed' && visit.status !== 'cancelled' && (
-                        <button onClick={() => onManageItemsClick(visit)} className="px-3 py-1 text-xs font-semibold text-primary-700 bg-primary-100 rounded-md hover:bg-primary-200">
-                            Manage Items
-                        </button>
-                    )}
-                    {visit.chalan ? (
-                        <a href={visit.chalan.pdfPath} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-md hover:bg-green-200">
-                            <DownloadIcon className="h-4 w-4 mr-1"/>
-                            Download Chalan
-                        </a>
-                    ) : (
-                        (visit.status === 'in_progress' || visit.status === 'completed') &&
-                        <button
-                            onClick={() => onGenerateChalanClick(visit.id)}
-                            disabled={generatingChalanId === visit.id || visit.items.length === 0}
-                            className="px-3 py-1 text-xs font-semibold text-white bg-indigo-500 rounded-md hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
-                        >
-                            {generatingChalanId === visit.id ? '...' : 'Generate Chalan'}
-                        </button>
-                    )}
-                    
-                    <div className="flex-grow"></div>
+            </div>
 
-                    {visit.status === 'scheduled' && (
-                        <button onClick={() => handleUpdateStatus('in_progress')} disabled={isUpdating} className="px-3 py-1 text-xs font-semibold text-white bg-yellow-500 rounded-md hover:bg-yellow-600 disabled:bg-yellow-300">
-                            {isUpdating ? '...' : 'Start Project'}
-                        </button>
-                    )}
-                    {visit.status === 'in_progress' && (
-                         <button onClick={() => onCompleteClick(visit)} disabled={isUpdating} className="px-3 py-1 text-xs font-semibold text-white bg-green-500 rounded-md hover:bg-green-600 disabled:bg-green-300">
-                            {isUpdating ? '...' : 'Complete Project'}
-                        </button>
-                    )}
-                     {visit.status !== 'completed' && visit.status !== 'cancelled' && (
-                         <button onClick={() => handleUpdateStatus('cancelled')} disabled={isUpdating} className="px-3 py-1 text-xs font-semibold text-slate-700 bg-slate-200 rounded-md hover:bg-slate-300 disabled:bg-slate-100">
-                            Cancel
-                        </button>
-                     )}
-                </div>
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2 justify-end">
+                {/* Manage Items - Only if not completed/cancelled */}
+                {visit.status !== 'completed' && visit.status !== 'cancelled' && (
+                    <button onClick={() => onManageItemsClick(visit)} className="px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        Manage Items
+                    </button>
+                )}
+
+                {/* Chalan Logic */}
+                {visit.chalan ? (
+                    <a href={visit.chalan.pdfPath} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 rounded-lg hover:bg-emerald-200 transition-colors">
+                        <DownloadIcon className="h-3.5 w-3.5 mr-1.5" />
+                        Chalan
+                    </a>
+                ) : (
+                    (visit.status === 'in_progress' || visit.status === 'completed') &&
+                    <button
+                        onClick={() => onGenerateChalanClick(visit.id)}
+                        disabled={generatingChalanId === visit.id || visit.items.length === 0}
+                        className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    >
+                        {generatingChalanId === visit.id ? 'Generating...' : 'Get Chalan'}
+                    </button>
+                )}
+
+                <div className="flex-grow"></div>
+
+                {/* Status Actions */}
+                {visit.status === 'scheduled' && (
+                    <button onClick={() => handleUpdateStatus('in_progress')} disabled={isUpdating} className="px-4 py-1.5 text-xs font-bold text-white bg-orange-500 rounded-lg hover:bg-orange-600 shadow-lg shadow-orange-500/20 transition-all">
+                        {isUpdating ? '...' : 'Start Job'}
+                    </button>
+                )}
+                {visit.status === 'in_progress' && (
+                    <button onClick={() => onCompleteClick(visit)} disabled={isUpdating} className="px-4 py-1.5 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 shadow-lg shadow-green-500/20 transition-all">
+                        {isUpdating ? '...' : 'Complete Job'}
+                    </button>
+                )}
+                {visit.status !== 'completed' && visit.status !== 'cancelled' && (
+                    <button onClick={() => handleUpdateStatus('cancelled')} disabled={isUpdating} className="px-3 py-1.5 text-xs font-bold text-slate-600 bg-slate-200 rounded-lg hover:bg-slate-300 transition-colors">
+                        Cancel
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -197,6 +228,11 @@ const MyVisitsPage: React.FC = () => {
     const [completingVisit, setCompletingVisit] = useState<Visit | null>(null);
     const [managingVisit, setManagingVisit] = useState<Visit | null>(null);
     const [generatingChalanId, setGeneratingChalanId] = useState<number | null>(null);
+
+    // Filters
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState<VisitStatus | 'all'>('all');
+
     const authContext = useContext(AuthContext);
 
     useEffect(() => {
@@ -205,9 +241,9 @@ const MyVisitsPage: React.FC = () => {
             try {
                 const [visitsData, customersData] = await Promise.all([
                     api.getMyVisits(authContext.user.id),
-                    api.getCustomers()
+                    api.getCustomers() // Ideally api should return customer name in visit but let's stick to this
                 ]);
-                setVisits(visitsData.sort((a,b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()));
+                setVisits(visitsData.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()));
                 setCustomers(customersData);
             } catch (error) {
                 console.error("Failed to fetch data", error);
@@ -221,29 +257,26 @@ const MyVisitsPage: React.FC = () => {
     const handleStatusChange = (visitId: number, newStatus: VisitStatus, updatedVisit?: Visit) => {
         setVisits(visits.map(v => v.id === visitId ? (updatedVisit || { ...v, status: newStatus }) : v));
     };
-    
+
     const handleSaveItems = (visitId: number, items: JobCardItem[]) => {
-      setVisits(visits.map(v => v.id === visitId ? {...v, items } : v));
+        setVisits(visits.map(v => v.id === visitId ? { ...v, items } : v));
     };
 
     const handleSaveAndComplete = async (visitId: number, nvrUsername: string, nvrPassword: string, signature: string, workLog: Omit<WorkLogEntry, 'date' | 'technicianId'>) => {
         const techId = authContext?.user?.id;
         if (!techId) return;
-
-        // FIX: The object passed to api.completeVisit had extra properties 'date' and 'technicianId', which caused a type error.
-        // The API layer is responsible for adding these properties, so we should only pass the base workLog object.
         const updatedVisit = await api.completeVisit(visitId, nvrUsername, nvrPassword, signature, workLog);
         handleStatusChange(visitId, 'completed', updatedVisit);
     };
-    
+
     const handleGenerateChalan = async (visitId: number) => {
         setGeneratingChalanId(visitId);
         try {
             const newChalan = await api.generateChalan(visitId);
-            setVisits(prevVisits => prevVisits.map(v => 
-                v.id === visitId 
-                ? { ...v, chalan: { id: newChalan.id, chalanNo: newChalan.chalanNo, pdfPath: newChalan.pdfPath } } 
-                : v
+            setVisits(prevVisits => prevVisits.map(v =>
+                v.id === visitId
+                    ? { ...v, chalan: { id: newChalan.id, chalanNo: newChalan.chalanNo, pdfPath: newChalan.pdfPath } }
+                    : v
             ));
         } catch (error) {
             console.error("Failed to generate chalan", error);
@@ -252,47 +285,95 @@ const MyVisitsPage: React.FC = () => {
             setGeneratingChalanId(null);
         }
     };
-    
+
     const getCustomerForVisit = (visit: Visit) => customers.find(c => c.id === visit.customerId);
 
+    const filteredVisits = visits.filter(visit => {
+        const customer = getCustomerForVisit(visit);
+        const searchMatch =
+            (customer?.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+            visit.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            `#${visit.id}`.includes(searchTerm);
+
+        const statusMatch = statusFilter === 'all' || visit.status === statusFilter;
+
+        return searchMatch && statusMatch;
+    });
+
     if (loading) {
-        return <div>Loading your assigned projects...</div>;
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
     }
 
-    const upcomingVisits = visits.filter(v => v.status === 'scheduled' || v.status === 'in_progress');
-    const pastVisits = visits.filter(v => v.status === 'completed' || v.status === 'cancelled');
-
-
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-fade-in-up pb-10">
             {completingVisit && <CompleteProjectModal visit={completingVisit} onClose={() => setCompletingVisit(null)} onSave={handleSaveAndComplete} />}
             {managingVisit && <ManageItemsModal visit={managingVisit} onClose={() => setManagingVisit(null)} onSave={handleSaveItems} />}
-            <h2 className="text-3xl font-bold text-slate-800">My Projects</h2>
-            
-            <div>
-                <h3 className="text-xl font-semibold text-slate-700 mb-4">Upcoming Projects</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {upcomingVisits.length > 0 ? (
-                        upcomingVisits.map(visit => <ProjectCard key={visit.id} visit={visit} customer={getCustomerForVisit(visit)} onStatusChange={handleStatusChange} onCompleteClick={setCompletingVisit} onManageItemsClick={setManagingVisit} onGenerateChalanClick={handleGenerateChalan} generatingChalanId={generatingChalanId} />)
-                    ) : (
-                        <div className="md:col-span-3 p-6 text-center bg-white border border-slate-200 rounded-lg">
-                            <p className="text-slate-500">No upcoming projects assigned.</p>
-                        </div>
-                    )}
+
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h2 className="text-3xl font-bold text-slate-800 dark:text-white">My Projects</h2>
+                <div className="flex gap-2 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    {(['all', 'scheduled', 'in_progress', 'completed'] as const).map(status => (
+                        <button
+                            key={status}
+                            onClick={() => setStatusFilter(status)}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold capitalize transition-all ${statusFilter === status
+                                ? 'bg-primary-600 text-white shadow-md'
+                                : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700'
+                                }`}
+                        >
+                            {status.replace('_', ' ')}
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            <div>
-                <h3 className="text-xl font-semibold text-slate-700 mb-4">Project History</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                     {pastVisits.length > 0 ? (
-                        pastVisits.map(visit => <ProjectCard key={visit.id} visit={visit} customer={getCustomerForVisit(visit)} onStatusChange={handleStatusChange} onCompleteClick={setCompletingVisit} onManageItemsClick={setManagingVisit} onGenerateChalanClick={handleGenerateChalan} generatingChalanId={generatingChalanId}/>)
-                    ) : (
-                        <div className="md:col-span-3 p-6 text-center bg-white border border-slate-200 rounded-lg">
-                            <p className="text-slate-500">No past projects found.</p>
-                        </div>
-                    )}
+            {/* Search Bar */}
+            <div className="relative max-w-md">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon className="h-5 w-5 text-slate-400" />
                 </div>
+                <input
+                    type="text"
+                    placeholder="Search customer, address, or ID..."
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredVisits.length > 0 ? (
+                    filteredVisits.map(visit => (
+                        <ProjectCard
+                            key={visit.id}
+                            visit={visit}
+                            customer={getCustomerForVisit(visit)}
+                            onStatusChange={handleStatusChange}
+                            onCompleteClick={setCompletingVisit}
+                            onManageItemsClick={setManagingVisit}
+                            onGenerateChalanClick={handleGenerateChalan}
+                            generatingChalanId={generatingChalanId}
+                        />
+                    ))
+                ) : (
+                    <div className="col-span-full py-16 text-center">
+                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <FilterIcon className="w-10 h-10 text-slate-300" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">No projects found</h3>
+                        <p className="text-slate-500">Try adjusting your search or filters.</p>
+                        <button
+                            onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}
+                            className="mt-4 px-4 py-2 text-primary-600 font-bold hover:bg-primary-50 rounded-lg transition-colors"
+                        >
+                            Clear Filters
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

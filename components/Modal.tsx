@@ -35,8 +35,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidt
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
             {/* Backdrop - lighter opacity */}
+            {/* Backdrop - lighter opacity */}
             <div
-                className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-300"
+                className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm dark:bg-black/40 transition-opacity duration-300"
                 onClick={onClose}
                 aria-hidden="true"
             />
@@ -44,7 +45,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidt
             {/* Modal Content */}
             <div
                 ref={modalRef}
-                className={`relative w-full ${maxWidth} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl ring-1 ring-slate-200 dark:ring-slate-800 transform transition-all duration-300 scale-100 animate-fade-in-up flex flex-col max-h-[90vh]`}
+                className={`relative w-full ${maxWidth} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl ring-1 ring-slate-200 dark:ring-slate-800 transform transition-all duration-300 scale-100 animate-scale-in flex flex-col max-h-[90vh]`}
                 role="dialog"
                 aria-modal="true"
             >

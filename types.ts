@@ -46,6 +46,39 @@ export interface Visit {
   nvrPassword?: string;
   signatureDataUrl?: string;
   workLog?: WorkLogEntry[];
+  // Project Details
+  projectCode?: string;
+  siteType?: string;
+  projectType?: string;
+  timelineStatus?: TimelineStep[];
+  materialUsage?: MaterialUsageItem[];
+  cableUsage?: CableUsageItem[];
+  attachments?: string[]; // URLs
+}
+
+export interface TimelineStep {
+  label: string;
+  date: string;
+  status: 'completed' | 'current' | 'pending';
+}
+
+export interface MaterialUsageItem {
+  id: string; // productId or unique id
+  category: string;
+  productName: string;
+  qtyPlanned: number;
+  qtyUsed: number;
+  balance: number;
+  remarks?: string;
+}
+
+export interface CableUsageItem {
+  id: string;
+  type: string;
+  location: string;
+  totalLength: number;
+  usedLength: number;
+  balance: number;
 }
 
 export interface DashboardSummary {
@@ -266,6 +299,7 @@ export interface LicenseKey {
 }
 
 export interface DealerInfo {
+  id?: number;
   companyName: string;
   address: string;
   gstin: string;
@@ -317,4 +351,65 @@ export interface AttendanceRecord {
   technicianName: string;
   date: string;
   status: 'Present' | 'Absent' | 'Half-day' | 'Leave';
+}
+
+// Support System Types
+export type TicketCategory = 'issue' | 'feature_request' | 'billing' | 'general';
+export type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
+export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
+
+export interface SupportTicket {
+  id: string; // UUID
+  user_id: string; // UUID
+  subject: string;
+  description: string;
+  category: TicketCategory;
+  priority: TicketPriority;
+  status: TicketStatus;
+  created_at: string;
+  updated_at: string;
+  // For Admin View (joined data)
+  user_email?: string;
+  company_name?: string;
+}
+
+export type TechnicianAvailability = 'available' | 'busy' | 'on_leave' | 'offline';
+
+export interface Expense {
+  id: string;
+  user_id: string;
+  visit_id?: number;
+  amount: number;
+  category: 'travel' | 'food' | 'material' | 'other';
+  description: string;
+  receipt_url?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejection_reason?: string;
+  created_at: string;
+}
+
+export interface TechnicianTask {
+  id: number;
+  technician_id: number;
+  description: string;
+  status: 'pending' | 'completed';
+  due_date: string;
+  created_by?: string;
+  created_at?: string;
+}
+
+export interface Supplier {
+  id: number;
+  user_id?: string;
+  brand_name: string;
+  sales_person_name: string;
+  sales_person_mobile: string;
+  manager_name?: string;
+  manager_mobile?: string;
+  distributor_name?: string;
+  service_center_details?: string;
+  service_center_number?: string;
+  product_categories?: string;
+  notes?: string;
+  created_at?: string;
 }

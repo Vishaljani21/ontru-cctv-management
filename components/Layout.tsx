@@ -8,7 +8,7 @@ import {
     CustomersIcon, TechniciansIcon, PaymentsIcon, SiteHealthIcon, AMCIcon, WarrantyIcon,
     SettingsIcon, BillingIcon, PayrollIcon, AttendanceIcon, ReportIcon,
     ChecklistIcon, MyPaymentsIcon, MyVisitsIcon, LogoutIcon, OnTruFullLogo, OnTruLogo, CrownIcon,
-    KeyIcon, SunIcon, MoonIcon, UserIcon, MenuIcon, CrossIcon
+    KeyIcon, SunIcon, MoonIcon, UserIcon, MenuIcon, CrossIcon, ChatbotIcon, CurrencyRupeeIcon, ClipboardDocumentCheckIcon, SupplierIcon
 } from './icons';
 
 interface NavItemProps {
@@ -93,11 +93,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const dealerNavLinks = useMemo(() => {
         const links = [
             { to: '/dashboard', icon: <DashboardIcon />, label: 'Dashboard' },
+            { to: '/pipeline', icon: <VisitsIcon />, label: 'Pipeline' },
             { to: '/projects', icon: <ProjectIcon />, label: 'Projects' },
             { to: '/products', icon: <ProductIcon />, label: 'Products' },
             { to: '/inventory', icon: <InventoryIcon />, label: 'Inventory' },
             { to: '/customers', icon: <CustomersIcon />, label: 'Customers' },
             { to: '/technicians', icon: <TechniciansIcon />, label: 'Technicians' },
+            { to: '/tasks', icon: <ClipboardDocumentCheckIcon />, label: 'Daily Tasks' },
+            { to: '/suppliers', icon: <SupplierIcon />, label: 'Suppliers' },
             { to: '/godowns', icon: <GodownIcon />, label: 'Godowns' },
         ];
 
@@ -115,6 +118,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
 
         links.push({ to: '/subscription', icon: <CrownIcon />, label: 'Subscription' });
+        links.push({ to: '/support', icon: <ChatbotIcon />, label: 'Support' });
         links.push({ to: '/settings', icon: <SettingsIcon />, label: 'Settings' });
 
         return links;
@@ -123,12 +127,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const technicianNavLinks = useMemo(() => [
         { to: '/tech/dashboard', icon: <DashboardIcon />, label: 'Dashboard' },
         { to: '/tech/my-visits', icon: <MyVisitsIcon />, label: 'My Projects' },
+        { to: '/tech/tasks', icon: <ClipboardDocumentCheckIcon />, label: 'Daily Tasks' },
+        { to: '/tech/expenses', icon: <CurrencyRupeeIcon />, label: 'My Expenses' },
         { to: '/tech/my-payments', icon: <MyPaymentsIcon />, label: 'My Payments' },
         { to: '/tech/checklist', icon: <ChecklistIcon />, label: 'Checklist' },
     ], []);
 
     const adminNavLinks = useMemo(() => [
+        { to: '/admin/dashboard', icon: <DashboardIcon />, label: 'Dashboard' },
+        { to: '/admin/dealers', icon: <UserIcon />, label: 'Dealers' },
         { to: '/admin/license', icon: <KeyIcon />, label: 'License Keys' },
+        { to: '/admin/support', icon: <ChatbotIcon />, label: 'Support Tickets' },
     ], []);
 
     let navLinks = dealerNavLinks;

@@ -20,9 +20,12 @@ import { OnTruFullLogo } from './components/icons';
 // Protected Pages
 import DashboardPage from './pages/DashboardPage';
 import VisitsPage from './pages/VisitsPage';
+import VisitsPipelinePage from './pages/VisitsPipelinePage';
 import InventoryPage from './pages/InventoryPage';
 import GodownsPage from './pages/GodownsPage';
 import ProductsPage from './pages/ProductsPage';
+import SuppliersPage from './pages/SuppliersPage';
+import ProjectDetailsPage from './pages/ProjectDetailsPage';
 import CustomersPage from './pages/CustomersPage';
 import TechniciansPage from './pages/TechniciansPage';
 import PaymentsPage from './pages/PaymentsPage';
@@ -39,13 +42,20 @@ import PayslipPrintPage from './pages/PayslipPrintPage';
 import ReportsPage from './pages/ReportsPage';
 import SubscriptionPage from './pages/SubscriptionPage';
 import AdminLicensePage from './pages/AdminLicensePage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminDealersPage from './pages/AdminDealersPage';
+import SupportPage from './pages/SupportPage';
+import AdminSupportPage from './pages/AdminSupportPage';
 
 // Technician Pages
 import TechnicianDashboardPage from './pages/technician/TechnicianDashboardPage';
 import MyVisitsPage from './pages/technician/MyVisitsPage';
 import MyPaymentsPage from './pages/technician/MyPaymentsPage';
+import MyExpensesPage from './pages/technician/MyExpensesPage';
+import MyTasksPage from './pages/technician/MyTasksPage';
 import CCTVInstallationChecklistPage from './pages/technician/CCTVInstallationChecklistPage';
 import ProjectsPage from './pages/ProjectsPage';
+import TaskManagerPage from './pages/TaskManagerPage';
 
 
 // --- Auth Context ---
@@ -104,12 +114,17 @@ const DealerRoutes = () => {
         <Routes>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/pipeline" element={<VisitsPipelinePage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/godowns" element={<GodownsPage />} />
             <Route path="/products" element={<ProductsPage />} />
+            <Route path="/suppliers" element={<SuppliersPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailsPage />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/technicians" element={<TechniciansPage />} />
+            <Route path="/tasks" element={<TaskManagerPage />} />
             <Route path="/subscription" element={<SubscriptionPage />} />
+            <Route path="/support" element={<SupportPage />} />
             <Route path="/settings" element={<SettingsPage />} />
 
             {/* Feature Gated Routes */}
@@ -154,6 +169,8 @@ const TechnicianRoutes = () => (
         <Route path="/tech/dashboard" element={<TechnicianDashboardPage />} />
         <Route path="/tech/my-visits" element={<MyVisitsPage />} />
         <Route path="/tech/my-payments" element={<MyPaymentsPage />} />
+        <Route path="/tech/expenses" element={<MyExpensesPage />} />
+        <Route path="/tech/tasks" element={<MyTasksPage />} />
         <Route path="/tech/checklist" element={<CCTVInstallationChecklistPage />} />
         <Route path="*" element={<Navigate to="/tech/dashboard" />} />
     </Routes>
@@ -161,8 +178,11 @@ const TechnicianRoutes = () => (
 
 const AdminRoutes = () => (
     <Routes>
+        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+        <Route path="/admin/dealers" element={<AdminDealersPage />} />
         <Route path="/admin/license" element={<AdminLicensePage />} />
-        <Route path="*" element={<Navigate to="/admin/license" />} />
+        <Route path="/admin/support" element={<AdminSupportPage />} />
+        <Route path="*" element={<Navigate to="/admin/dashboard" />} />
     </Routes>
 );
 

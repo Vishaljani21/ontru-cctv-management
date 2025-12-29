@@ -113,6 +113,11 @@ const SubscriptionPage: React.FC = () => {
         }
     };
 
+    const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+
+    const openPurchaseModal = () => setShowPurchaseModal(true);
+    const closePurchaseModal = () => setShowPurchaseModal(false);
+
     return (
         <div className="space-y-12 animate-fade-in-up pb-10">
             <div className="text-center space-y-4 max-w-3xl mx-auto">
@@ -140,6 +145,14 @@ const SubscriptionPage: React.FC = () => {
                             {loading ? '...' : 'Redeem'}
                         </button>
                     </form>
+                </div>
+                <div className="flex justify-center mt-3">
+                    <button
+                        onClick={openPurchaseModal}
+                        className="text-primary-600 dark:text-primary-400 text-sm font-semibold hover:underline"
+                    >
+                        Need a License Key? Buy Online
+                    </button>
                 </div>
                 {redeemStatus && (
                     <div className={`mt-3 text-center text-sm font-bold ${redeemStatus.type === 'success' ? 'text-emerald-500' : 'text-red-500'}`}>
@@ -185,22 +198,13 @@ const SubscriptionPage: React.FC = () => {
                             <div className="p-8 flex-1">
                                 <hr className="border-slate-100 dark:border-slate-800 mb-8" />
                                 <ul className="space-y-4">
-                                    {plan.features.map((feature, idx) => (
-                                        <li key={idx} className="flex items-start">
-                                            <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mr-3 mt-0.5 ${feature.included ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-300 dark:bg-slate-800 dark:text-slate-600'}`}>
-                                                {feature.included ? <CheckIcon className="w-3 h-3" /> : <CrossIcon className="w-3 h-3" />}
-                                            </div>
-                                            <span className={`text-sm ${feature.included ? 'text-slate-700 dark:text-slate-300 font-medium' : 'text-slate-400 dark:text-slate-600'}`}>
-                                                {feature.name}
-                                            </span>
-                                        </li>
-                                    ))}
+                                    {featureList(plan.features)}
                                 </ul>
                             </div>
 
                             <div className="p-8 pt-0 mt-auto">
                                 <button
-                                    onClick={() => !isCurrent && handleUpgrade(plan.id)}
+                                    onClick={() => isCurrent ? null : openPurchaseModal()}
                                     disabled={loading || isCurrent}
                                     className={`w-full py-4 rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] ${isCurrent
                                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400 cursor-default shadow-none hover:shadow-none hover:scale-100'
@@ -209,7 +213,7 @@ const SubscriptionPage: React.FC = () => {
                                             : 'bg-slate-800 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-900 dark:hover:bg-slate-100'
                                         }`}
                                 >
-                                    {isCurrent ? 'Current Plan' : `Upgrade to ${plan.name}`}
+                                    {isCurrent ? 'Current Plan' : `Buy ${plan.name} License`}
                                 </button>
                             </div>
                         </div>
@@ -228,12 +232,69 @@ const SubscriptionPage: React.FC = () => {
                             For large organizations with multiple branches and over 50 technicians, we offer custom deployment, dedicated support, and volume pricing.
                         </p>
                     </div>
-                    <button className="whitespace-nowrap px-6 py-3 bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all text-sm">
+                    <button onClick={openPurchaseModal} className="whitespace-nowrap px-6 py-3 bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all text-sm">
                         Contact Sales
                     </button>
                 </div>
             </div>
+
+            {/* Purchase Modal */}
+            {showPurchaseModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-scale-in">
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-white">Get Your License Key</h3>
+                            <button onClick={closePurchaseModal} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                <CrossIcon className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="p-8 text-center space-y-6">
+                            <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto text-primary-600 mb-4">
+                                <CrownIcon className="w-8 h-8" />
+                            </div>
+                            <h4 className="text-2xl font-bold text-slate-800 dark:text-white">Contact Us to Purchase</h4>
+                            <p className="text-slate-600 dark:text-slate-400">
+                                To purchase a license key or upgrade your plan, please contact our sales team directly. We accept UPI, Bank Transfer, and Credit Cards.
+                            </p>
+
+                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-3 text-left">
+                                <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+                                    <span className="text-slate-500 text-sm">Sales Email</span>
+                                    <a href="mailto:sales@ontru.com" className="font-bold text-primary-600 hover:underline">sales@ontru.com</a>
+                                </div>
+                                <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+                                    <span className="text-slate-500 text-sm">WhatsApp / Call</span>
+                                    <a href="tel:+919876543210" className="font-bold text-primary-600 hover:underline">+91 98765 43210</a>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 text-sm">Website</span>
+                                    <a href="https://ontru.com/pricing" target="_blank" rel="noreferrer" className="font-bold text-primary-600 hover:underline">ontru.com/pricing</a>
+                                </div>
+                            </div>
+
+                            <p className="text-xs text-slate-500">
+                                Once payment is confirmed, you will receive a license key instantly via email and SMS. Enter that key in the dashboard to activate your plan.
+                            </p>
+                        </div>
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 text-center">
+                            <button onClick={closePurchaseModal} className="text-slate-500 hover:text-slate-700 font-medium text-sm">Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
+
+// Helper for plan features
+const featureList = (features: PlanFeature[]) => features.map((feature, idx) => (
+    <li key={idx} className="flex items-start">
+        <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mr-3 mt-0.5 ${feature.included ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-300 dark:bg-slate-800 dark:text-slate-600'}`}>
+            {feature.included ? <CheckIcon className="w-3 h-3" /> : <CrossIcon className="w-3 h-3" />}
+        </div>
+        <span className={`text-sm ${feature.included ? 'text-slate-700 dark:text-slate-300 font-medium' : 'text-slate-400 dark:text-slate-600'}`}>
+            {feature.name}
+        </span>
+    </li>
+));
 export default SubscriptionPage;
