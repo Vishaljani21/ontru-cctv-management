@@ -180,6 +180,20 @@ EOF
     echo -e "${YELLOW}IMPORTANT: Save these credentials securely:${NC}"
     echo "  POSTGRES_PASSWORD: $POSTGRES_PASSWORD"
     echo "  JWT_SECRET: $JWT_SECRET"
+else
+    # Env file exists, but we MUST ensure VITE_ variables are present for the frontend build
+    echo -e "${YELLOW}Checking .env for frontend variables...${NC}"
+    
+    # Load current values to reuse them
+    source .env
+    
+    if ! grep -q "VITE_SUPABASE_URL" .env; then
+        echo -e "${YELLOW}Adding missing VITE_SUPABASE_URL to .env...${NC}"
+        echo "" >> .env
+        echo "# Frontend Variables (Added by update)" >> .env
+        echo "VITE_SUPABASE_URL=https://$DOMAIN" >> .env
+        echo "VITE_SUPABASE_ANON_KEY=$ANON_KEY" >> .env
+    fi
 fi
 
 # Update Nginx config with actual domain
@@ -272,7 +286,12 @@ docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgre
 # App Schema
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20241205000001_initial_schema.sql
 # RLS Policies
+# RLS Policies
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20241205000002_rls_policies.sql
+
+# Seed Users (Admin/Dealer/Tech)
+echo -e "${YELLOW}Seeding default users...${NC}"
+docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20251229000000_seed_users.sql
 
 # ==========================================
 # HEALTH CHECK
