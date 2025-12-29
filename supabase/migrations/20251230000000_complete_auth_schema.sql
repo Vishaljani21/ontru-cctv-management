@@ -1,10 +1,9 @@
--- Complete Auth Schema Migration for Self-Hosted Supabase
--- Fixes 500 Internal Server Error due to missing tables/columns
+-- Complete Auth Schema Migration (Idempotent)
+-- Derived from local Supabase dump to fix 500 Errors on production
 
--- 1. Ensure Schema Exists
 CREATE SCHEMA IF NOT EXISTS auth;
 
--- 2. Create Custom Types
+-- 1. Custom Types (Idempotent)
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'aal_level') THEN
@@ -17,21 +16,84 @@ BEGIN
         CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified');
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_type') THEN
-        CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn');
+        CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn', 'phone');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_authorization_status') THEN
+        CREATE TYPE auth.oauth_authorization_status AS ENUM ('pending', 'approved', 'denied', 'expired');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_client_type') THEN
+        CREATE TYPE auth.oauth_client_type AS ENUM ('public', 'confidential');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_registration_type') THEN
+        CREATE TYPE auth.oauth_registration_type AS ENUM ('dynamic', 'manual');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_response_type') THEN
+        CREATE TYPE auth.oauth_response_type AS ENUM ('code');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'one_time_token_type') THEN
+        CREATE TYPE auth.one_time_token_type AS ENUM ('confirmation_token', 'reauthentication_token', 'recovery_token', 'email_change_token_new', 'email_change_token_current', 'phone_change_token');
     END IF;
 END $$;
 
--- 3. Update update auth.users with missing columns
-DO $$
-BEGIN
-    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS is_sso_user boolean DEFAULT false NOT NULL;
-    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS deleted_at timestamp with time zone;
-    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS is_anonymous boolean DEFAULT false NOT NULL;
-EXCEPTION
-    WHEN duplicate_column THEN NULL;
-END $$;
+-- 2. Functions
+CREATE OR REPLACE FUNCTION auth.email() RETURNS text LANGUAGE sql STABLE AS $$
+  select coalesce(
+    nullif(current_setting('request.jwt.claim.email', true), ''),
+    (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'email')
+  )::text
+$$;
 
--- 3. Create auth.instances
+CREATE OR REPLACE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS $$
+  select coalesce(
+    nullif(current_setting('request.jwt.claim.role', true), ''),
+    (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role')
+  )::text
+$$;
+
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$
+  select coalesce(
+    nullif(current_setting('request.jwt.claim.sub', true), ''),
+    (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')
+  )::uuid
+$$;
+
+-- 3. Tables (IF NOT EXISTS)
+CREATE TABLE IF NOT EXISTS auth.audit_log_entries (
+    instance_id uuid,
+    id uuid NOT NULL PRIMARY KEY,
+    payload json,
+    created_at timestamp with time zone,
+    ip_address character varying(64) DEFAULT ''::character varying NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS auth.flow_state (
+    id uuid NOT NULL PRIMARY KEY,
+    user_id uuid,
+    auth_code text NOT NULL,
+    code_challenge_method auth.code_challenge_method NOT NULL,
+    code_challenge text NOT NULL,
+    provider_type text NOT NULL,
+    provider_access_token text,
+    provider_refresh_token text,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    authentication_method text NOT NULL,
+    auth_code_issued_at timestamp with time zone
+);
+
+CREATE TABLE IF NOT EXISTS auth.identities (
+    provider_id text NOT NULL,
+    user_id uuid NOT NULL,
+    identity_data jsonb NOT NULL,
+    provider text NOT NULL,
+    last_sign_in_at timestamp with time zone,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    email text GENERATED ALWAYS AS (lower(identity_data->>'email')) STORED,
+    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
+    CONSTRAINT identities_provider_id_provider_unique UNIQUE (provider_id, provider)
+);
+
 CREATE TABLE IF NOT EXISTS auth.instances (
     id uuid NOT NULL PRIMARY KEY,
     uuid uuid,
@@ -40,91 +102,75 @@ CREATE TABLE IF NOT EXISTS auth.instances (
     updated_at timestamp with time zone
 );
 
--- 4. Create auth.audit_log_entries
-CREATE TABLE IF NOT EXISTS auth.audit_log_entries (
-    instance_id uuid,
+CREATE TABLE IF NOT EXISTS auth.mfa_amr_claims (
+    session_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    authentication_method text NOT NULL,
     id uuid NOT NULL PRIMARY KEY,
-    payload json,
-    created_at timestamp with time zone,
-    ip_address character varying(64) DEFAULT ''::character varying NOT NULL
+    CONSTRAINT mfa_amr_claims_session_id_authentication_method_pkey UNIQUE (session_id, authentication_method)
 );
-CREATE INDEX IF NOT EXISTS audit_logs_instance_id_idx ON auth.audit_log_entries USING btree (instance_id);
 
--- 5. Create auth.identities
-CREATE TABLE IF NOT EXISTS auth.identities (
-    provider_id text NOT NULL,
-    user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    identity_data jsonb NOT NULL,
-    provider text NOT NULL,
-    last_sign_in_at timestamp with time zone,
-    created_at timestamp with time zone,
-    updated_at timestamp with time zone,
-    email text GENERATED ALWAYS AS (lower(identity_data->>'email')) STORED,
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    CONSTRAINT identities_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS identities_user_id_idx ON auth.identities USING btree (user_id);
-CREATE INDEX IF NOT EXISTS identities_email_idx ON auth.identities (email text_pattern_ops);
-COMMENT ON TABLE auth.identities IS 'Auth: Stores identities associated to a user.';
-
--- 6. Create auth.sessions
-CREATE TABLE IF NOT EXISTS auth.sessions (
+CREATE TABLE IF NOT EXISTS auth.mfa_challenges (
     id uuid NOT NULL PRIMARY KEY,
-    user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    created_at timestamp with time zone,
-    updated_at timestamp with time zone,
-    factor_id uuid,
-    aal type_aal DEFAULT 'aal1'::type_aal,
-    not_after timestamp with time zone
+    factor_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    verified_at timestamp with time zone,
+    ip_address inet NOT NULL,
+    otp_code text,
+    web_authn_session_data jsonb
 );
-CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON auth.sessions USING btree (user_id);
-CREATE INDEX IF NOT EXISTS sessions_not_after_idx ON auth.sessions USING btree (not_after desc);
-COMMENT ON TABLE auth.sessions IS 'Auth: Stores session data associated to a user.';
 
--- 7. Create auth.refresh_tokens
+CREATE TABLE IF NOT EXISTS auth.mfa_factors (
+    id uuid NOT NULL PRIMARY KEY,
+    user_id uuid NOT NULL,
+    friendly_name text,
+    factor_type auth.factor_type NOT NULL,
+    status auth.factor_status NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    secret text,
+    phone text,
+    last_challenged_at timestamp with time zone UNIQUE,
+    web_authn_credential jsonb,
+    web_authn_aaguid uuid,
+    last_webauthn_challenge_data jsonb
+);
+
 CREATE TABLE IF NOT EXISTS auth.refresh_tokens (
     instance_id uuid,
     id bigserial PRIMARY KEY,
-    token character varying(255),
+    token character varying(255) UNIQUE,
     user_id character varying(255),
     revoked boolean,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
     parent character varying(255),
-    session_id uuid REFERENCES auth.sessions(id) ON DELETE CASCADE
+    session_id uuid
 );
-CREATE INDEX IF NOT EXISTS refresh_tokens_instance_id_idx ON auth.refresh_tokens USING btree (instance_id);
-CREATE INDEX IF NOT EXISTS refresh_tokens_instance_id_user_id_idx ON auth.refresh_tokens USING btree (instance_id, user_id);
-CREATE INDEX IF NOT EXISTS refresh_tokens_token_idx ON auth.refresh_tokens USING btree (token);
-CREATE INDEX IF NOT EXISTS refresh_tokens_session_id_idx ON auth.refresh_tokens USING btree (session_id);
-CREATE INDEX IF NOT EXISTS refresh_tokens_parent_idx ON auth.refresh_tokens USING btree (parent);
-COMMENT ON TABLE auth.refresh_tokens IS 'Auth: Store of tokens used to refresh JWT tokens once they expire.';
 
--- 8. Create auth.saml_providers
-CREATE TABLE IF NOT EXISTS auth.saml_providers (
+CREATE TABLE IF NOT EXISTS auth.schema_migrations (
+    version character varying(255) NOT NULL PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS auth.sessions (
     id uuid NOT NULL PRIMARY KEY,
-    sso_provider_id uuid NOT NULL,
-    entity_id text NOT NULL UNIQUE,
-    metadata_xml text NOT NULL,
-    metadata_url text,
-    attribute_mapping jsonb,
+    user_id uuid NOT NULL,
     created_at timestamp with time zone,
-    updated_at timestamp with time zone
+    updated_at timestamp with time zone,
+    factor_id uuid,
+    aal auth.aal_level,
+    not_after timestamp with time zone,
+    refreshed_at timestamp without time zone,
+    user_agent text,
+    ip inet,
+    tag text,
+    oauth_client_id uuid,
+    refresh_token_hmac_key text,
+    refresh_token_counter bigint,
+    scopes text
 );
 
--- 9. Create auth.saml_relay_states
-CREATE TABLE IF NOT EXISTS auth.saml_relay_states (
-    id uuid NOT NULL PRIMARY KEY,
-    sso_provider_id uuid NOT NULL,
-    request_id text NOT NULL,
-    for_email text,
-    redirect_to text,
-    from_ip_address inet,
-    created_at timestamp with time zone,
-    updated_at timestamp with time zone
-);
-
--- 10. Create auth.sso_domains
 CREATE TABLE IF NOT EXISTS auth.sso_domains (
     id uuid NOT NULL PRIMARY KEY,
     sso_provider_id uuid NOT NULL,
@@ -133,35 +179,60 @@ CREATE TABLE IF NOT EXISTS auth.sso_domains (
     updated_at timestamp with time zone
 );
 
--- 11. Create auth.sso_providers
 CREATE TABLE IF NOT EXISTS auth.sso_providers (
     id uuid NOT NULL PRIMARY KEY,
     resource_id text,
     created_at timestamp with time zone,
-    updated_at timestamp with time zone
-);
-
--- 12. Create auth.schema_migrations
-CREATE TABLE IF NOT EXISTS auth.schema_migrations (
-    version character varying(255) NOT NULL PRIMARY KEY
-);
-
--- 13. Create auth.flow_state
-CREATE TABLE IF NOT EXISTS auth.flow_state (
-    id uuid NOT NULL PRIMARY KEY,
-    user_id uuid,
-    auth_code text NOT NULL,
-    code_challenge_method type_code_challenge_method NOT NULL,
-    code_challenge text NOT NULL,
-    provider_type text NOT NULL,
-    provider_access_token text,
-    provider_refresh_token text,
-    created_at timestamp with time zone,
     updated_at timestamp with time zone,
-    authentication_method text NOT NULL
+    disabled boolean
 );
 
--- 14. Grant Permissions
+-- 4. Alter Users Table (Add missing columns)
+DO $$
+BEGIN
+    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS is_sso_user boolean DEFAULT false NOT NULL;
+    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS deleted_at timestamp with time zone;
+    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS is_anonymous boolean DEFAULT false NOT NULL;
+    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS phone_change text DEFAULT '';
+    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS phone_change_token varchar(255) DEFAULT '';
+    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS email_change_token_current varchar(255) DEFAULT '';
+    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS email_change_confirm_status smallint DEFAULT 0;
+    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS banned_until timestamp with time zone;
+    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS reauthentication_token varchar(255) DEFAULT '';
+    ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS reauthentication_sent_at timestamp with time zone;
+EXCEPTION
+    WHEN duplicate_column THEN NULL;
+END $$;
+
+-- 5. Foreign Keys & Indexes
+-- Identities
+DO $$ BEGIN
+    ALTER TABLE auth.identities ADD CONSTRAINT identities_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+CREATE INDEX IF NOT EXISTS identities_user_id_idx ON auth.identities USING btree (user_id);
+CREATE INDEX IF NOT EXISTS identities_email_idx ON auth.identities (email text_pattern_ops);
+
+-- Sessions
+DO $$ BEGIN
+    ALTER TABLE auth.sessions ADD CONSTRAINT sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON auth.sessions USING btree (user_id);
+CREATE INDEX IF NOT EXISTS sessions_not_after_idx ON auth.sessions USING btree (not_after desc);
+
+-- Refresh Tokens
+DO $$ BEGIN
+    ALTER TABLE auth.refresh_tokens ADD CONSTRAINT refresh_tokens_session_id_fkey FOREIGN KEY (session_id) REFERENCES auth.sessions(id) ON DELETE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+CREATE INDEX IF NOT EXISTS refresh_tokens_instance_id_idx ON auth.refresh_tokens USING btree (instance_id);
+CREATE INDEX IF NOT EXISTS refresh_tokens_instance_id_user_id_idx ON auth.refresh_tokens USING btree (instance_id, user_id);
+CREATE INDEX IF NOT EXISTS refresh_tokens_token_idx ON auth.refresh_tokens USING btree (token);
+CREATE INDEX IF NOT EXISTS refresh_tokens_session_id_idx ON auth.refresh_tokens USING btree (session_id);
+CREATE INDEX IF NOT EXISTS refresh_tokens_parent_idx ON auth.refresh_tokens USING btree (parent);
+
+-- 6. Grants
 GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA auth TO postgres, supabase_admin, dashboard_user, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA auth TO postgres, supabase_admin, dashboard_user, service_role;
