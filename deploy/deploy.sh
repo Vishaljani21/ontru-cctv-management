@@ -63,10 +63,21 @@ if [ "$IS_UPDATE" = false ]; then
     # Check if Docker is installed
     if ! command -v docker &> /dev/null; then
         echo -e "${YELLOW}Installing Docker...${NC}"
-        curl -fsSL https://get.docker.com -o get-docker.sh
-        sudo sh get-docker.sh
-        sudo usermod -aG docker $USER
-        rm get-docker.sh
+        # Try standard script first
+        if curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh; then
+            echo "Docker installed via official script."
+        else
+            echo -e "${RED}Standard install failed. Trying Snap...${NC}"
+            # Fallback to Snap (common for newer Ubuntu versions with repo issues)
+            sudo snap install docker
+            # Add snap docker group hack if needed
+            sudo addgroup --system docker
+            sudo adduser $USER docker
+            sudo snap connect docker:home
+        fi
+        
+        sudo usermod -aG docker $USER || true
+        rm -f get-docker.sh
     fi
 
     # Check if Docker Compose is installed
@@ -154,8 +165,14 @@ echo -e "${YELLOW}Building frontend...${NC}"
 if [ -f package.json ]; then
     # Install Node.js if not present
     if ! command -v node &> /dev/null; then
-        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-        sudo apt-get install -y nodejs
+        echo -e "${YELLOW}Installing Node.js...${NC}"
+        # Try standard apt install first
+        if curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs; then
+             echo "Node.js installed via apt."
+        else
+             echo -e "${RED}Apt install failed. Fallback to Snap for Node.js...${NC}"
+             sudo snap install node --classic
+        fi
     fi
     
     # Use clean install for CI/consistency
