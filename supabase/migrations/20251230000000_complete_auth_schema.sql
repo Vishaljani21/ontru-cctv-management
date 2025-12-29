@@ -4,7 +4,24 @@
 -- 1. Ensure Schema Exists
 CREATE SCHEMA IF NOT EXISTS auth;
 
--- 2. Update auth.users with missing columns if they don't exist
+-- 2. Create Custom Types
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'aal_level') THEN
+        CREATE TYPE auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'code_challenge_method') THEN
+        CREATE TYPE auth.code_challenge_method AS ENUM ('s256', 'plain');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_status') THEN
+        CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_type') THEN
+        CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn');
+    END IF;
+END $$;
+
+-- 3. Update update auth.users with missing columns
 DO $$
 BEGIN
     ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS is_sso_user boolean DEFAULT false NOT NULL;
