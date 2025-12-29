@@ -96,12 +96,10 @@ fi
         fi
     fi
 
-    # Create project directory
-    echo -e "${YELLOW}Setting up project directory...${NC}"
-    mkdir -p /opt/ontru
-    # Note: We assume the script is running from within the repo, so we don't cd /opt/ontru here if we are already there.
-    # But for a fresh VPS setup, one might curl this script. 
-    # For now, let's assume this script is part of the cloned repo.
+    # Project directory setup is skipped here.
+    # We assume the user has cloned the repo to their desired location (e.g., ~/ontru)
+    # This avoids Snap confinement issues with /opt/ontru
+    echo -e "${YELLOW}Using current directory for deployment...${NC}"
 fi
 
 # ==========================================

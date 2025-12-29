@@ -66,7 +66,6 @@ const transformVisit = (row: any): Visit => ({
     nvrUsername: row.nvr_username,
     nvrPassword: row.nvr_password,
     signatureDataUrl: row.signature_data_url,
-    signatureDataUrl: row.signature_data_url,
     workLog: row.work_log || [],
     projectCode: row.project_code,
     siteType: row.site_type,
