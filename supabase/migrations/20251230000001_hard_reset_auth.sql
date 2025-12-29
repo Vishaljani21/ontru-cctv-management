@@ -1,6 +1,19 @@
 -- HARD RESET AUTH SCHEMA
 -- Fixes persistent 500 Errors by wiping and recreating the Auth schema from a verified dump.
 
+-- 0. Ensure Service Roles Exist (Critical for Ownership)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'supabase_auth_admin') THEN
+    EXECUTE 'CREATE ROLE supabase_auth_admin LOGIN PASSWORD ''postgres'' SUPERUSER CREATEDB CREATEROLE REPLICATION';
+  END IF;
+  
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'supabase_storage_admin') THEN
+    EXECUTE 'CREATE ROLE supabase_storage_admin LOGIN PASSWORD ''postgres'' SUPERUSER CREATEDB CREATEROLE REPLICATION';
+  END IF;
+END
+$$;
+
 -- 1. Wipe existing schema (Cascade deletes dependent objects like profiles)
 DROP SCHEMA IF EXISTS auth CASCADE;
 
