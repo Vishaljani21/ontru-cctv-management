@@ -261,8 +261,13 @@ sleep 15
 # Run database migrations
 # Always run this to ensure DB is up to date with code
 echo -e "${YELLOW}Running database migrations...${NC}"
+
+# Bootstrap (Roles, Auth Schema) - Critical for first run
+docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/00000000000000_supabase_bootstrap.sql
+
+# App Schema
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20241205000001_initial_schema.sql
-# You might want to wrap this in a conditional or keep it idempotent
+# RLS Policies
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20241205000002_rls_policies.sql
 
 # ==========================================
