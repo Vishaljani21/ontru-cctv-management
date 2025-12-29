@@ -7,7 +7,7 @@ import { OnTruFullLogo } from '../components/icons';
 const LoginPage: React.FC = () => {
   const [role, setRole] = useState<'dealer' | 'technician' | 'admin'>('dealer');
   const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password');
-  
+
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('password123');
   const [otp, setOtp] = useState('');
@@ -21,23 +21,23 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     // FIX: Redirect user if already logged in
     if (authContext?.user) {
-        if (authContext.user.role === 'admin') {
-             navigate('/admin/license', { replace: true });
-        } else {
-             const homePath = authContext.user.role === 'dealer' ? '/' : '/tech/dashboard';
-             navigate(homePath, { replace: true });
-        }
+      if (authContext.user.role === 'admin') {
+        navigate('/admin/license', { replace: true });
+      } else {
+        const homePath = authContext.user.role === 'dealer' ? '/' : '/tech/dashboard';
+        navigate(homePath, { replace: true });
+      }
     }
   }, [authContext, navigate]);
 
 
   useEffect(() => {
     if (role === 'admin') {
-        setIdentifier('admin@ontru.com');
-        setPassword('admin123');
+      setIdentifier('admin@ontru.com');
+      setPassword('admin123');
     } else {
-        setIdentifier(role === 'dealer' ? 'dealer@example.com' : '9876543210');
-        setPassword('password123');
+      setIdentifier(role === 'dealer' ? 'dealer@example.com' : '9876543210');
+      setPassword('password123');
     }
     setOtp('');
     setError(null);
@@ -66,7 +66,7 @@ const LoginPage: React.FC = () => {
 
     if (loginMethod === 'otp') {
       try {
-        await authContext?.login(identifier, password); 
+        await authContext?.login(identifier, password);
       } catch (err) {
         setError('Incorrect Phone Number or OTP.');
         setIsLoading(false);
@@ -142,13 +142,13 @@ const LoginPage: React.FC = () => {
       )}
       {role !== 'admin' && (
         <div className="flex items-center justify-end">
-            <button
+          <button
             type="button"
             onClick={() => setLoginMethod(prev => prev === 'password' ? 'otp' : 'password')}
             className="text-sm font-medium text-primary-600 hover:text-primary-500"
-            >
+          >
             {loginMethod === 'password' ? 'Use OTP' : 'Use Password'}
-            </button>
+          </button>
         </div>
       )}
     </>
@@ -160,7 +160,7 @@ const LoginPage: React.FC = () => {
         <div className="text-center">
           <OnTruFullLogo />
         </div>
-        
+
         <div className="flex items-center p-1 bg-slate-200 rounded-lg">
           <button
             onClick={() => setRole('dealer')}
@@ -178,9 +178,9 @@ const LoginPage: React.FC = () => {
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           {renderFormFields()}
-          
+
           {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-          
+
           <div>
             <button
               type="submit"
@@ -193,12 +193,18 @@ const LoginPage: React.FC = () => {
         </form>
 
         <div className="text-center pt-2">
-            <button onClick={() => setRole(role === 'admin' ? 'dealer' : 'admin')} className="text-xs text-slate-400 hover:text-slate-600">
-                {role === 'admin' ? 'Back to User Login' : 'Admin Login'}
-            </button>
+          <button onClick={() => setRole(role === 'admin' ? 'dealer' : 'admin')} className="text-xs text-slate-400 hover:text-slate-600">
+            {role === 'admin' ? 'Back to User Login' : 'Admin Login'}
+          </button>
         </div>
       </div>
     </div>
+      
+       {/* Debug Info Overlay */ }
+  <div className="fixed bottom-2 right-2 bg-gray-100 p-2 text-xs text-gray-500 rounded border border-gray-300 z-50 opacity-75 hover:opacity-100">
+    API Target: {import.meta.env.VITE_SUPABASE_URL || 'UNDEFINED'}
+  </div>
+    </div >
   );
 };
 

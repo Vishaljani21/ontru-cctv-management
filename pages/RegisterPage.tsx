@@ -43,14 +43,24 @@ const RegisterPage: React.FC = () => {
     } catch (err: any) {
       console.error("Registration Error Detail:", err);
       // Helpful error message if connection fails
-      if (err.message === 'Failed to fetch') {
-        setError('Connection failed. Please check your internet or try refreshing. (Server might be unreachable)');
+      let errorMessage = 'Registration failed.';
+
+      if (typeof err === 'object' && err !== null) {
+        // Handle Supabase error objects or generic objects
+        errorMessage = err.message || err.error_description || JSON.stringify(err);
       } else {
-        setError(err.message || 'Registration failed. Please try again.');
+        errorMessage = String(err);
       }
+
+      if (errorMessage === '{}') errorMessage = 'Unknown Network Error (Check Console)';
+      if (errorMessage.includes('Failed to fetch')) errorMessage = 'Connection Refused: Cannot reach Backend.';
+
+      setError(errorMessage);
       setIsLoading(false);
     }
   };
+
+  const API_DEBUG = import.meta.env.VITE_SUPABASE_URL;
 
   return (
     <div className="min-h-screen flex bg-white">
