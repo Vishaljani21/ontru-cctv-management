@@ -286,11 +286,8 @@ docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgre
 # App Schema
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20241205000001_initial_schema.sql
 
-# Fix Auth Utils (auth.uid, etc)
-docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20251229000001_fix_auth_utils.sql
-
-# Complete Auth Schema (Fix 500 Errors)
-docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20251230000000_complete_auth_schema.sql
+# FORCE RESET & RESTORE AUTH SCHEMA (Fixes 500 Errors)
+docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20251230000001_hard_reset_auth.sql
 
 # RLS Policies
 # RLS Policies
