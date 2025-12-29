@@ -170,11 +170,22 @@ if [ -f package.json ]; then
     # Install Node.js if not present (Check for both node and npm)
     if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
         echo -e "${YELLOW}Installing Node.js...${NC}"
-        # Try standard apt install first
-        if curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs; then
-             echo "Node.js installed via apt."
+        
+        # Attempt standard apt install first
+        # We ignore errors here to check the result explicitly
+        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - || true
+        sudo apt-get install -y nodejs || true
+        
+        # VERIFY: Did it actually install npm?
+        if command -v npm &> /dev/null; then
+             echo "Node.js (and npm) installed via apt."
         else
-             echo -e "${RED}Apt install failed. Fallback to Snap for Node.js...${NC}"
+             echo -e "${RED}Apt install succeeded but 'npm' is missing. Removing broken package and using Snap...${NC}"
+             # Remove broken apt version
+             sudo apt-get remove -y nodejs || true
+             sudo apt-get autoremove -y || true
+             
+             # Fallback to Snap
              sudo snap install node --classic
         fi
     fi
