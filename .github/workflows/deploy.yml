@@ -14,19 +14,33 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
           port: 22
           script: |
+            export DOMAIN="${{ secrets.DOMAIN }}"
+            export REPO="https://github.com/${{ github.repository }}.git"
+            
+            # 1. Ensure Directory Exists (Clone if missing)
+            if [ ! -d "/opt/ontru" ]; then
+                echo "Directory /opt/ontru does not exist. Cloning repository..."
+                git clone $REPO /opt/ontru
+            fi
+            
             cd /opt/ontru
-            # If directory doesn't exist, this is a first time setup and should be handled manually or via a separate script
-            # assuming the repo is already cloned at /opt/ontru
             
+            # 2. Pull Latest Changes
             echo "Pulling latest changes..."
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
             
-            echo "Running update script..."
-            # Make sure the script is executable
+            # 3. Execution Permission
             chmod +x deploy/deploy.sh
             
-            # Run deploy script in update mode
-            ./deploy/deploy.sh --update
+            # 4. Run Deployment
+            if [ -f .env ]; then
+                echo "Existing installation found. Updating..."
+                ./deploy/deploy.sh --update
+            else
+                echo "Fresh installation. Setting up for domain: $DOMAIN"
+                ./deploy/deploy.sh $DOMAIN
+            fi
