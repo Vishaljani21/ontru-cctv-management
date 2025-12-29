@@ -60,25 +60,29 @@ echo -e "${GREEN}========================================${NC}"
 # SYSTEM DEPENDENCIES (Skip on Update)
 # ==========================================
 if [ "$IS_UPDATE" = false ]; then
-    # Check if Docker is installed
-    if ! command -v docker &> /dev/null; then
-        echo -e "${YELLOW}Installing Docker...${NC}"
-        # Try standard script first
-        if curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh; then
-            echo "Docker installed via official script."
-        else
-            echo -e "${RED}Standard install failed. Trying Snap...${NC}"
-            # Fallback to Snap (common for newer Ubuntu versions with repo issues)
-            sudo snap install docker
-            # Add snap docker group hack if needed
-            sudo addgroup --system docker
-            sudo adduser $USER docker
-            sudo snap connect docker:home
-        fi
-        
-        sudo usermod -aG docker $USER || true
-        rm -f get-docker.sh
+# Add Snap to path ensuring it persists
+export PATH=$PATH:/snap/bin
+
+# Check if Docker is installed
+if ! command -v docker &> /dev/null; then
+    echo -e "${YELLOW}Installing Docker...${NC}"
+    # Try standard script first
+    if curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh; then
+        echo "Docker installed via official script."
+    else
+        echo -e "${RED}Standard install failed. Trying Snap...${NC}"
+        # Fallback to Snap (common for newer Ubuntu versions with repo issues)
+        sudo snap install docker
+        # Add snap docker group hack if needed
+        sudo addgroup --system docker
+        sudo adduser $USER docker
+        sudo snap connect docker:home
     fi
+    
+    sudo usermod -aG docker $USER || true
+    rm -f get-docker.sh
+fi
+
 
     # Check if Docker Compose is installed
     if ! command -v docker-compose &> /dev/null; then
@@ -163,8 +167,8 @@ sed -i "s/ontru.yourdomain.com/$DOMAIN/g" deploy/nginx.conf
 # Build frontend
 echo -e "${YELLOW}Building frontend...${NC}"
 if [ -f package.json ]; then
-    # Install Node.js if not present
-    if ! command -v node &> /dev/null; then
+    # Install Node.js if not present (Check for both node and npm)
+    if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
         echo -e "${YELLOW}Installing Node.js...${NC}"
         # Try standard apt install first
         if curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs; then
