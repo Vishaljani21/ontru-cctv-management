@@ -285,6 +285,10 @@ docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgre
 
 # App Schema
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20241205000001_initial_schema.sql
+
+# Fix Auth Utils (auth.uid, etc)
+docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20251229000001_fix_auth_utils.sql
+
 # RLS Policies
 # RLS Policies
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20241205000002_rls_policies.sql
