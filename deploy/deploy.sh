@@ -74,6 +74,13 @@ if systemctl is-active --quiet nginx; then
     sudo systemctl disable nginx
 fi
 
+# Stop conflicting PostgreSQL (Port 5432 collision)
+if systemctl is-active --quiet postgresql; then
+    echo -e "${YELLOW}Stopping local PostgreSQL to free up port 5432...${NC}"
+    sudo systemctl stop postgresql
+    sudo systemctl disable postgresql
+fi
+
 # ==========================================
 # SYSTEM DEPENDENCIES (Skip on Update)
 # ==========================================
