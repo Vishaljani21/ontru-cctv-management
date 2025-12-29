@@ -198,13 +198,11 @@ const LoginPage: React.FC = () => {
           </button>
         </div>
       </div>
+      {/* Debug Info Overlay */}
+      <div className="fixed bottom-2 right-2 bg-gray-100 p-2 text-xs text-gray-500 rounded border border-gray-300 z-50 opacity-75 hover:opacity-100">
+        API Target: {import.meta.env.VITE_SUPABASE_URL || 'UNDEFINED'}
+      </div>
     </div>
-      
-       {/* Debug Info Overlay */ }
-  <div className="fixed bottom-2 right-2 bg-gray-100 p-2 text-xs text-gray-500 rounded border border-gray-300 z-50 opacity-75 hover:opacity-100">
-    API Target: {import.meta.env.VITE_SUPABASE_URL || 'UNDEFINED'}
-  </div>
-    </div >
   );
 };
 

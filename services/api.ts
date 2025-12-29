@@ -2015,18 +2015,7 @@ export const api = {
         return data.availability_status as TechnicianAvailability || 'offline';
     },
 
-    getMyVisits: async (technicianId: number): Promise<Visit[]> => {
-        // visits.technician_ids is an integer array
-        // We need to find visits where technician_ids contains technicianId
-        const { data, error } = await supabase
-            .from('visits')
-            .select('*, visit_items(*)')
-            .contains('technician_ids', [technicianId])
-            .order('scheduled_at', { ascending: false });
 
-        if (error) throw error;
-        return (data || []).map(transformVisit);
-    },
 
     updateTechnicianAvailability: async (status: TechnicianAvailability): Promise<void> => {
         const userId = await getCurrentUserId();
