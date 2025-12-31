@@ -4,12 +4,28 @@
 -- 0. Ensure Service Roles Exist (Critical for Ownership)
 DO $$
 BEGIN
+  -- Service Roles (GoTrue, Storage)
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'supabase_auth_admin') THEN
     EXECUTE 'CREATE ROLE supabase_auth_admin LOGIN PASSWORD ''postgres'' SUPERUSER CREATEDB CREATEROLE REPLICATION';
   END IF;
   
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'supabase_storage_admin') THEN
     EXECUTE 'CREATE ROLE supabase_storage_admin LOGIN PASSWORD ''postgres'' SUPERUSER CREATEDB CREATEROLE REPLICATION';
+  END IF;
+
+  -- System Roles (Owner of Schema)
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'supabase_admin') THEN
+    EXECUTE 'CREATE ROLE supabase_admin LOGIN PASSWORD ''postgres'' SUPERUSER CREATEDB CREATEROLE REPLICATION';
+  END IF;
+
+  -- Dashboard User (Used in Grants)
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'dashboard_user') THEN
+    EXECUTE 'CREATE ROLE dashboard_user LOGIN NOINHERIT';
+  END IF;
+  
+  -- API User
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'authenticator') THEN
+    EXECUTE 'CREATE ROLE authenticator LOGIN NOINHERIT';
   END IF;
 END
 $$;
