@@ -11,7 +11,13 @@ echo ""
 
 # 1. Check Container Status
 echo "[1] Checking Container Status..."
+# 1. Check Container Status & Uptime
+echo "[1] Checking Container Status (CRITICAL: Look for 'Up' time)..."
 docker-compose -f docker-compose.prod.yml ps
+
+echo ""
+echo "NOTE: If 'auth' or 'db' say 'Up X hours' or 'Up X days', the update FAILED."
+echo "They should say 'Up Less than a minute' or 'Up X seconds'."
 echo ""
 
 # 2. Check Auth Service Logs (Last 100 lines)
