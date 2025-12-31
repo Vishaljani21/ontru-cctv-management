@@ -25,7 +25,7 @@ services:
   # SUPABASE AUTH (GoTrue)
   # ==========================================
   auth:
-    image: supabase/gotrue:v2.158.1
+    image: supabase/gotrue:v2.40.1
     restart: unless-stopped
     environment:
       GOTRUE_API_HOST: 0.0.0.0
