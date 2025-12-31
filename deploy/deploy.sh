@@ -265,8 +265,8 @@ fi
 # ==========================================
 
 # Restart/Start all services
-echo -e "${YELLOW}Starting/Restarting all services...${NC}"
-docker-compose -f docker-compose.prod.yml up -d --remove-orphans
+echo -e "${YELLOW}Starting/Restarting all services (Forcing Recreation to apply config)...${NC}"
+docker-compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
 
 # Wait for services to be ready
 echo -e "${YELLOW}Waiting for services to start...${NC}"
