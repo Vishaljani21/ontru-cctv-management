@@ -19,8 +19,8 @@ const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => 
                             <NavLink to="/contact" className={({ isActive }) => `text-sm font-medium ${isActive ? 'text-primary-600' : 'text-slate-500 hover:text-slate-900'}`}>Contact Us</NavLink>
                         </nav>
                         <div className="flex items-center space-x-4">
-                            <Link to="/login" className="text-sm font-medium text-slate-500 hover:text-slate-900">Sign In</Link>
-                            <Link to="/register" className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">Get Started</Link>
+                            <a href="https://app.ontru.in/login" className="text-sm font-medium text-slate-500 hover:text-slate-900">Sign In</a>
+                            <a href="https://app.ontru.in/register" className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">Get Started</a>
                         </div>
                     </div>
                 </div>
