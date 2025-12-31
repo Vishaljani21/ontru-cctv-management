@@ -74,7 +74,7 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data:Z
-      - ./supabase/migrations:/docker-entrypoint-initdb.d:ro
+      # NOTE: Migrations are run by deploy.sh AFTER GoTrue starts, NOT during db init
     environment:
       POSTGRES_HOST: /var/run/postgresql
       PGPORT: 5432
