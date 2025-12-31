@@ -310,8 +310,7 @@ CREATE TABLE auth.sso_domains (
     sso_provider_id uuid NOT NULL,
     domain text NOT NULL,
     created_at timestamp with time zone,
-    updated_at timestamp with time zone,
-    CONSTRAINT sso_domains_domain_idx UNIQUE (lower(domain))
+    updated_at timestamp with time zone
 );
 ALTER TABLE auth.sso_domains OWNER TO supabase_auth_admin;
 
@@ -320,10 +319,13 @@ CREATE TABLE auth.sso_providers (
     resource_id text,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
-    disabled boolean,
-    CONSTRAINT sso_providers_resource_id_idx UNIQUE (lower(resource_id))
+    disabled boolean
 );
 ALTER TABLE auth.sso_providers OWNER TO supabase_auth_admin;
+
+-- Separate Indexes for Functional Uniqueness
+CREATE UNIQUE INDEX sso_domains_domain_idx ON auth.sso_domains (lower(domain));
+CREATE UNIQUE INDEX sso_providers_resource_id_idx ON auth.sso_providers (lower(resource_id));
 
 CREATE TABLE auth.users (
     instance_id uuid,
