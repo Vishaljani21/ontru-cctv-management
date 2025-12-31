@@ -3,19 +3,37 @@
 import React from 'react';
 
 export const OnTruFullLogo: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <text x="10" y="28" fontFamily="sans-serif" fontSize="24" fontWeight="bold" fill="#0EA5E9">
+    <svg className={className} viewBox="0 0 150 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Camera Lens Icon */}
+        <circle cx="20" cy="20" r="16" fill="url(#logoGradient)" />
+        <circle cx="20" cy="20" r="10" fill="none" stroke="white" strokeWidth="2" />
+        <circle cx="20" cy="20" r="5" fill="white" />
+        <circle cx="20" cy="20" r="2" fill="url(#logoGradient)" />
+        {/* Text */}
+        <text x="44" y="27" fontFamily="Inter, system-ui, sans-serif" fontSize="22" fontWeight="800" fill="currentColor">
             OnTru
         </text>
+        <defs>
+            <linearGradient id="logoGradient" x1="4" y1="4" x2="36" y2="36">
+                <stop stopColor="#10B981" />
+                <stop offset="1" stopColor="#059669" />
+            </linearGradient>
+        </defs>
     </svg>
 );
 
 export const OnTruLogo: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="40" height="40" rx="8" fill="#0EA5E9" />
-        <text x="20" y="28" fontFamily="sans-serif" fontSize="20" fontWeight="bold" fill="white" textAnchor="middle">
-            O
-        </text>
+    <svg className={className} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="18" fill="url(#logoGradientSmall)" />
+        <circle cx="20" cy="20" r="11" fill="none" stroke="white" strokeWidth="2" />
+        <circle cx="20" cy="20" r="6" fill="white" />
+        <circle cx="20" cy="20" r="2.5" fill="url(#logoGradientSmall)" />
+        <defs>
+            <linearGradient id="logoGradientSmall" x1="2" y1="2" x2="38" y2="38">
+                <stop stopColor="#10B981" />
+                <stop offset="1" stopColor="#059669" />
+            </linearGradient>
+        </defs>
     </svg>
 );
 
