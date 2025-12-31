@@ -294,8 +294,13 @@ const App: React.FC = () => {
             }}>
                 <Routes>
                     {/* Public Routes - Homepage shown on ontru.in only, app.ontru.in redirects to login */}
+                    {/* If logged in on ontru.in, redirect to app.ontru.in */}
                     <Route path="/" element={
-                        user ? <Navigate to="/dashboard" /> :
+                        user ? (
+                            window.location.hostname === 'ontru.in' || window.location.hostname === 'www.ontru.in'
+                                ? (() => { window.location.href = 'https://app.ontru.in/dashboard'; return null; })()
+                                : <Navigate to="/dashboard" />
+                        ) :
                             window.location.hostname === 'app.ontru.in' ? <Navigate to="/login" /> :
                                 <PublicLayout><HomePage /></PublicLayout>
                     } />
