@@ -45,9 +45,9 @@ const HomePage: React.FC = () => {
                         OnTru is the all-in-one operating system for CCTV dealers. Track projects, inventory, AMCs, and payments seamlessly from one intuitive dashboard.
                     </p>
                     <div className="flex gap-4">
-                        <Link to="/register" className="px-8 py-4 text-lg font-bold rounded-full text-white bg-primary-600 hover:bg-primary-700 shadow-lg hover:shadow-primary-500/30 transition-all transform hover:-translate-y-0.5">
+                        <a href="https://app.ontru.in/register" className="px-8 py-4 text-lg font-bold rounded-full text-white bg-primary-600 hover:bg-primary-700 shadow-lg hover:shadow-primary-500/30 transition-all transform hover:-translate-y-0.5">
                             Start Free Trial
-                        </Link>
+                        </a>
                         <Link to="/about" className="px-8 py-4 text-lg font-medium rounded-full text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition-all">
                             Learn More
                         </Link>
@@ -138,12 +138,12 @@ const HomePage: React.FC = () => {
                         Join hundreds of dealers boosting their efficiency with OnTru.
                     </p>
                     <div className="mt-10 flex justify-center gap-x-6">
-                        <Link to="/register" className="rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-primary-900 shadow-sm hover:bg-primary-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                        <a href="https://app.ontru.in/register" className="rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-primary-900 shadow-sm hover:bg-primary-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
                             Get Started Free
-                        </Link>
-                        <Link to="/contact" className="text-sm font-semibold leading-6 text-white flex items-center">
+                        </a>
+                        <a href="mailto:sales@ontru.in" className="text-sm font-semibold leading-6 text-white flex items-center">
                             Contact Sales <span aria-hidden="true" className="ml-2">→</span>
-                        </Link>
+                        </a>
                     </div>
                 </div>
             </div>

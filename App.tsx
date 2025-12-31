@@ -293,8 +293,12 @@ const App: React.FC = () => {
                 isReportsEnabled, isSiteHealthEnabled
             }}>
                 <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={user ? <Navigate to="/dashboard" /> : <PublicLayout><HomePage /></PublicLayout>} />
+                    {/* Public Routes - Homepage shown on ontru.in only, app.ontru.in redirects to login */}
+                    <Route path="/" element={
+                        user ? <Navigate to="/dashboard" /> :
+                            window.location.hostname === 'app.ontru.in' ? <Navigate to="/login" /> :
+                                <PublicLayout><HomePage /></PublicLayout>
+                    } />
                     <Route path="/about" element={<PublicLayout><AboutPage /></PublicLayout>} />
                     <Route path="/contact" element={<PublicLayout><ContactPage /></PublicLayout>} />
                     <Route path="/pricing" element={<PublicLayout><PublicPricingPage /></PublicLayout>} />
