@@ -155,52 +155,74 @@ const LoginPage: React.FC = () => {
   );
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg relative">
-        <div className="text-center">
-          <OnTruFullLogo />
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-primary-50">
+      {/* Background Pattern */}
+      <div className="fixed inset-0 opacity-30 pointer-events-none">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-primary-200 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-200 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative w-full max-w-md p-8 space-y-6 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/50">
+        {/* Centered Logo */}
+        <div className="flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/25 mb-4">
+            <svg viewBox="0 0 24 24" className="w-9 h-9 text-white" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="2" fill="currentColor" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">OnTru</h1>
+          <p className="text-sm text-slate-500 mt-1">Sign in to your account</p>
         </div>
 
-        <div className="flex items-center p-1 bg-slate-200 rounded-lg">
+        {/* Role Tabs - Centered */}
+        <div className="flex items-center justify-center p-1 bg-slate-100 rounded-xl">
           <button
             onClick={() => setRole('dealer')}
-            className={`flex-1 px-4 py-2 text-sm font-semibold rounded-md transition-colors ${role === 'dealer' ? 'bg-white text-primary-600 shadow' : 'text-slate-600'}`}
+            className={`flex-1 px-6 py-2.5 text-sm font-semibold rounded-lg transition-all ${role === 'dealer' ? 'bg-white text-primary-600 shadow-md' : 'text-slate-600 hover:text-slate-800'}`}
           >
             Dealer
           </button>
           <button
             onClick={() => setRole('technician')}
-            className={`flex-1 px-4 py-2 text-sm font-semibold rounded-md transition-colors ${role === 'technician' ? 'bg-white text-primary-600 shadow' : 'text-slate-600'}`}
+            className={`flex-1 px-6 py-2.5 text-sm font-semibold rounded-lg transition-all ${role === 'technician' ? 'bg-white text-primary-600 shadow-md' : 'text-slate-600 hover:text-slate-800'}`}
           >
             Technician
           </button>
         </div>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-5" onSubmit={handleSubmit}>
           {renderFormFields()}
 
-          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+          {error && <p className="text-sm text-red-600 text-center bg-red-50 py-2 rounded-lg">{error}</p>}
 
           <div>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex justify-center w-full px-4 py-3 text-sm font-semibold text-white bg-primary-500 border border-transparent rounded-md shadow-sm hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:bg-primary-300"
+              className="flex justify-center items-center gap-2 w-full px-4 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
             >
-              {isLoading ? 'Signing In...' : (loginMethod === 'otp' ? 'Verify & Sign In' : 'Sign In')}
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
+                  </svg>
+                  Signing In...
+                </>
+              ) : (
+                loginMethod === 'otp' ? 'Verify & Sign In' : 'Sign In'
+              )}
             </button>
           </div>
         </form>
 
         <div className="text-center pt-2">
-          <button onClick={() => setRole(role === 'admin' ? 'dealer' : 'admin')} className="text-xs text-slate-400 hover:text-slate-600">
-            {role === 'admin' ? 'Back to User Login' : 'Admin Login'}
+          <button onClick={() => setRole(role === 'admin' ? 'dealer' : 'admin')} className="text-xs text-slate-400 hover:text-primary-600 transition-colors">
+            {role === 'admin' ? '← Back to User Login' : 'Admin Login →'}
           </button>
         </div>
-      </div>
-      {/* Debug Info Overlay */}
-      <div className="fixed bottom-2 right-2 bg-gray-100 p-2 text-xs text-gray-500 rounded border border-gray-300 z-50 opacity-75 hover:opacity-100">
-        API Target: {import.meta.env.VITE_SUPABASE_URL || 'UNDEFINED'}
       </div>
     </div>
   );
