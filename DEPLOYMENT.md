@@ -16,83 +16,80 @@ This guide details how to deploy the "Production Ready" Ontru application to a H
 SSH into your VPS:
 ```bash
 ssh root@your_vps_ip
+# or use the web terminal in Hostinger Dashboard
 ```
 
 Clone your repository (replace with your actual URL):
 ```bash
-git clone https://github.com/Start-Spark/ontru-cctv-system.git /opt/ontru
+git clone https://github.com/Vishaljani21/ontru-cctv-management.git /opt/ontru
 cd /opt/ontru
 ```
 
-## Step 2: Run Deployment Script
+## Step 2: Deployment (Automated)
 
-We have created an automated `deploy.sh` script that handles:
-*   Docker & Docker Compose installation.
-*   SSL Certificate generation (Let's Encrypt).
-*   Frontend Building (Vite).
-*   Database & Backend Startup (Supabase Self-Hosted).
+**Good news!** You do NOT need to run any scripts manually.
 
-Run the script with your domain:
+I have configured the **GitHub Actions** pipeline to handle everything for you.
+1.  **Repo Configured**: I added your VPS credentials (`HOST`, `USERNAME`, `VPS_PASSWORD`) and Domain (`DOMAIN`) to GitHub Secrets.
+2.  **Workflow Updated**: The deployment script will automatically detect if it's a fresh install or an update.
+
+**Just sit back!**
+Since I pushed the latest code, the deployment is already running.
+*   It will install Docker.
+*   It will build the app.
+*   It will set up SSL for `app.ontru.in`.
+
+## Option 3: Manual Deployment (Fallback)
+
+If you are logged into the VPS and want to get it running immediately without waiting for GitHub:
+
 ```bash
-# Make script executable
+# 1. Clone the repository
+git clone https://github.com/Vishaljani21/ontru-cctv-management.git /opt/ontru
+
+# 2. Enter directory
+cd /opt/ontru
+
+# 3. Make script executable
 chmod +x deploy/deploy.sh
 
-# Run deployment (replace with your DOMAIN)
-./deploy/deploy.sh your-domain.com
+# 4. Run Deployment (Replace with your actual domain)
+./deploy/deploy.sh app.ontru.in
 ```
 
-### What happens next?
-1.  **Dependencies**: The script installs Docker and Node.js.
-2.  **Secrets**: It generates a `.env` file with secure passwords for the Database and JWT tokens.
-    *   *Note: You will see these printed once. Save them if needed.*
-3.  **Build**: It installs npm packages and builds the React frontend.
-4.  **SSL**: It requests a free HTTPS certificate from Let's Encrypt.
-5.  **Start**: It starts the Nginx web server and Supabase backend.
+## Step 3: Verification
 
-## Step 3: Deployment Verification
+Once the GitHub Action completes (green checkmark in Repo -> Actions), visit:
+**https://app.ontru.in**
 
-1.  **Visit your URL**: `https://your-domain.com`
-2.  **Check Health**: `https://your-domain.com/health` should return "healthy".
-3.  **Supabase Studio**: Manage your database at `https://your-domain.com:54323` (Note: Requires opening port 54323 in VPS Firewall if accessing externally, otherwise tunnel via SSH).
+## Troubleshooting: "No Process Running" or "Authentication Failed"
 
-## Troubleshooting
+If the automatic deployment fails, it is usually because the VPS hosting provider (like Hostinger) blocks password-based authentication for automation tools (GitHub Actions).
 
-**View Logs:**
-```bash
-docker-compose -f docker-compose.prod.yml logs -f
-```
+**To fix this permanently, use an SSH Key (Recommended):**
 
-**Restart Services:**
-```bash
-docker-compose -f docker-compose.prod.yml restart
-```
+1.  **On your local computer**, run this in PowerShell:
+    ```powershell
+    ssh-keygen -t rsa -b 4096 -f $HOME/.ssh/ontru_deploy_key
+    ```
+    *(Press Enter for no passphrase)*.
 
-**Re-deploy (after code changes):**
-```bash
-git pull origin main
-./deploy/deploy.sh --update
-```
+2.  **Copy the public key to your VPS**:
+    *(You will need to enter your VPS password one last time)*
+    ```powershell
+    type $HOME/.ssh/ontru_deploy_key.pub | ssh root@72.60.221.119 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+    ```
 
-**Database Migrations:**
-Migrations run automatically on deploy, but you can force them:
-```bash
-docker-compose -f docker-compose.prod.yml exec db psql -U postgres -d postgres < supabase/migrations/20241205000001_initial_schema.sql
-```
+3.  **Get your Private Key**:
+    ```powershell
+    cat $HOME/.ssh/ontru_deploy_key
+    ```
+    *Copy the entire block starting with `-----BEGIN OPENSSH PRIVATE KEY-----`.*
 
-## Step 4: Configure Automatic Deployment (CI/CD)
+4.  **Update GitHub Secret**:
+    *   Go to GitHub Repo -> Settings -> Secrets -> Actions.
+    *   Delete `VPS_PASSWORD` (or ignore it).
+    *   Add `SSH_KEY` with the content you just copied.
+    *   Update `deploy.yml` to use `key: ${{ secrets.SSH_KEY }}` instead of `password`.
 
-To enable automatic updates whenever you push to GitHub, you must configure **GitHub Secrets**.
-
-1.  Go to your GitHub Repository -> **Settings** -> **Secrets and variables** -> **Actions**.
-2.  Click **New repository secret**.
-3.  Add the following secrets:
-
-    *   `HOST`: Your VPS IP Address (e.g., `123.45.67.89`).
-    *   `USERNAME`: `root` (or your VPS username).
-    *   `SSH_KEY`: The private SSH key you use to access the VPS.
-        *   *To get this key from your local machine (if you generated one):* `cat ~/.ssh/id_rsa`
-        *   *Or generate a new pair on your local machine and add the public key to VPS `~/.ssh/authorized_keys`.*
-
-**Once configured:**
-*   Any commit pushed to the `main` branch will trigger the **Deploy to Hostinger VPS** workflow.
-*   You can check the progress in the **Actions** tab of your GitHub repo.
+5.  **Re-run Deployment**: Go to Actions -> Select "Deploy" -> "Re-run jobs".
