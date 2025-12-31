@@ -276,24 +276,32 @@ sleep 15
 # MIGRATIONS
 # ==========================================
 
-# Run database migrations
-# Always run this to ensure DB is up to date with code
-echo -e "${YELLOW}Running database migrations...${NC}"
-
-# Bootstrap (Roles, Auth Schema) - Critical for first run
+# Step 1: Run bootstrap FIRST (roles, schemas only - NO auth tables!)
+echo -e "${YELLOW}Running bootstrap (roles and schemas)...${NC}"
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/00000000000000_supabase_bootstrap.sql
 
-# App Schema
+# Step 2: Wait for GoTrue to create auth schema (it does this automatically on startup)
+echo -e "${YELLOW}Waiting for GoTrue to initialize auth schema...${NC}"
+sleep 20
+
+# Step 3: Verify auth.users exists (created by GoTrue)
+echo -e "${YELLOW}Verifying GoTrue has created auth.users...${NC}"
+docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres -c "SELECT 1 FROM auth.users LIMIT 1;" || {
+    echo -e "${RED}ERROR: auth.users table not found! GoTrue may not have started correctly.${NC}"
+    echo -e "${YELLOW}Checking auth container logs...${NC}"
+    docker-compose -f docker-compose.prod.yml logs auth --tail 50
+    exit 1
+}
+
+# Step 4: Run app schema (profiles, etc. - these reference auth.users)
+echo -e "${YELLOW}Running app schema migrations...${NC}"
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20241205000001_initial_schema.sql
 
-# FORCE RESET & RESTORE AUTH SCHEMA (Fixes 500 Errors)
-docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20251230000001_hard_reset_auth.sql
-
-# RLS Policies
-# RLS Policies
+# Step 5: RLS Policies
+echo -e "${YELLOW}Applying RLS policies...${NC}"
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20241205000002_rls_policies.sql
 
-# Seed Users (Admin/Dealer/Tech)
+# Step 6: Seed Users (Admin/Dealer/Tech)
 echo -e "${YELLOW}Seeding default users...${NC}"
 docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20251229000000_seed_users.sql
 
