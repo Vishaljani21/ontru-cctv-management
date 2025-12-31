@@ -1914,6 +1914,56 @@ export const api = {
         }));
     },
 
+    createDealer: async (formData: { companyName: string; ownerName: string; email: string; password: string; mobile: string }) => {
+        // 1. Create auth user via signup
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+            options: {
+                data: {
+                    role: 'dealer'
+                }
+            }
+        });
+
+        if (authError) throw authError;
+        if (!authData.user) throw new Error('Failed to create user');
+
+        const userId = authData.user.id;
+
+        // 2. Create profile with dealer role
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+                id: userId,
+                name: formData.ownerName,
+                role: 'dealer',
+                phone: formData.mobile,
+                is_setup_complete: true
+            });
+
+        if (profileError) {
+            console.error('Profile creation error:', profileError);
+        }
+
+        // 3. Create dealer_info record
+        const { error: dealerError } = await supabase
+            .from('dealer_info')
+            .insert({
+                user_id: userId,
+                company_name: formData.companyName,
+                owner_name: formData.ownerName,
+                email: formData.email,
+                mobile: formData.mobile,
+                subscription_tier: 'starter',
+                subscription_status: 'active'
+            });
+
+        if (dealerError) throw dealerError;
+
+        return { userId };
+    },
+
     deleteDealer: async (id: number) => {
         const { error } = await supabase
             .from('dealer_info')
