@@ -1058,28 +1058,44 @@ export const api = {
         // 1. Get technician ID from profile
         const { data: techData, error: techError } = await supabase
             .from('technicians')
-            .select('id')
+            .select('id, user_id')
             .eq('profile_id', userId)
             .single();
 
         if (techError || !techData) {
-            console.warn('User is not a linked technician');
+            console.warn('User is not a linked technician:', techError);
             return [];
         }
 
         const technicianId = techData.id;
+        const dealerId = techData.user_id; // The dealer who owns this technician
 
-        // 2. Fetch projects assigned to this technician
+        console.log('Fetching projects for technician ID:', technicianId, 'under dealer:', dealerId);
+
+        // 2. Fetch projects from dealer that have this technician assigned
+        // RLS policy "Technicians can view assigned visits" handles filtering
+        // We query visits where dealer_id matches and technician_ids contains this tech
         const { data: visits, error: visitsError } = await supabase
             .from('visits')
             .select('*, visit_items(*)')
-            .contains('technician_ids', [technicianId])
             .order('scheduled_at', { ascending: false });
 
-        if (visitsError) throw visitsError;
+        if (visitsError) {
+            console.error('Error fetching visits:', visitsError);
+            throw visitsError;
+        }
+
+        console.log('Received visits from RLS-filtered query:', visits?.length || 0);
+
+        // Filter visits that have this technician assigned (RLS should already do this, but double-check)
+        const assignedVisits = (visits || []).filter(v =>
+            v.technician_ids && Array.isArray(v.technician_ids) && v.technician_ids.includes(technicianId)
+        );
+
+        console.log('Visits assigned to this technician:', assignedVisits.length);
 
         // 3. Get customer IDs and fetch customer info
-        const customerIds = [...new Set((visits || []).map(v => v.customer_id))];
+        const customerIds = [...new Set(assignedVisits.map(v => v.customer_id))];
 
         let customerMap = new Map();
         if (customerIds.length > 0) {
@@ -1094,7 +1110,7 @@ export const api = {
         }
 
         // 4. Transform to TechnicianProject with enriched data
-        return (visits || []).map(visit => {
+        return assignedVisits.map(visit => {
             const baseVisit = transformVisit(visit);
             const customer = customerMap.get(visit.customer_id);
 
