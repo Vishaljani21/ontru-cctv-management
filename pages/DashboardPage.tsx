@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import type { DashboardSummary, Visit, Technician, JobCardStatus } from '../types';
+import { Link, useNavigate } from 'react-router-dom';
+import type { DashboardSummary, Visit, Technician, JobCardStatus, TimelineStep } from '../types';
 import { api } from '../services/api';
-import { ProjectIcon, UsersIcon, BoxIcon, CurrencyRupeeIcon, TrophyIcon, DocumentTextIcon, ChevronRightIcon } from '../components/icons';
+import { ProjectIcon, UsersIcon, BoxIcon, CurrencyRupeeIcon, TrophyIcon, DocumentTextIcon, ChevronRightIcon, ClockIcon, CheckCircleIcon } from '../components/icons';
 import Skeleton from '../components/Skeleton';
+import ProjectTimelineCard from '../components/ProjectTimelineCard';
 
 import StatsCard from '../components/StatsCard';
 
@@ -264,6 +265,96 @@ const DashboardPage: React.FC = () => {
                 <StatsCard title="Pending Payments" value={`₹${(summary?.pendingPayments || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`} icon={<CurrencyRupeeIcon />} gradient="purple" />
                 <StatsCard title="Technicians" value={summary?.technicians || 0} icon={<UsersIcon />} gradient="teal" />
             </div>
+
+            {/* Active Projects Overview */}
+            {visits.filter(v => v.status === 'in_progress' || v.status === 'scheduled').length > 0 && (
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-50 dark:border-white/5 flex items-center justify-between bg-gradient-to-r from-primary-50 to-transparent dark:from-primary-900/20">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                                <ClockIcon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-slate-800 dark:text-white">Active Projects</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {visits.filter(v => v.status === 'in_progress' || v.status === 'scheduled').length} projects in progress
+                                </p>
+                            </div>
+                        </div>
+                        <Link
+                            to="/projects?status=in_progress"
+                            className="text-xs font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 flex items-center gap-1"
+                        >
+                            View All <ChevronRightIcon className="w-3 h-3" />
+                        </Link>
+                    </div>
+
+                    <div className="p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {visits
+                                .filter(v => v.status === 'in_progress' || v.status === 'scheduled')
+                                .slice(0, 3)
+                                .map(project => {
+                                    // Get or create timeline
+                                    const timeline: TimelineStep[] = project.timelineStatus || [
+                                        { label: 'Enquiry', date: project.scheduledAt, status: 'completed' as const },
+                                        { label: 'Survey', date: '', status: project.status === 'scheduled' ? 'current' as const : 'completed' as const },
+                                        { label: 'Quote', date: '', status: 'pending' as const },
+                                        { label: 'Material', date: '', status: 'pending' as const },
+                                        { label: 'Install', date: '', status: project.status === 'in_progress' ? 'current' as const : 'pending' as const },
+                                        { label: 'Testing', date: '', status: 'pending' as const },
+                                        { label: 'Handover', date: '', status: 'pending' as const },
+                                        { label: 'Payment', date: '', status: 'pending' as const }
+                                    ];
+
+                                    const techNames = project.technicianIds
+                                        .map(id => technicians.find(t => t.id === id)?.name)
+                                        .filter(Boolean)
+                                        .join(', ');
+
+                                    return (
+                                        <Link
+                                            key={project.id}
+                                            to={`/projects/${project.id}`}
+                                            className="group block p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-primary-200 dark:hover:border-primary-800 hover:shadow-md transition-all bg-slate-50/50 dark:bg-slate-800/30"
+                                        >
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-semibold text-slate-800 dark:text-white truncate group-hover:text-primary-600 transition-colors">
+                                                        {project.projectName || `Project #${project.id}`}
+                                                    </h4>
+                                                    {techNames && (
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                                                            {techNames}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <span
+                                                    className="ml-2 px-2 py-0.5 text-[10px] font-bold rounded uppercase"
+                                                    style={{
+                                                        backgroundColor: `${statusColors[project.status]}20`,
+                                                        color: statusColors[project.status]
+                                                    }}
+                                                >
+                                                    {project.status.replace('_', ' ')}
+                                                </span>
+                                            </div>
+
+                                            <ProjectTimelineCard timeline={timeline} compact />
+
+                                            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs text-slate-500">
+                                                <span>{new Date(project.scheduledAt).toLocaleDateString()}</span>
+                                                <span className="font-medium text-primary-600 dark:text-primary-400 group-hover:underline">
+                                                    View details →
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 <div className="lg:col-span-2">

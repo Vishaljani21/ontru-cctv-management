@@ -413,3 +413,17 @@ export interface Supplier {
   notes?: string;
   created_at?: string;
 }
+
+// Enriched project data for technician dashboard
+export interface TechnicianProject extends Visit {
+  customerName: string;
+  customerPhone: string;
+  customerCity: string;
+  progressPercentage: number;
+  currentStep: string;
+  currentStepIndex: number;
+  nextAction: string;
+  isOverdue: boolean;
+  estimatedCompletion?: string;
+}
+

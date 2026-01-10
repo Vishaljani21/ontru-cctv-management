@@ -13,8 +13,9 @@ import type {
     WarrantyEntry, ServiceStation, SiteHealth, AMC, Invoice, DealerInfo, InvoiceItem,
     Payslip, AttendanceRecord, WorkLogEntry, SubscriptionTier, LicenseKey, JobCardItem,
     SupportTicket, TicketCategory, TicketPriority, TicketStatus,
-    TechnicianAvailability, Expense, TechnicianTask, Supplier
+    TechnicianAvailability, Expense, TechnicianTask, Supplier, TechnicianProject
 } from '../types';
+
 
 // Helper to get current user ID
 const getCurrentUserId = async (): Promise<string> => {
@@ -1014,15 +1015,192 @@ export const api = {
         return transformVisit(data);
     },
 
-    getMyVisits: async (technicianId: number): Promise<Visit[]> => {
+    // Helper to get technician table ID from profile ID
+    getTechnicianIdFromProfile: async (): Promise<number | null> => {
+        const userId = await getCurrentUserId();
         const { data, error } = await supabase
+            .from('technicians')
+            .select('id')
+            .eq('profile_id', userId)
+            .single();
+
+        if (error || !data) return null;
+        return data.id;
+    },
+
+    getMyVisits: async (technicianId: number): Promise<Visit[]> => {
+        // First, try to get actual technician ID from profile if the passed ID is a profile ID
+        const userId = await getCurrentUserId();
+
+        // Check if we need to resolve the technician ID
+        const { data: techData } = await supabase
+            .from('technicians')
+            .select('id')
+            .eq('profile_id', userId)
+            .single();
+
+        const actualTechId = techData?.id || technicianId;
+
+        const { data, error } = await supabase
+            .from('visits')
+            .select('*, visit_items(*)')
+            .contains('technician_ids', [actualTechId])
+            .order('scheduled_at', { ascending: false });
+
+        if (error) throw error;
+        return (data || []).map(transformVisit);
+    },
+
+    // Get enriched projects for technician dashboard
+    getMyProjectsWithTimeline: async (): Promise<TechnicianProject[]> => {
+        const userId = await getCurrentUserId();
+
+        // 1. Get technician ID from profile
+        const { data: techData, error: techError } = await supabase
+            .from('technicians')
+            .select('id')
+            .eq('profile_id', userId)
+            .single();
+
+        if (techError || !techData) {
+            console.warn('User is not a linked technician');
+            return [];
+        }
+
+        const technicianId = techData.id;
+
+        // 2. Fetch projects assigned to this technician
+        const { data: visits, error: visitsError } = await supabase
             .from('visits')
             .select('*, visit_items(*)')
             .contains('technician_ids', [technicianId])
             .order('scheduled_at', { ascending: false });
 
+        if (visitsError) throw visitsError;
+
+        // 3. Get customer IDs and fetch customer info
+        const customerIds = [...new Set((visits || []).map(v => v.customer_id))];
+
+        let customerMap = new Map();
+        if (customerIds.length > 0) {
+            const { data: customers } = await supabase
+                .from('customers')
+                .select('id, company_name, mobile, city')
+                .in('id', customerIds);
+
+            (customers || []).forEach(c => {
+                customerMap.set(c.id, c);
+            });
+        }
+
+        // 4. Transform to TechnicianProject with enriched data
+        return (visits || []).map(visit => {
+            const baseVisit = transformVisit(visit);
+            const customer = customerMap.get(visit.customer_id);
+
+            // Calculate timeline progress
+            const timeline = baseVisit.timelineStatus || [
+                { label: 'Enquiry Received', date: baseVisit.scheduledAt, status: 'completed' as const },
+                { label: 'Site Survey', date: '', status: 'current' as const },
+                { label: 'Quotation', date: '', status: 'pending' as const },
+                { label: 'Material', date: '', status: 'pending' as const },
+                { label: 'Installation', date: '', status: 'pending' as const },
+                { label: 'Testing', date: '', status: 'pending' as const },
+                { label: 'Handover', date: '', status: 'pending' as const },
+                { label: 'Payment', date: '', status: 'pending' as const }
+            ];
+
+            const completedSteps = timeline.filter(s => s.status === 'completed').length;
+            const currentStepIndex = timeline.findIndex(s => s.status === 'current');
+            const currentStep = timeline[currentStepIndex]?.label || 'Not Started';
+            const nextAction = currentStepIndex >= 0 && currentStepIndex < timeline.length - 1
+                ? `Complete ${currentStep}`
+                : 'Project Complete';
+
+            const progressPercentage = Math.round((completedSteps / timeline.length) * 100);
+
+            // Check if overdue (scheduled date passed and not completed)
+            const isOverdue = new Date(baseVisit.scheduledAt) < new Date() && baseVisit.status !== 'completed';
+
+            return {
+                ...baseVisit,
+                timelineStatus: timeline,
+                customerName: customer?.company_name || 'Unknown Customer',
+                customerPhone: customer?.mobile || '',
+                customerCity: customer?.city || '',
+                progressPercentage,
+                currentStep,
+                currentStepIndex: currentStepIndex >= 0 ? currentStepIndex : 0,
+                nextAction,
+                isOverdue,
+                estimatedCompletion: undefined // Could calculate based on timeline
+            };
+        });
+    },
+
+    // Update project timeline step
+    updateProjectTimeline: async (projectId: number, stepIndex: number, status: 'completed' | 'current' | 'pending'): Promise<Visit> => {
+        // 1. Fetch current project
+        const { data: project, error: fetchError } = await supabase
+            .from('visits')
+            .select('*, visit_items(*)')
+            .eq('id', projectId)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        // 2. Get or create timeline
+        let timeline = project.timeline_status || [
+            { label: 'Enquiry Received', date: project.scheduled_at, status: 'completed' },
+            { label: 'Site Survey', date: '', status: 'current' },
+            { label: 'Quotation', date: '', status: 'pending' },
+            { label: 'Material', date: '', status: 'pending' },
+            { label: 'Installation', date: '', status: 'pending' },
+            { label: 'Testing', date: '', status: 'pending' },
+            { label: 'Handover', date: '', status: 'pending' },
+            { label: 'Payment', date: '', status: 'pending' }
+        ];
+
+        // 3. Update the specified step
+        if (stepIndex >= 0 && stepIndex < timeline.length) {
+            // If marking as completed, set date and move current to next
+            if (status === 'completed') {
+                timeline[stepIndex].status = 'completed';
+                timeline[stepIndex].date = new Date().toISOString();
+
+                // Set next step as current if exists
+                if (stepIndex + 1 < timeline.length) {
+                    timeline[stepIndex + 1].status = 'current';
+                }
+            } else {
+                timeline[stepIndex].status = status;
+            }
+        }
+
+        // 4. Determine project status based on timeline
+        const allCompleted = timeline.every(s => s.status === 'completed');
+        const anyInProgress = timeline.some(s => s.status === 'current');
+        let projectStatus = project.status;
+
+        if (allCompleted) {
+            projectStatus = 'completed';
+        } else if (anyInProgress) {
+            projectStatus = 'in_progress';
+        }
+
+        // 5. Save updated timeline
+        const { data, error } = await supabase
+            .from('visits')
+            .update({
+                timeline_status: timeline,
+                status: projectStatus
+            })
+            .eq('id', projectId)
+            .select('*, visit_items(*)')
+            .single();
+
         if (error) throw error;
-        return (data || []).map(transformVisit);
+        return transformVisit(data);
     },
 
     // ==========================================
@@ -1755,58 +1933,6 @@ export const api = {
         if (error) throw error;
     },
 
-    redeemLicenseKey: async (key: string): Promise<void> => {
-        const userId = await getCurrentUserId();
-        const now = new Date();
-
-        // 1. Find the key
-        const { data: license, error: fetchError } = await supabase
-            .from('license_keys')
-            .select('*')
-            .eq('key', key)
-            .single();
-
-        if (fetchError || !license) {
-            throw new Error("Invalid license key.");
-        }
-
-        if (license.status === 'redeemed') {
-            throw new Error("This license key has already been redeemed.");
-        }
-
-        if (license.status === 'expired') {
-            throw new Error("This license key has expired.");
-        }
-
-        // 2. Mark key as redeemed
-        const { error: updateKeyError } = await supabase
-            .from('license_keys')
-            .update({
-                status: 'redeemed',
-                used_by: userId,
-                used_at: now.toISOString()
-            })
-            .eq('id', license.id);
-
-        if (updateKeyError) throw updateKeyError;
-
-        // 3. Update Dealer Subscription
-        const newExpiry = new Date();
-        newExpiry.setDate(newExpiry.getDate() + license.duration_days);
-
-        const { error: subError } = await supabase
-            .from('dealer_info')
-            .update({
-                subscription_tier: license.tier,
-                subscription_status: 'active',
-                subscription_start_date: now.toISOString(),
-                subscription_expiry_date: newExpiry.toISOString()
-            })
-            .eq('user_id', userId);
-
-        if (subError) throw new Error("Failed to update subscription.");
-    },
-
     redeemLicenseKey: async (key: string): Promise<DealerInfo> => {
         const userId = await getCurrentUserId();
 
@@ -1840,13 +1966,66 @@ export const api = {
     // TECHNICIAN DASHBOARD
     // ==========================================
     getTechnicianDashboardSummary: async (): Promise<TechnicianDashboardSummary> => {
-        // This would query based on technician's profile_id
+        const userId = await getCurrentUserId();
+
+        // 1. Get technician ID from profile
+        const { data: techData, error: techError } = await supabase
+            .from('technicians')
+            .select('id')
+            .eq('profile_id', userId)
+            .single();
+
+        if (techError || !techData) {
+            return {
+                assignedVisits: 0,
+                completedToday: 0,
+                pendingPayments: 0
+            };
+        }
+
+        const technicianId = techData.id;
+
+        // 2. Get assigned visits count (not completed/cancelled)
+        const { data: activeVisits } = await supabase
+            .from('visits')
+            .select('id, status, scheduled_at')
+            .contains('technician_ids', [technicianId])
+            .in('status', ['scheduled', 'in_progress']);
+
+        const assignedVisits = activeVisits?.length || 0;
+
+        // 3. Get completed today count
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const { data: completedTodayVisits } = await supabase
+            .from('visits')
+            .select('id')
+            .contains('technician_ids', [technicianId])
+            .eq('status', 'completed')
+            .gte('scheduled_at', today.toISOString())
+            .lt('scheduled_at', tomorrow.toISOString());
+
+        const completedToday = completedTodayVisits?.length || 0;
+
+        // 4. Get pending payments (technician expenses with pending status)
+        const { data: pendingExpenses } = await supabase
+            .from('expenses')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('status', 'pending');
+
+        const pendingPayments = pendingExpenses?.length || 0;
+
         return {
-            assignedVisits: 5,
-            completedToday: 1,
-            pendingPayments: 2
+            assignedVisits,
+            completedToday,
+            pendingPayments
         };
     },
+
 
     // ==========================================
     // SUPER ADMIN
