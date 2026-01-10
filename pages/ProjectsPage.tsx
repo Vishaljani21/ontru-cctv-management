@@ -371,20 +371,45 @@ const ProjectsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Header and Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Projects</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage, schedule, and track all your site visits.</p>
+      {/* Header with Stats */}
+      <div className="bg-gradient-to-r from-slate-800 via-slate-900 to-primary-900 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl"></div>
+
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Projects</h1>
+            <p className="text-slate-300">Manage, schedule, and track all your site installations</p>
+          </div>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="inline-flex items-center justify-center px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40 hover:-translate-y-0.5 transition-all"
+          >
+            <span className="mr-2">+</span>
+            Create Project
+          </button>
         </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center justify-center px-5 py-2 text-sm font-semibold text-white bg-primary-500 border border-transparent rounded-lg shadow-sm hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-        >
-          <span className="flex items-center">
-            Create Project <ChevronRightIcon className="ml-2 w-4 h-4" />
-          </span>
-        </button>
+
+        {/* Stats */}
+        <div className="relative grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10">
+            <p className="text-3xl font-bold">{visits.length}</p>
+            <p className="text-sm text-slate-300">Total</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10">
+            <p className="text-3xl font-bold text-blue-300">{visits.filter(v => v.status === 'scheduled').length}</p>
+            <p className="text-sm text-slate-300">Scheduled</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10">
+            <p className="text-3xl font-bold text-amber-300">{visits.filter(v => v.status === 'in_progress').length}</p>
+            <p className="text-sm text-slate-300">In Progress</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10">
+            <p className="text-3xl font-bold text-green-300">{visits.filter(v => v.status === 'completed').length}</p>
+            <p className="text-sm text-slate-300">Completed</p>
+          </div>
+        </div>
       </div>
 
       {/* Main Content Card */}
