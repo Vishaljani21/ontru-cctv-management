@@ -16,6 +16,7 @@ const ProjectDetailsPage: React.FC = () => {
     const [customer, setCustomer] = useState<Customer | null>(null);
     const [technicians, setTechnicians] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const [updatingStage, setUpdatingStage] = useState(false);
 
     useEffect(() => {
         if (id) fetchProjectDetails();
@@ -72,6 +73,43 @@ const ProjectDetailsPage: React.FC = () => {
         ? project.timelineStatus
         : defaultTimeline;
 
+    // Calculate actual progress from timeline
+    const completedSteps = timeline.filter(s => s.status === 'completed').length;
+    const progressPercentage = timeline.length > 0 ? Math.round((completedSteps / timeline.length) * 100) : 0;
+
+    // Find current stage index
+    const currentStageIndex = timeline.findIndex(s => s.status === 'current');
+
+    // Function to advance to next stage
+    const advanceStage = async (stageIndex: number) => {
+        if (!project?.id || updatingStage) return;
+
+        setUpdatingStage(true);
+        try {
+            // Create updated timeline
+            const updatedTimeline = timeline.map((step, idx) => {
+                if (idx < stageIndex) {
+                    return { ...step, status: 'completed' as const, date: step.date || new Date().toISOString() };
+                } else if (idx === stageIndex) {
+                    return { ...step, status: 'completed' as const, date: new Date().toISOString() };
+                } else if (idx === stageIndex + 1) {
+                    return { ...step, status: 'current' as const };
+                } else {
+                    return { ...step, status: 'pending' as const };
+                }
+            });
+
+            // Call API to update
+            const updatedProject = await api.updateProjectTimeline(project.id, updatedTimeline);
+            setProject(updatedProject);
+        } catch (error) {
+            console.error('Failed to advance stage:', error);
+            alert('Failed to update project stage.');
+        } finally {
+            setUpdatingStage(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-black pb-20 animate-fade-in">
             {/* Top Navigation Bar */}
@@ -104,10 +142,10 @@ const ProjectDetailsPage: React.FC = () => {
                         <div className="flex flex-col items-end">
                             <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-slate-500 uppercase">Progress</span>
-                                <span className="text-sm font-bold text-slate-900 dark:text-white">65%</span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-white">{progressPercentage}%</span>
                             </div>
                             <div className="w-32 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mt-1 overflow-hidden">
-                                <div className="h-full bg-primary-500 rounded-full" style={{ width: '65%' }}></div>
+                                <div className="h-full bg-primary-500 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
                             </div>
                         </div>
                     </div>
@@ -131,29 +169,46 @@ const ProjectDetailsPage: React.FC = () => {
                     <div className="relative">
                         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 dark:bg-slate-800 -translate-y-1/2 hidden md:block" />
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 md:gap-2 overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
-                            {timeline.map((step, idx) => (
-                                <div key={idx} className="relative z-10 flex md:flex-col items-center gap-4 md:gap-3 min-w-[120px]">
-                                    {/* Icon Circle */}
-                                    <div className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center border-[3px] transition-all bg-white dark:bg-slate-900 ${step.status === 'completed' ? 'border-green-500 text-green-500' :
-                                            step.status === 'current' ? 'border-primary-500 text-primary-500 ring-2 ring-primary-100 dark:ring-primary-900/30' :
-                                                'border-slate-200 dark:border-slate-700 text-slate-300'
-                                        }`}>
-                                        {step.status === 'completed' ? <CheckCircleIcon className="w-5 h-5" /> :
-                                            <div className={`w-2 h-2 rounded-full ${step.status === 'current' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`} />}
-                                    </div>
+                            {timeline.map((step, idx) => {
+                                const isCurrent = step.status === 'current';
+                                const isClickable = isCurrent && !updatingStage;
 
-                                    {/* Text Info */}
-                                    <div className="text-left md:text-center">
-                                        <p className={`text-xs font-bold leading-tight ${step.status === 'current' ? 'text-primary-600 dark:text-primary-400' :
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={`relative z-10 flex md:flex-col items-center gap-4 md:gap-3 min-w-[120px] transition-all ${isClickable ? 'cursor-pointer group hover:scale-105' : ''
+                                            }`}
+                                        onClick={() => isClickable && advanceStage(idx)}
+                                        title={isClickable ? 'Click to mark as complete' : ''}
+                                    >
+                                        {/* Icon Circle */}
+                                        <div className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center border-[3px] transition-all bg-white dark:bg-slate-900 ${step.status === 'completed' ? 'border-green-500 text-green-500' :
+                                                step.status === 'current' ? 'border-primary-500 text-primary-500 ring-2 ring-primary-100 dark:ring-primary-900/30' :
+                                                    'border-slate-200 dark:border-slate-700 text-slate-300'
+                                            } ${isClickable ? 'group-hover:border-green-500 group-hover:text-green-500 group-hover:ring-green-100 group-hover:scale-110' : ''}`}>
+                                            {step.status === 'completed' ? <CheckCircleIcon className="w-5 h-5" /> :
+                                                updatingStage && isCurrent ? <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /> :
+                                                    <div className={`w-2 h-2 rounded-full ${step.status === 'current' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`} />}
+                                        </div>
+
+                                        {/* Text Info */}
+                                        <div className="text-left md:text-center">
+                                            <p className={`text-xs font-bold leading-tight ${step.status === 'current' ? 'text-primary-600 dark:text-primary-400' :
                                                 step.status === 'completed' ? 'text-green-600 dark:text-green-400' :
                                                     'text-slate-500 dark:text-slate-500'
-                                            }`}>{step.label}</p>
-                                        <p className="text-[10px] font-medium text-slate-400 mt-0.5">
-                                            {step.date ? new Date(step.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Pending'}
-                                        </p>
+                                                } ${isClickable ? 'group-hover:text-green-600' : ''}`}>{step.label}</p>
+                                            <p className="text-[10px] font-medium text-slate-400 mt-0.5">
+                                                {step.date ? new Date(step.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Pending'}
+                                            </p>
+                                            {isClickable && (
+                                                <p className="text-[9px] font-bold text-primary-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    ✓ Click to complete
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -312,8 +367,8 @@ const ProjectDetailsPage: React.FC = () => {
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${item.balance === 0 ? 'bg-green-50 text-green-700 border border-green-100' :
-                                                            item.balance < 0 ? 'bg-red-50 text-red-700 border border-red-100' :
-                                                                'bg-amber-50 text-amber-700 border border-amber-100'
+                                                        item.balance < 0 ? 'bg-red-50 text-red-700 border border-red-100' :
+                                                            'bg-amber-50 text-amber-700 border border-amber-100'
                                                         }`}>
                                                         {item.balance === 0 ? 'Balanced' : item.balance > 0 ? `${item.balance} Left` : `${Math.abs(item.balance)} Over`}
                                                     </span>

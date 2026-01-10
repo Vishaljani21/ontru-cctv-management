@@ -13,7 +13,7 @@ import type {
     WarrantyEntry, ServiceStation, SiteHealth, AMC, Invoice, DealerInfo, InvoiceItem,
     Payslip, AttendanceRecord, WorkLogEntry, SubscriptionTier, LicenseKey, JobCardItem,
     SupportTicket, TicketCategory, TicketPriority, TicketStatus,
-    TechnicianAvailability, Expense, TechnicianTask, Supplier, TechnicianProject
+    TechnicianAvailability, Expense, TechnicianTask, Supplier, TechnicianProject, TimelineStep
 } from '../types';
 
 
@@ -938,6 +938,34 @@ export const api = {
         const { data, error } = await supabase
             .from('visits')
             .update({ status })
+            .eq('id', visitId)
+            .select('*, visit_items(*)')
+            .single();
+
+        if (error) throw error;
+        return transformVisit(data);
+    },
+
+    updateProjectTimeline: async (visitId: number, timeline: TimelineStep[]): Promise<Visit> => {
+        // Calculate project status based on timeline
+        const completedSteps = timeline.filter(s => s.status === 'completed').length;
+        const currentSteps = timeline.filter(s => s.status === 'current').length;
+        const allCompleted = completedSteps === timeline.length;
+
+        // Determine overall project status
+        let projectStatus: Visit['status'] = 'scheduled';
+        if (allCompleted) {
+            projectStatus = 'completed';
+        } else if (completedSteps > 0 || currentSteps > 0) {
+            projectStatus = 'in_progress';
+        }
+
+        const { data, error } = await supabase
+            .from('visits')
+            .update({
+                timeline_status: timeline,
+                status: projectStatus
+            })
             .eq('id', visitId)
             .select('*, visit_items(*)')
             .single();

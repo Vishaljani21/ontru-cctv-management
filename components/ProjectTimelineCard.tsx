@@ -17,7 +17,7 @@ const ProjectTimelineCard: React.FC<ProjectTimelineCardProps> = ({
     editable = false
 }) => {
     const completedSteps = timeline.filter(s => s.status === 'completed').length;
-    const progressPercentage = Math.round((completedSteps / timeline.length) * 100);
+    const progressPercentage = timeline.length > 0 ? Math.round((completedSteps / timeline.length) * 100) : 0;
 
     if (compact) {
         // Compact horizontal view for dashboard cards
