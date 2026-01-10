@@ -54,6 +54,7 @@ export interface Visit {
   materialUsage?: MaterialUsageItem[];
   cableUsage?: CableUsageItem[];
   attachments?: string[]; // URLs
+  notes?: string;
 }
 
 export interface TimelineStep {

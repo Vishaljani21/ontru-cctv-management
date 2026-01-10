@@ -6,7 +6,7 @@ import {
     CalendarIcon, MapPinIcon, UserGroupIcon, CubeIcon,
     ArrowLeftIcon, CheckBadgeIcon, ClockIcon,
     DocumentTextIcon, PhotoIcon, PaperClipIcon,
-    PencilSquareIcon, CheckCircleIcon
+    PencilSquareIcon, CheckCircleIcon, PhoneIcon, CheckIcon
 } from '@heroicons/react/24/outline';
 
 const ProjectDetailsPage: React.FC = () => {
@@ -73,317 +73,266 @@ const ProjectDetailsPage: React.FC = () => {
         ? project.timelineStatus
         : defaultTimeline;
 
+    const [activeTab, setActiveTab] = useState<'overview' | 'materials' | 'files'>('overview');
+
+    // ... (keep existing fetch logic)
+
     // Calculate actual progress from timeline
     const completedSteps = timeline.filter(s => s.status === 'completed').length;
     const progressPercentage = timeline.length > 0 ? Math.round((completedSteps / timeline.length) * 100) : 0;
-
-    // Find current stage index
-    const currentStageIndex = timeline.findIndex(s => s.status === 'current');
-
-    // Function to advance to next stage
-    const advanceStage = async (stageIndex: number) => {
-        if (!project?.id || updatingStage) return;
-
-        setUpdatingStage(true);
-        try {
-            // Create updated timeline
-            const updatedTimeline = timeline.map((step, idx) => {
-                if (idx < stageIndex) {
-                    return { ...step, status: 'completed' as const, date: step.date || new Date().toISOString() };
-                } else if (idx === stageIndex) {
-                    return { ...step, status: 'completed' as const, date: new Date().toISOString() };
-                } else if (idx === stageIndex + 1) {
-                    return { ...step, status: 'current' as const };
-                } else {
-                    return { ...step, status: 'pending' as const };
-                }
-            });
-
-            // Call API to update
-            const updatedProject = await api.updateProjectTimeline(project.id, updatedTimeline);
-            setProject(updatedProject);
-        } catch (error) {
-            console.error('Failed to advance stage:', error);
-            alert('Failed to update project stage.');
-        } finally {
-            setUpdatingStage(false);
-        }
-    };
+    const currentStage = timeline.find(s => s.status === 'current') || { label: 'Completed', date: new Date().toISOString() };
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-black pb-20 animate-fade-in">
-            {/* Top Navigation Bar */}
-            <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => navigate('/projects')}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
-                        >
-                            <ArrowLeftIcon className="w-5 h-5" />
+            {/* 1. Premium Header (Gradient) */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-white/5 opacity-50"></div>
+                <div className="relative max-w-7xl mx-auto px-6 py-8">
+                    {/* Breadcrumb / Back */}
+                    <div className="flex items-center gap-4 mb-6 text-slate-400">
+                        <button onClick={() => navigate('/projects')} className="hover:text-white transition-colors flex items-center gap-2">
+                            <ArrowLeftIcon className="w-4 h-4" /> Back to Projects
                         </button>
+                        <span>/</span>
+                        <span className="text-white font-medium">{project.projectCode || 'Details'}</span>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                {project.projectName || 'Project Details'}
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
-                                    {project.projectCode || 'N/A'}
+                            <div className="flex items-center gap-3 mb-2">
+                                <h1 className="text-3xl font-bold">{project.projectName || 'Project Details'}</h1>
+                                <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-bold uppercase tracking-wider border border-white/10">
+                                    {project.status.replace('_', ' ')}
                                 </span>
-                            </h1>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {customer?.companyName} • {project.siteType || 'Site'}
+                            </div>
+                            <p className="text-slate-300 flex items-center gap-2">
+                                <MapPinIcon className="w-4 h-4" /> {project.siteType || 'Site'} • {customer?.city || 'Location'}
                             </p>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-                            <PencilSquareIcon className="w-4 h-4" /> Edit Details
-                        </button>
-                        <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
-                        <div className="flex flex-col items-end">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-slate-500 uppercase">Progress</span>
-                                <span className="text-sm font-bold text-slate-900 dark:text-white">{progressPercentage}%</span>
+
+                        {/* Header Stats */}
+                        <div className="flex items-center gap-8 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                            <div>
+                                <p className="text-xs text-slate-400 uppercase font-bold mb-1">Current Stage</p>
+                                <p className="text-lg font-bold text-primary-400 flex items-center gap-2">
+                                    {currentStage.label}
+                                    {updatingStage && <div className="w-3 h-3 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />}
+                                </p>
                             </div>
-                            <div className="w-32 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mt-1 overflow-hidden">
-                                <div className="h-full bg-primary-500 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
+                            <div className="h-8 w-px bg-white/20"></div>
+                            <div>
+                                <p className="text-xs text-slate-400 uppercase font-bold mb-1">Progress</p>
+                                <div className="flex items-end gap-2">
+                                    <span className="text-2xl font-bold leading-none">{progressPercentage}%</span>
+                                    <span className="text-xs text-slate-400 mb-1">completed</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto p-6 space-y-6">
+            <div className="max-w-7xl mx-auto px-6 py-8 -mt-8 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                {/* 1. Timeline Section (Prominent) */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <ClockIcon className="w-5 h-5 text-primary-500" /> Timeline
-                        </h3>
-                        <span className="text-xs font-medium text-slate-500">
-                            Est. Completion: <span className="text-slate-900 dark:text-white font-bold">14 Jan 2025</span>
-                        </span>
-                    </div>
-
-                    {/* Responsive Steps */}
-                    <div className="relative">
-                        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 dark:bg-slate-800 -translate-y-1/2 hidden md:block" />
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 md:gap-2 overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
-                            {timeline.map((step, idx) => {
-                                const isCurrent = step.status === 'current';
-                                const isClickable = isCurrent && !updatingStage;
-
-                                return (
-                                    <div
-                                        key={idx}
-                                        className={`relative z-10 flex md:flex-col items-center gap-4 md:gap-3 min-w-[120px] transition-all ${isClickable ? 'cursor-pointer group hover:scale-105' : ''
-                                            }`}
-                                        onClick={() => isClickable && advanceStage(idx)}
-                                        title={isClickable ? 'Click to mark as complete' : ''}
-                                    >
-                                        {/* Icon Circle */}
-                                        <div className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center border-[3px] transition-all bg-white dark:bg-slate-900 ${step.status === 'completed' ? 'border-green-500 text-green-500' :
-                                                step.status === 'current' ? 'border-primary-500 text-primary-500 ring-2 ring-primary-100 dark:ring-primary-900/30' :
-                                                    'border-slate-200 dark:border-slate-700 text-slate-300'
-                                            } ${isClickable ? 'group-hover:border-green-500 group-hover:text-green-500 group-hover:ring-green-100 group-hover:scale-110' : ''}`}>
-                                            {step.status === 'completed' ? <CheckCircleIcon className="w-5 h-5" /> :
-                                                updatingStage && isCurrent ? <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /> :
-                                                    <div className={`w-2 h-2 rounded-full ${step.status === 'current' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`} />}
-                                        </div>
-
-                                        {/* Text Info */}
-                                        <div className="text-left md:text-center">
-                                            <p className={`text-xs font-bold leading-tight ${step.status === 'current' ? 'text-primary-600 dark:text-primary-400' :
-                                                step.status === 'completed' ? 'text-green-600 dark:text-green-400' :
-                                                    'text-slate-500 dark:text-slate-500'
-                                                } ${isClickable ? 'group-hover:text-green-600' : ''}`}>{step.label}</p>
-                                            <p className="text-[10px] font-medium text-slate-400 mt-0.5">
-                                                {step.date ? new Date(step.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Pending'}
-                                            </p>
-                                            {isClickable && (
-                                                <p className="text-[9px] font-bold text-primary-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    ✓ Click to complete
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2. Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                    {/* Left Col: Customer & Site Info */}
+                    {/* Left Column: Context (Sidebar) */}
                     <div className="space-y-6">
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-0 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center gap-2">
-                                <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
-                                    <UserGroupIcon className="w-4 h-4" />
+                        {/* Customer Card */}
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Customer</h3>
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/20">
+                                    {customer?.companyName?.charAt(0) || 'C'}
                                 </div>
-                                <h3 className="font-bold text-sm text-slate-900 dark:text-white">Customer Profile</h3>
+                                <div>
+                                    <h4 className="font-bold text-slate-900 dark:text-white">{customer?.companyName}</h4>
+                                    <p className="text-sm text-slate-500">{customer?.contactPerson}</p>
+                                </div>
                             </div>
-                            <div className="p-5 space-y-4">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold text-lg">
-                                        {customer?.companyName?.charAt(0) || 'C'}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-slate-900 dark:text-white">{customer?.companyName}</p>
-                                        <p className="text-sm text-slate-500">{customer?.contactPerson}</p>
-                                    </div>
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                    <PhoneIcon className="w-4 h-4 text-slate-400" />
+                                    <span>{customer?.mobile}</span>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4 pt-2">
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Mobile</p>
-                                        <p className="font-semibold text-sm text-slate-800 dark:text-slate-200 mt-0.5">{customer?.mobile}</p>
-                                    </div>
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">City</p>
-                                        <p className="font-semibold text-sm text-slate-800 dark:text-slate-200 mt-0.5">{customer?.city}</p>
-                                    </div>
-                                </div>
-                                <div className="pt-2">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Site Address</p>
-                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                                        {project.address}
-                                    </p>
+                                <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                    <MapPinIcon className="w-4 h-4 text-slate-400" />
+                                    <span className="truncate">{project.address}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-0 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center gap-2">
-                                <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
-                                    <UserGroupIcon className="w-4 h-4" />
-                                </div>
-                                <h3 className="font-bold text-sm text-slate-900 dark:text-white">Technicians</h3>
-                            </div>
-                            <div className="p-2">
+                        {/* Team Card */}
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Team</h3>
+                            <div className="space-y-3">
                                 {technicians.map(tech => (
-                                    <div key={tech.id} className="flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg transition-colors group cursor-pointer">
+                                    <div key={tech.id} className="flex items-center justify-between group">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-xs ring-2 ring-white dark:ring-slate-900 group-hover:ring-purple-200 transition-all">
+                                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-400">
                                                 {tech.name.substring(0, 2).toUpperCase()}
                                             </div>
-                                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{tech.name}</span>
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{tech.name}</span>
                                         </div>
-                                        <span className="text-[10px] font-bold px-2 py-0.5 bg-green-100 text-green-700 rounded-full">Active</span>
+                                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
                                     </div>
                                 ))}
-                                {technicians.length === 0 && (
-                                    <div className="p-4 text-center text-slate-400 text-sm italic">
-                                        No technicians assigned
-                                    </div>
-                                )}
+                                {technicians.length === 0 && <p className="text-sm text-slate-400 italic">No technicians assigned</p>}
                             </div>
                         </div>
                     </div>
 
-                    {/* Right Col: Details Tabs/Tables */}
-                    <div className="lg:col-span-2 space-y-6">
+                    {/* Right Column: Main Workflow */}
+                    <div className="lg:col-span-2 space-y-8">
 
-                        {/* Attachments & Notes */}
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                                        <DocumentTextIcon className="w-4 h-4 text-slate-500" /> Notes
-                                    </h4>
-                                    <textarea
-                                        className="w-full h-32 text-sm p-3 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 outline-none resize-none bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300"
-                                        placeholder="Add project notes..."
-                                        defaultValue={project.notes || ''}
-                                    />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                                        <PaperClipIcon className="w-4 h-4 text-slate-500" /> Attachments
-                                    </h4>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-primary-200 transition-colors cursor-pointer group">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-slate-500 shadow-sm group-hover:text-primary-500 transition-colors">
-                                                    <PhotoIcon className="w-5 h-5" />
+                        {/* Premium Timeline */}
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="font-bold text-lg text-slate-900 dark:text-white">Project Timeline</h3>
+                                <span className="text-xs font-medium px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500">
+                                    Est. Completion: <strong className="text-slate-900 dark:text-white">14 Jan</strong>
+                                </span>
+                            </div>
+
+                            {/* Timeline Nodes */}
+                            <div className="relative">
+                                {/* Connecting Line */}
+                                <div className="absolute top-4 left-0 w-full h-0.5 bg-slate-100 dark:bg-slate-800 hidden md:block" />
+
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-start gap-8 md:gap-0 overflow-x-auto pb-4 scrollbar-hide">
+                                    {timeline.map((step, idx) => {
+                                        const isCurrent = step.status === 'current';
+                                        const isCompleted = step.status === 'completed';
+                                        const isClickable = isCurrent && !updatingStage;
+
+                                        return (
+                                            <div
+                                                key={idx}
+                                                onClick={() => isClickable && advanceStage(idx)}
+                                                className={`relative z-10 flex md:flex-col items-center gap-4 md:gap-3 min-w-[100px] group ${isClickable ? 'cursor-pointer' : ''}`}
+                                            >
+                                                {/* Visual Node */}
+                                                <div className={`w-9 h-9 rounded-full flex items-center justify-center border-[3px] transition-all duration-300 shadow-sm
+                                                    ${isCompleted
+                                                        ? 'bg-green-500 border-green-500 text-white shadow-green-500/20'
+                                                        : isCurrent
+                                                            ? 'bg-white dark:bg-slate-900 border-primary-500 text-primary-500 ring-4 ring-primary-100 dark:ring-primary-900/30 scale-110'
+                                                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-300'
+                                                    }
+                                                    ${isClickable ? 'group-hover:scale-125 group-hover:border-green-400 group-hover:text-green-400' : ''}
+                                                `}>
+                                                    {isCompleted ? <CheckIcon className="w-5 h-5" /> :
+                                                        isCurrent && updatingStage ? <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /> :
+                                                            <div className={`w-2 h-2 rounded-full ${isCurrent ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`} />}
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-semibold text-slate-800 dark:text-white">Site_Survey_Photos.zip</p>
-                                                    <p className="text-xs text-slate-500">12 MB • Added today</p>
+
+                                                {/* Text Info */}
+                                                <div className="md:text-center">
+                                                    <p className={`text-xs font-bold transition-colors ${isCurrent ? 'text-primary-600 dark:text-primary-400 scale-105' :
+                                                        isCompleted ? 'text-green-600 dark:text-green-500' : 'text-slate-400'
+                                                        }`}>
+                                                        {step.label}
+                                                    </p>
+
+                                                    {isClickable && <p className="hidden md:block text-[10px] text-green-500 font-bold mt-1 animate-bounce">Click to Done</p>}
                                                 </div>
                                             </div>
-                                            <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">Download</span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-red-200 transition-colors cursor-pointer group">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-slate-500 shadow-sm group-hover:text-red-500 transition-colors">
-                                                    <DocumentTextIcon className="w-5 h-5" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-semibold text-slate-800 dark:text-white">Final_Quotation_v2.pdf</p>
-                                                    <p className="text-xs text-slate-500">2.4 MB • 2 days ago</p>
-                                                </div>
-                                            </div>
-                                            <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">View PDF</span>
-                                        </div>
-                                    </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Inventory / Materials Table */}
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
-                                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                                    <CubeIcon className="w-4 h-4 text-teal-500" /> Material & Cable Usage
-                                </h3>
-                                <button className="text-xs font-bold text-primary-600 hover:text-primary-700 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-100">
-                                    Manage Items
+                        {/* Tabs Container */}
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden min-h-[400px]">
+                            {/* Tab Headers */}
+                            <div className="flex border-b border-slate-100 dark:border-slate-800">
+                                <button
+                                    onClick={() => setActiveTab('overview')}
+                                    className={`flex-1 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'overview' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    Overview
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('materials')}
+                                    className={`flex-1 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'materials' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    Materials
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('files')}
+                                    className={`flex-1 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'files' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    Files
                                 </button>
                             </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-slate-50 dark:bg-slate-800/50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Item</th>
-                                            <th className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Planned</th>
-                                            <th className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Used</th>
-                                            <th className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {project.materialUsage?.map((item, idx) => (
-                                            <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <p className="text-sm font-semibold text-slate-800 dark:text-white">{item.productName}</p>
-                                                    <p className="text-xs text-slate-500">{item.category}</p>
-                                                </td>
-                                                <td className="px-6 py-4 text-center text-sm font-medium text-slate-600 dark:text-slate-400">
-                                                    {item.qtyPlanned}
-                                                </td>
-                                                <td className="px-6 py-4 text-center text-sm font-bold text-slate-800 dark:text-white">
-                                                    {item.qtyUsed}
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${item.balance === 0 ? 'bg-green-50 text-green-700 border border-green-100' :
-                                                        item.balance < 0 ? 'bg-red-50 text-red-700 border border-red-100' :
-                                                            'bg-amber-50 text-amber-700 border border-amber-100'
-                                                        }`}>
-                                                        {item.balance === 0 ? 'Balanced' : item.balance > 0 ? `${item.balance} Left` : `${Math.abs(item.balance)} Over`}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {(!project.materialUsage || project.materialUsage.length === 0) && (
-                                            <tr>
-                                                <td colSpan={4} className="px-6 py-8 text-center text-slate-400 text-sm">
-                                                    No materials recorded yet.
-                                                </td>
-                                            </tr>
+
+                            {/* Tab Content */}
+                            <div className="p-6">
+                                {activeTab === 'overview' && (
+                                    <div className="space-y-6 animate-fade-in">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="font-bold text-slate-900 dark:text-white">Project Notes</h4>
+                                            <button className="text-xs font-bold text-primary-600 hover:underline">Edit Notes</button>
+                                        </div>
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-300 leading-relaxed min-h-[120px]">
+                                            {project.notes || "No notes added for this project yet. Click edit to add important details about access, gate codes, or specific customer requests."}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'materials' && (
+                                    <div className="animate-fade-in">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h4 className="font-bold text-slate-900 dark:text-white">Material Usage</h4>
+                                            <button className="text-xs font-bold px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 transition-colors">Manage Stock</button>
+                                        </div>
+                                        {(!project.materialUsage || project.materialUsage.length === 0) ? (
+                                            <div className="text-center py-10">
+                                                <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                    <CubeIcon className="w-6 h-6 text-slate-300" />
+                                                </div>
+                                                <p className="text-sm text-slate-400">No materials tracked yet.</p>
+                                            </div>
+                                        ) : (
+                                            // Existing Table Logic Here
+                                            <table className="w-full text-sm text-left">
+                                                <thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                                                    <tr>
+                                                        <th className="px-4 py-3 rounded-l-lg">Item</th>
+                                                        <th className="px-4 py-3 text-center">Used</th>
+                                                        <th className="px-4 py-3 rounded-r-lg text-right">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                    {project.materialUsage.map((m, i) => (
+                                                        <tr key={i}>
+                                                            <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-200">{m.productName}</td>
+                                                            <td className="px-4 py-3 text-center text-slate-600">{m.qtyUsed}</td>
+                                                            <td className="px-4 py-3 text-right">
+                                                                <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${m.balance < 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                                                                    {m.balance < 0 ? 'Over Limit' : 'OK'}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
                                         )}
-                                    </tbody>
-                                </table>
+                                    </div>
+                                )}
+
+                                {activeTab === 'files' && (
+                                    <div className="grid grid-cols-2 gap-4 animate-fade-in">
+                                        {/* Placeholder Files */}
+                                        <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center gap-3 cursor-pointer hover:border-primary-300 transition-colors">
+                                            <div className="p-2 bg-blue-50 text-blue-500 rounded-lg"><PhotoIcon className="w-5 h-5" /></div>
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Site_Survey.jpg</p>
+                                                <p className="text-xs text-slate-400">2.4 MB</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
