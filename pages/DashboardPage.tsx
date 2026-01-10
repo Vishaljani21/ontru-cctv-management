@@ -369,6 +369,34 @@ const DashboardPage: React.FC = () => {
                 </div>
             </div>
 
+            {/* Stage Breakdown Section */}
+            <div className="grid grid-cols-1 gap-8">
+                <SectionContainer title="Active Projects by Stage">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                        {['Enquiry', 'Survey', 'Quote', 'Material', 'Install', 'Testing', 'Handover', 'Payment'].map((stage, idx) => {
+                            const count = visits.filter(v => {
+                                if (v.status !== 'in_progress' && v.status !== 'scheduled') return false;
+                                const current = v.timelineStatus?.find(s => s.status === 'current')?.label;
+                                // Handle default scheduled state as Enquiry or Survey
+                                if (!current && idx === 0 && v.status === 'scheduled') return true;
+                                return current === stage;
+                            }).length;
+
+                            return (
+                                <div key={stage} className={`p-4 rounded-xl border ${count > 0 ? 'bg-white dark:bg-slate-800 border-primary-200 dark:border-primary-900/50 shadow-sm' : 'bg-slate-50 dark:bg-white/5 border-transparent'} flex flex-col items-center justify-center text-center transition-all`}>
+                                    <span className={`text-2xl font-bold mb-1 ${count > 0 ? 'text-primary-600 dark:text-primary-400' : 'text-slate-300 dark:text-slate-600'}`}>
+                                        {count}
+                                    </span>
+                                    <span className={`text-xs font-bold uppercase tracking-wider ${count > 0 ? 'text-slate-700 dark:text-slate-300' : 'text-slate-400 dark:text-slate-600'}`}>
+                                        {stage}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </SectionContainer>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                     <SectionContainer title="Recent Activity" action={<Link to="/projects" className="text-xs font-semibold text-primary-500 hover:text-primary-700 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-primary-500 rounded">View All</Link>}>

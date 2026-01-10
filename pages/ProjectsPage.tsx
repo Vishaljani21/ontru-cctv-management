@@ -120,6 +120,7 @@ const ProjectsPage: React.FC = () => {
   const [managingVisit, setManagingVisit] = useState<Visit | null>(null);
   const [managingCredentialsFor, setManagingCredentialsFor] = useState<Visit | null>(null);
   const [generatingChalanId, setGeneratingChalanId] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const navigate = useNavigate();
 
   // Create Modal State
@@ -463,147 +464,331 @@ const ProjectsPage: React.FC = () => {
                 className="w-full"
               />
             </div>
+            {/* View Toggle */}
+            <div className="flex p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
+              <button
+                onClick={() => setViewMode('cards')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'cards' ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300' : 'text-slate-500 hover:bg-slate-50'
+                  }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+              </button>
+              <button
+                onClick={() => setViewMode('table')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'table' ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300' : 'text-slate-500 hover:bg-slate-50'
+                  }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Table Container */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-            <thead className="bg-slate-50 dark:bg-slate-800">
-              <tr>
-                <th scope="col" className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Project / Customer</th>
-                <th scope="col" className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
-                <th scope="col" className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Technician</th>
-                <th scope="col" className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Items</th>
-                <th scope="col" className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                <th scope="col" className="relative px-6 py-5"><span className="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
-              {loading ? (
-                // Skeleton Rows
-                Array.from({ length: 5 }).map((_, idx) => (
-                  <tr key={idx}>
-                    <td className="px-6 py-5 whitespace-nowrap"><Skeleton width={180} height={20} className="mb-2" /><Skeleton width={120} height={16} /></td>
-                    <td className="px-6 py-5 whitespace-nowrap"><Skeleton width={100} height={20} /></td>
-                    <td className="px-6 py-5 whitespace-nowrap"><Skeleton width={40} height={20} /></td>
-                    <td className="px-6 py-5 whitespace-nowrap"><Skeleton width={80} height={24} className="rounded-full" /></td>
-                    <td className="px-6 py-5 whitespace-nowrap text-right"><Skeleton width={100} height={32} className="ml-auto" /></td>
-                  </tr>
-                ))
-              ) : filteredVisits.length > 0 ? (
-                filteredVisits.map((visit) => (
-                  <tr key={visit.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-150 group">
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold mr-3 group-hover:scale-110 transition-transform">
-                          {visit.projectName ? visit.projectName.charAt(0).toUpperCase() : '#'}
-                        </div>
-                        <div>
-                          {visit.projectName && (
-                            <div
-                              onClick={() => navigate(`/projects/${visit.id}`)}
-                              className="text-sm font-bold text-slate-800 dark:text-white mb-0.5 cursor-pointer hover:text-primary-600 hover:underline transition-colors"
-                            >
-                              {visit.projectName}
-                            </div>
-                          )}
-                          <div className={`text-sm ${visit.projectName ? 'text-slate-500 dark:text-slate-400' : 'font-bold text-slate-900 dark:text-white'}`}>{getCustomerName(visit.customerId)}</div>
-                        </div>
-                      </div>
-                      <div className="text-xs text-slate-400 dark:text-slate-500 mt-1 ml-13 pl-13 flex items-center">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mr-2"></span>
-                        {getTechnicianNames(visit.technicianIds)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 font-medium">
-                      {new Date(visit.scheduledAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="flex -space-x-2 overflow-hidden">
-                        {visit.technicianIds && visit.technicianIds.length > 0 ? (
-                          visit.technicianIds.map((techId, index) => {
-                            const tech = technicians.find(t => t.id === techId);
-                            if (!tech) return null;
-                            return (
-                              <div key={techId} className="group/tech relative inline-block">
-                                <div className="h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase" title={tech.name}>
-                                  {tech.name.substring(0, 2)}
-                                </div>
-                                {/* Tooltip */}
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-slate-800 rounded opacity-0 group-hover/tech:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                  {tech.name}
-                                </div>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <span className="text-xs text-slate-400 italic">Unassigned</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300">
-                        {visit.items.reduce((acc, item) => acc + item.qty, 0)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap text-sm">
-                      <div className="flex items-center space-x-2">
-                        <StatusIndicator status={visit.status} />
-                        {visit.signatureDataUrl && visit.status === 'completed' && (
-                          <span title="Signed by Technician" className="text-green-500 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-1 rounded-full">
-                            <SignatureIcon className="h-3 w-3" />
+        {/* Cards View */}
+        {viewMode === 'cards' && (
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {loading ? (
+              Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-6 animate-pulse">
+                  <Skeleton height={24} width="60%" className="mb-4" />
+                  <Skeleton height={16} width="80%" className="mb-6" />
+                  <Skeleton height={8} className="rounded-full mb-4" />
+                  <div className="flex gap-2">
+                    <Skeleton height={32} width={80} className="rounded-lg" />
+                    <Skeleton height={32} width={80} className="rounded-lg" />
+                  </div>
+                </div>
+              ))
+            ) : filteredVisits.length > 0 ? (
+              filteredVisits.map(visit => {
+                const customer = customers.find(c => c.id === visit.customerId);
+                const projectTechs = technicians.filter(t => visit.technicianIds?.includes(t.id));
+
+                // Timeline stages
+                const stages = ['Enquiry', 'Survey', 'Quote', 'Material', 'Install', 'Test', 'Handover', 'Payment'];
+                const timeline = visit.timelineStatus && visit.timelineStatus.length > 0
+                  ? visit.timelineStatus
+                  : stages.map((label, idx) => ({
+                    label,
+                    status: idx === 0 ? 'completed' as const : idx === 1 ? 'current' as const : 'pending' as const,
+                    date: idx === 0 ? visit.scheduledAt : ''
+                  }));
+
+                const completedCount = timeline.filter(s => s.status === 'completed').length;
+                const progress = Math.round((completedCount / timeline.length) * 100);
+                const currentStage = timeline.find(s => s.status === 'current')?.label || 'Completed';
+
+                const statusColors = {
+                  completed: 'from-green-500 to-emerald-600',
+                  in_progress: 'from-amber-500 to-orange-600',
+                  scheduled: 'from-blue-500 to-indigo-600',
+                  cancelled: 'from-red-500 to-rose-600'
+                };
+
+                return (
+                  <div
+                    key={visit.id}
+                    className="group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                    onClick={() => navigate(`/projects/${visit.id}`)}
+                  >
+                    {/* Card Header with Gradient */}
+                    <div className={`bg-gradient-to-r ${statusColors[visit.status] || 'from-slate-500 to-slate-600'} p-4 text-white relative overflow-hidden`}>
+                      <div className="absolute inset-0 bg-black/10"></div>
+                      <div className="relative z-10">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-lg truncate">{visit.projectName || `Project #${visit.id}`}</h3>
+                            <p className="text-white/80 text-sm truncate">{customer?.companyName || 'No customer'}</p>
+                          </div>
+                          <span className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg text-xs font-bold uppercase">
+                            {visit.status.replace('_', ' ')}
                           </span>
-                        )}
+                        </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {isEnterprise && visit.status === 'completed' && (
-                          <button onClick={() => navigate('/billing/new', { state: { visit } })} className="px-3 py-1.5 text-xs font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg shadow-sm transition-colors">
-                            Invoice
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-5 space-y-4">
+                      {/* Current Stage Badge */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></div>
+                          <span className="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider">
+                            {currentStage}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-500">{progress}%</span>
+                      </div>
+
+                      {/* Progress Bar with Stage Dots */}
+                      <div className="relative">
+                        <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-primary-400 to-primary-600 rounded-full transition-all duration-500"
+                            style={{ width: `${progress}%` }}
+                          ></div>
+                        </div>
+                        {/* Stage Indicator Dots */}
+                        <div className="flex justify-between mt-1">
+                          {timeline.slice(0, 8).map((step, idx) => (
+                            <div
+                              key={idx}
+                              className={`w-1.5 h-1.5 rounded-full transition-all ${step.status === 'completed' ? 'bg-green-500' :
+                                step.status === 'current' ? 'bg-primary-500 ring-2 ring-primary-200' :
+                                  'bg-slate-200 dark:bg-slate-600'
+                                }`}
+                              title={step.label}
+                            ></div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Info Grid */}
+                      <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                          <span className="text-xs font-medium">{new Date(visit.scheduledAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                          <span className="text-xs font-medium">{visit.items?.reduce((a, i) => a + i.qty, 0) || 0} items</span>
+                        </div>
+                      </div>
+
+                      {/* Technicians */}
+                      {projectTechs.length > 0 && (
+                        <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                          <div className="flex -space-x-2">
+                            {projectTechs.slice(0, 3).map(tech => (
+                              <div
+                                key={tech.id}
+                                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700 border-2 border-white dark:border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300"
+                                title={tech.name}
+                              >
+                                {tech.name.substring(0, 2).toUpperCase()}
+                              </div>
+                            ))}
+                            {projectTechs.length > 3 && (
+                              <div className="w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/30 border-2 border-white dark:border-slate-800 flex items-center justify-center text-[10px] font-bold text-primary-600">
+                                +{projectTechs.length - 3}
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-xs text-slate-500 truncate">{projectTechs.map(t => t.name).join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card Actions */}
+                    <div className="px-5 pb-5 pt-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setManagingVisit(visit); }}
+                        className="flex-1 px-3 py-2 text-xs font-bold text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/40 hover:bg-primary-100 rounded-lg transition-colors"
+                      >
+                        Items
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setManagingCredentialsFor(visit); }}
+                        className="flex-1 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
+                      >
+                        Details
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-span-full flex flex-col items-center justify-center py-16">
+                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" /></svg>
+                </div>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">No projects found</h3>
+                <p className="text-sm text-slate-500">Try adjusting your filters or create a new project.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Table View */}
+        {viewMode === 'table' && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+              <thead className="bg-slate-50 dark:bg-slate-800">
+                <tr>
+                  <th scope="col" className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Project / Customer</th>
+                  <th scope="col" className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
+                  <th scope="col" className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Technician</th>
+                  <th scope="col" className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Items</th>
+                  <th scope="col" className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                  <th scope="col" className="relative px-6 py-5"><span className="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
+                {loading ? (
+                  // Skeleton Rows
+                  Array.from({ length: 5 }).map((_, idx) => (
+                    <tr key={idx}>
+                      <td className="px-6 py-5 whitespace-nowrap"><Skeleton width={180} height={20} className="mb-2" /><Skeleton width={120} height={16} /></td>
+                      <td className="px-6 py-5 whitespace-nowrap"><Skeleton width={100} height={20} /></td>
+                      <td className="px-6 py-5 whitespace-nowrap"><Skeleton width={40} height={20} /></td>
+                      <td className="px-6 py-5 whitespace-nowrap"><Skeleton width={80} height={24} className="rounded-full" /></td>
+                      <td className="px-6 py-5 whitespace-nowrap text-right"><Skeleton width={100} height={32} className="ml-auto" /></td>
+                    </tr>
+                  ))
+                ) : filteredVisits.length > 0 ? (
+                  filteredVisits.map((visit) => (
+                    <tr key={visit.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-150 group">
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold mr-3 group-hover:scale-110 transition-transform">
+                            {visit.projectName ? visit.projectName.charAt(0).toUpperCase() : '#'}
+                          </div>
+                          <div>
+                            {visit.projectName && (
+                              <div
+                                onClick={() => navigate(`/projects/${visit.id}`)}
+                                className="text-sm font-bold text-slate-800 dark:text-white mb-0.5 cursor-pointer hover:text-primary-600 hover:underline transition-colors"
+                              >
+                                {visit.projectName}
+                              </div>
+                            )}
+                            <div className={`text-sm ${visit.projectName ? 'text-slate-500 dark:text-slate-400' : 'font-bold text-slate-900 dark:text-white'}`}>{getCustomerName(visit.customerId)}</div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-slate-400 dark:text-slate-500 mt-1 ml-13 pl-13 flex items-center">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mr-2"></span>
+                          {getTechnicianNames(visit.technicianIds)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 font-medium">
+                        {new Date(visit.scheduledAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex -space-x-2 overflow-hidden">
+                          {visit.technicianIds && visit.technicianIds.length > 0 ? (
+                            visit.technicianIds.map((techId, index) => {
+                              const tech = technicians.find(t => t.id === techId);
+                              if (!tech) return null;
+                              return (
+                                <div key={techId} className="group/tech relative inline-block">
+                                  <div className="h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase" title={tech.name}>
+                                    {tech.name.substring(0, 2)}
+                                  </div>
+                                  {/* Tooltip */}
+                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-slate-800 rounded opacity-0 group-hover/tech:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                    {tech.name}
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">Unassigned</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300">
+                          {visit.items.reduce((acc, item) => acc + item.qty, 0)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap text-sm">
+                        <div className="flex items-center space-x-2">
+                          <StatusIndicator status={visit.status} />
+                          {visit.signatureDataUrl && visit.status === 'completed' && (
+                            <span title="Signed by Technician" className="text-green-500 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-1 rounded-full">
+                              <SignatureIcon className="h-3 w-3" />
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {isEnterprise && visit.status === 'completed' && (
+                            <button onClick={() => navigate('/billing/new', { state: { visit } })} className="px-3 py-1.5 text-xs font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg shadow-sm transition-colors">
+                              Invoice
+                            </button>
+                          )}
+                          <button onClick={() => setManagingCredentialsFor(visit)} className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors border border-transparent dark:border-slate-700" title="Manage Details">
+                            <KeyIcon className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
+                            Details
                           </button>
-                        )}
-                        <button onClick={() => setManagingCredentialsFor(visit)} className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors border border-transparent dark:border-slate-700" title="Manage Details">
-                          <KeyIcon className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
-                          Details
-                        </button>
-                        <button onClick={() => setManagingVisit(visit)} className="px-3 py-1.5 text-xs font-bold text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/40 hover:bg-primary-100 dark:hover:bg-primary-900/60 rounded-lg transition-colors border border-transparent dark:border-primary-800/30">
-                          Items
-                        </button>
-                        {visit.chalan ? (
-                          <a href={visit.chalan.pdfPath} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/40 hover:bg-green-100 dark:hover:bg-green-900/60 rounded-lg transition-colors">
-                            <DownloadIcon className="h-3.5 w-3.5 mr-1.5" />
-                            Chalan
-                          </a>
-                        ) : (
-                          <button
-                            onClick={() => handleGenerateChalan(visit.id)}
-                            disabled={generatingChalanId === visit.id || visit.items.length === 0}
-                            className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            {generatingChalanId === visit.id ? '...' : 'Chalan'}
+                          <button onClick={() => setManagingVisit(visit)} className="px-3 py-1.5 text-xs font-bold text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/40 hover:bg-primary-100 dark:hover:bg-primary-900/60 rounded-lg transition-colors border border-transparent dark:border-primary-800/30">
+                            Items
                           </button>
-                        )}
+                          {visit.chalan ? (
+                            <a href={visit.chalan.pdfPath} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/40 hover:bg-green-100 dark:hover:bg-green-900/60 rounded-lg transition-colors">
+                              <DownloadIcon className="h-3.5 w-3.5 mr-1.5" />
+                              Chalan
+                            </a>
+                          ) : (
+                            <button
+                              onClick={() => handleGenerateChalan(visit.id)}
+                              disabled={generatingChalanId === visit.id || visit.items.length === 0}
+                              className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {generatingChalanId === visit.id ? '...' : 'Chalan'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))) : (
+                  <tr>
+                    <td colSpan={5} className="text-center px-6 py-20 text-slate-500 dark:text-slate-400">
+                      <div className="flex flex-col items-center">
+                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                          <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" /></svg>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">No projects found</h3>
+                        <p className="text-sm">Try adjusting your filters or create a new project.</p>
                       </div>
                     </td>
                   </tr>
-                ))) : (
-                <tr>
-                  <td colSpan={5} className="text-center px-6 py-20 text-slate-500 dark:text-slate-400">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                        <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" /></svg>
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">No projects found</h3>
-                      <p className="text-sm">Try adjusting your filters or create a new project.</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
