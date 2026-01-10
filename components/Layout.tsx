@@ -2,7 +2,6 @@ import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext, AppContext } from '../App';
 import { useTheme } from '../contexts/ThemeContext';
-import ChatbotWidget from './ChatbotWidget';
 import {
     DashboardIcon, ProjectIcon, VisitsIcon, InventoryIcon, GodownIcon, ProductIcon,
     CustomersIcon, TechniciansIcon, PaymentsIcon, SiteHealthIcon, AMCIcon, WarrantyIcon,
@@ -286,8 +285,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     {children}
                 </main>
             </div>
-
-            {authContext?.user?.role === 'dealer' && <ChatbotWidget />}
         </div>
     );
 };
