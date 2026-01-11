@@ -82,10 +82,14 @@ const PipelineBoard: React.FC<PipelineBoardProps> = ({ visits, technicians, onVi
         <div className="flex h-full overflow-x-auto pb-4 gap-6">
             <DragDropContext onDragEnd={handleDragEnd}>
                 {COLUMNS.map(column => (
-                    <div key={column.id} className={`flex-shrink-0 w-80 flex flex-col h-full rounded-2xl bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden`}>
-                        <div className={`p-4 border-t-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center ${column.borderColor} ${column.headerBg}`}>
-                            <h3 className={`font-bold ${column.color}`}>{column.title}</h3>
-                            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 shadow-sm text-slate-600 dark:text-slate-300">
+                    <div key={column.id} className={`flex-shrink-0 w-80 flex flex-col h-full rounded-2xl bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800`}>
+                        {/* Column Header */}
+                        <div className={`p-4 flex justify-between items-center bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 rounded-t-2xl`}>
+                            <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${column.borderColor.replace('border-', 'bg-')}`}></div>
+                                <h3 className={`font-bold text-sm text-slate-700 dark:text-slate-200`}>{column.title}</h3>
+                            </div>
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                                 {boardData[column.id].length}
                             </span>
                         </div>
@@ -95,8 +99,7 @@ const PipelineBoard: React.FC<PipelineBoardProps> = ({ visits, technicians, onVi
                                 <div
                                     ref={provided.innerRef}
                                     {...provided.droppableProps}
-                                    className={`flex-1 p-3 overflow-y-auto custom-scrollbar transition-colors ${snapshot.isDraggingOver ? 'bg-slate-50 dark:bg-slate-700/50' : ''
-                                        }`}
+                                    className={`flex-1 p-3 overflow-y-auto custom-scrollbar space-y-3 transition-colors ${snapshot.isDraggingOver ? 'bg-slate-100/80 dark:bg-slate-800/20' : ''}`}
                                 >
                                     {boardData[column.id].map((visit, index) => (
                                         <Draggable key={visit.id} draggableId={visit.id.toString()} index={index}>
@@ -105,41 +108,60 @@ const PipelineBoard: React.FC<PipelineBoardProps> = ({ visits, technicians, onVi
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
                                                     {...provided.dragHandleProps}
-                                                    className={`mb-3 bg-white dark:bg-slate-700 p-4 rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md transition-all group ${snapshot.isDragging ? 'rotate-2 scale-105 shadow-xl ring-2 ring-primary-500 z-50' : ''
+                                                    className={`bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group relative overflow-hidden ${snapshot.isDragging ? 'rotate-2 scale-105 shadow-xl ring-2 ring-primary-500 z-50' : ''
                                                         }`}
                                                 >
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <span className="font-bold text-slate-800 dark:text-white line-clamp-1">
-                                                            {visit.projectName || `Project #${visit.id}`}
-                                                        </span>
-                                                        <span className="text-xs text-slate-400 font-mono">#{visit.id}</span>
-                                                    </div>
+                                                    {/* Status Accent Line */}
+                                                    <div className={`absolute top-0 left-0 w-1 h-full ${column.headerBg.replace('bg-', 'bg-').replace('/20', '')} opacity-40 group-hover:opacity-100 transition-opacity`}></div>
 
-                                                    <div className="space-y-2">
-                                                        <div className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                                            <LocationMarkerIcon className="w-4 h-4 shrink-0 mt-0.5" />
-                                                            <span className="line-clamp-2">{visit.address}</span>
+                                                    <div className="pl-2">
+                                                        <div className="flex justify-between items-start mb-1">
+                                                            <span className="font-bold text-sm text-slate-800 dark:text-white line-clamp-1 group-hover:text-primary-600 transition-colors">
+                                                                {visit.projectName || `Project #${visit.id}`}
+                                                            </span>
+                                                            {/* Menu Dots (Visual placeholder) */}
+                                                            <button className="text-slate-300 hover:text-slate-500"><span className="text-[10px]">●●●</span></button>
                                                         </div>
+                                                        <p className="text-[10px] text-slate-400 font-medium mb-3">#{visit.projectCode || visit.id}</p>
 
-                                                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                                            <ClockIcon className="w-4 h-4 shrink-0" />
-                                                            <span>{new Date(visit.scheduledAt).toLocaleDateString()}</span>
-                                                        </div>
-
-                                                        {visit.technicianIds && visit.technicianIds.length > 0 && (
-                                                            <div className="pt-2 border-t border-slate-100 dark:border-slate-600 flex items-center gap-2">
-                                                                <UsersIcon className="w-3 h-3 text-slate-400" />
-                                                                <span className="text-xs font-medium text-slate-600 dark:text-slate-300 truncate">
-                                                                    {getTechNames(visit.technicianIds)}
-                                                                </span>
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg">
+                                                                <LocationMarkerIcon className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" />
+                                                                <span className="line-clamp-2 leading-tight">{visit.address}</span>
                                                             </div>
-                                                        )}
+
+                                                            <div className="flex items-center justify-between pt-1">
+                                                                <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                                    <ClockIcon className="w-3.5 h-3.5 text-slate-400" />
+                                                                    <span>{new Date(visit.scheduledAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                                                                </div>
+
+                                                                {/* Tech Avatars */}
+                                                                {visit.technicianIds && visit.technicianIds.length > 0 && (
+                                                                    <div className="flex -space-x-1.5">
+                                                                        {visit.technicianIds.slice(0, 3).map((tid, i) => (
+                                                                            <div key={i} className="w-5 h-5 rounded-full bg-slate-200 border border-white dark:border-slate-800 flex items-center justify-center text-[8px] font-bold text-slate-600" title={technicians.find(t => t.id === tid)?.name}>
+                                                                                {technicians.find(t => t.id === tid)?.name?.charAt(0) || '?'}
+                                                                            </div>
+                                                                        ))}
+                                                                        {visit.technicianIds.length > 3 && (
+                                                                            <div className="w-5 h-5 rounded-full bg-slate-100 border border-white text-[8px] flex items-center justify-center text-slate-500">+{visit.technicianIds.length - 3}</div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )}
                                         </Draggable>
                                     ))}
                                     {provided.placeholder}
+                                    {boardData[column.id].length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-10 text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                                            <p className="text-xs font-medium">No visits</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </Droppable>

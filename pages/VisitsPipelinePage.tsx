@@ -107,39 +107,70 @@ const VisitsPipelinePage: React.FC = () => {
 
     return (
         <div className="h-full flex flex-col overflow-hidden">
-            <header className="px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
-                <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                        Visit Pipeline
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage visit lifecycle via drag-and-drop.</p>
-                </div>
-                <div className="flex gap-3 self-start md:self-auto">
-                    <Link
-                        to="/projects"
-                        className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-900 shadow-sm"
-                    >
-                        List View
-                    </Link>
-                    <button
-                        onClick={() => setIsCreateModalOpen(true)}
-                        className="px-6 py-2 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white rounded-xl font-medium shadow-lg shadow-primary-500/20 transition-all flex items-center gap-2"
-                    >
-                        <PlusIcon className="w-5 h-5" />
-                        <span>New Visit</span>
-                    </button>
-                </div>
-            </header>
+            {/* Premium Header */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white shrink-0 shadow-lg z-10">
+                <div className="max-w-7xl mx-auto px-6 py-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div>
+                            <h1 className="text-2xl font-bold flex items-center gap-2">
+                                <span className="bg-white/20 p-1.5 rounded-lg"><ProjectIcon className="w-5 h-5 text-white" /></span>
+                                Visit Pipeline
+                            </h1>
+                            <p className="text-slate-400 text-sm mt-1">Drag and drop to manage technician visits workflow.</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Link
+                                to="/projects"
+                                className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-sm font-medium transition-colors backdrop-blur-sm"
+                            >
+                                List View
+                            </Link>
+                            <button
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="px-5 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-bold text-sm shadow-lg shadow-primary-900/20 transition-all flex items-center gap-2"
+                            >
+                                <PlusIcon className="w-4 h-4" />
+                                <span>New Visit</span>
+                            </button>
+                        </div>
+                    </div>
 
-            <main className="flex-1 overflow-x-auto overflow-y-hidden px-8 pb-8">
+                    {/* Stats Bar */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-white/10">
+                        <div>
+                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Scheduled</p>
+                            <p className="text-xl font-bold text-blue-400">{visits.filter(v => v.status === 'scheduled').length}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">In Progress</p>
+                            <p className="text-xl font-bold text-amber-400">{visits.filter(v => v.status === 'in_progress').length}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Completed</p>
+                            <p className="text-xl font-bold text-emerald-400">{visits.filter(v => v.status === 'completed').length}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Total Active</p>
+                            <p className="text-xl font-bold text-white">{visits.length}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <main className="flex-1 overflow-x-auto overflow-y-hidden px-6 py-8 bg-slate-50 dark:bg-black">
                 {loading ? (
-                    <div className="flex items-center justify-center h-full text-slate-400 animate-pulse">Loading Pipeline...</div>
+                    <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-400">
+                        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-sm font-medium">Loading Pipeline...</p>
+                    </div>
                 ) : (
-                    <PipelineBoard
-                        visits={visits}
-                        technicians={technicians}
-                        onVisitUpdate={fetchData} // Refresh data after drop
-                    />
+                    <div className="max-w-7xl mx-auto h-full">
+                        <PipelineBoard
+                            visits={visits}
+                            technicians={technicians}
+                            onVisitUpdate={fetchData} // Refresh data after drop
+                        />
+                    </div>
                 )}
             </main>
 

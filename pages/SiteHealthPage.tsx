@@ -1,91 +1,56 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 import type { SiteHealth, HDDStatus, RecordingStatus } from '../types';
+import { CheckCircleIcon, ExclamationCircleIcon, XCircleIcon, VideoCameraIcon, ServerIcon, ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline'; // Adjust imports if needed
 
-const HealthStatusIndicator: React.FC<{ status: boolean | HDDStatus | RecordingStatus }> = ({ status }) => {
-    let styles = { bg: 'bg-slate-100', text: 'text-slate-800', dot: 'bg-slate-400', label: 'Unknown' };
+// --- Helper Components ---
 
-    switch (status) {
-        case true:
-        case 'Healthy':
-        case 'OK':
-            styles = { bg: 'bg-green-100', text: 'text-green-800', dot: 'bg-green-500', label: typeof status === 'boolean' ? 'Online' : status };
-            break;
-        case false:
-        case 'Error':
-        case 'Stopped':
-            styles = { bg: 'bg-red-100', text: 'text-red-800', dot: 'bg-red-500', label: typeof status === 'boolean' ? 'Offline' : status };
-            break;
-        case 'Not Found':
-        case 'No HDD':
-            styles = { bg: 'bg-yellow-100', text: 'text-yellow-800', dot: 'bg-yellow-500', label: status };
-            break;
+const StatusBadge: React.FC<{ status: boolean | string; type: 'online' | 'hdd' | 'rec' }> = ({ status, type }) => {
+    let color = 'bg-slate-100 text-slate-500';
+    let icon = <div className="w-2 h-2 rounded-full bg-slate-400" />;
+    let label = String(status);
+
+    // Logic for styling based on type and status value
+    if (status === true || status === 'Healthy' || status === 'OK') {
+        color = 'bg-emerald-50 text-emerald-600 border border-emerald-100';
+        icon = <CheckCircleIcon className="w-3.5 h-3.5" />;
+        label = status === true ? 'Online' : String(status);
+    } else if (status === false || status === 'Error' || status === 'Stopped' || status === 'Offline') {
+        color = 'bg-red-50 text-red-600 border border-red-100';
+        icon = <XCircleIcon className="w-3.5 h-3.5" />;
+        label = status === false ? 'Offline' : String(status);
+    } else if (status === 'No HDD' || status === 'Not Found') {
+        color = 'bg-amber-50 text-amber-600 border border-amber-100';
+        icon = <ExclamationCircleIcon className="w-3.5 h-3.5" />;
     }
 
     return (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles.bg} ${styles.text}`}>
-            <span className={`w-2 h-2 mr-1.5 rounded-full ${styles.dot}`}></span>
-            {styles.label}
+        <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold ${color}`}>
+            {icon}
+            <span>{label}</span>
         </span>
     );
 };
 
-const ToggleSwitch: React.FC<{ enabled: boolean; onChange: () => void; disabled?: boolean }> = ({ enabled, onChange, disabled }) => {
-    return (
-        <button
-            role="switch"
-            aria-checked={enabled}
-            onClick={onChange}
-            disabled={disabled}
-            className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${
-                enabled ? 'bg-primary-500' : 'bg-slate-300'
+const ToggleSwitch: React.FC<{ enabled: boolean; onChange: () => void; disabled?: boolean }> = ({ enabled, onChange, disabled }) => (
+    <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        onClick={onChange}
+        disabled={disabled}
+        className={`relative inline-flex items-center h-5 rounded-full w-9 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed ${enabled ? 'bg-primary-500' : 'bg-slate-300'
             }`}
-        >
-            <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-                enabled ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-        </button>
-    );
-};
+    >
+        <span className={`inline-block w-3.5 h-3.5 transform bg-white rounded-full transition-transform ${enabled ? 'translate-x-4.5' : 'translate-x-1'}`} style={{ transform: enabled ? 'translateX(18px)' : 'translateX(2px)' }} />
+    </button>
+);
 
-
-const DiagnosticsModal: React.FC<{ site: SiteHealth; onClose: () => void }> = ({ site, onClose }) => {
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
-                <h3 className="text-xl font-semibold text-slate-800">Diagnostics for {site.customerName}</h3>
-                <p className="text-sm text-slate-500 mb-4">Last checked: {new Date(site.lastChecked).toLocaleString()}</p>
-                
-                <div className="space-y-3">
-                    <p><strong>Status:</strong> <HealthStatusIndicator status={site.isOnline} /></p>
-                    <p><strong>HDD Health:</strong> <HealthStatusIndicator status={site.hddStatus} /></p>
-                    <p><strong>Recording:</strong> <HealthStatusIndicator status={site.recordingStatus} /></p>
-                    <p><strong>Cameras:</strong> {site.camerasOnline} / {site.totalCameras} online</p>
-                </div>
-
-                <div className="mt-4 pt-4 border-t">
-                    <h4 className="font-semibold text-slate-700 mb-2">Troubleshooting Steps:</h4>
-                    <ul className="list-disc list-inside text-sm text-slate-600 space-y-1">
-                        {!site.isOnline && <li>Check if the NVR is powered on and connected to the internet router. Ask the customer to restart the router.</li>}
-                        {site.hddStatus === 'Error' && <li>The Hard Disk may be failing. A site visit is likely required to check or replace the HDD.</li>}
-                        {site.recordingStatus === 'Stopped' && <li>Ask the customer to restart the NVR. If the problem persists, guide them to check recording settings or schedule a visit.</li>}
-                        {site.camerasOnline < site.totalCameras && <li>Check power supply for the offline cameras. It might be a faulty adapter or cable connection.</li>}
-                        {site.isOnline && site.hddStatus === 'Healthy' && site.recordingStatus === 'OK' && <li>System appears to be functioning correctly. Ask customer for specific details about the issue.</li>}
-                    </ul>
-                </div>
-
-                <div className="flex justify-end mt-6">
-                    <button onClick={onClose} className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600">Close</button>
-                </div>
-            </div>
-        </div>
-    );
-};
+// --- Main Page Component ---
 
 const SiteHealthPage: React.FC = () => {
     const [sites, setSites] = useState<SiteHealth[]>([]);
     const [loading, setLoading] = useState(true);
-    const [diagnosingSite, setDiagnosingSite] = useState<SiteHealth | null>(null);
     const [runningDiagFor, setRunningDiagFor] = useState<number | null>(null);
     const [updatingMonitoringId, setUpdatingMonitoringId] = useState<number | null>(null);
 
@@ -110,7 +75,6 @@ const SiteHealthPage: React.FC = () => {
         try {
             const updatedSite = await api.runDiagnostics(customerId);
             setSites(prev => prev.map(s => s.customerId === customerId ? updatedSite : s));
-            setDiagnosingSite(updatedSite);
         } catch (error) {
             console.error("Failed to run diagnostics", error);
             alert("Could not run diagnostics for this site.");
@@ -132,59 +96,136 @@ const SiteHealthPage: React.FC = () => {
         }
     };
 
-
-    if (loading) {
-        return <div>Loading site health data...</div>;
-    }
+    // Derived Stats
+    const totalSites = sites.length;
+    const onlineSites = sites.filter(s => s.isOnline).length;
+    const criticalIssues = sites.filter(s => s.hddStatus === 'Error' || s.recordingStatus === 'Stopped').length;
 
     return (
-        <div className="space-y-8">
-            {diagnosingSite && <DiagnosticsModal site={diagnosingSite} onClose={() => setDiagnosingSite(null)} />}
-            <h2 className="text-3xl font-bold text-slate-800">Smart Site Health Monitoring</h2>
-            
-            <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-200">
-                        <thead className="bg-slate-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer Site</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">NVR Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">HDD Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Recording</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cameras</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Monitoring</th>
-                                <th className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-slate-200">
-                            {sites.map(site => (
-                                <tr key={site.customerId} className={`hover:bg-slate-50 transition-opacity ${!site.isMonitoringEnabled ? 'opacity-60 bg-slate-50' : ''}`}>
-                                    <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-900">{site.customerName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap"><HealthStatusIndicator status={site.isOnline} /></td>
-                                    <td className="px-6 py-4 whitespace-nowrap"><HealthStatusIndicator status={site.hddStatus} /></td>
-                                    <td className="px-6 py-4 whitespace-nowrap"><HealthStatusIndicator status={site.recordingStatus} /></td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{site.camerasOnline} / {site.totalCameras}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <ToggleSwitch 
+        <div className="flex flex-col h-full bg-slate-50 dark:bg-black min-h-screen pb-20">
+            {/* Premium Header */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white shrink-0 shadow-lg z-10 sticky top-0">
+                <div className="max-w-7xl mx-auto px-6 py-6">
+                    <div className="flex justify-between items-start gap-6">
+                        <div>
+                            <h1 className="text-2xl font-bold flex items-center gap-2">
+                                <span className="bg-white/20 p-1.5 rounded-lg"><ServerIcon className="w-5 h-5 text-white" /></span>
+                                Smart Site Health
+                            </h1>
+                            <p className="text-slate-400 text-sm mt-1">Real-time NVR and camera connectivity monitoring.</p>
+                        </div>
+                        <button onClick={fetchData} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-300 hover:text-white" title="Refresh Data">
+                            <ArrowPathIcon className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                        </button>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-3 gap-6 mt-6 pt-6 border-t border-white/10">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400"><CheckCircleIcon className="w-6 h-6" /></div>
+                            <div>
+                                <p className="text-2xl font-bold">{onlineSites}</p>
+                                <p className="text-xs text-slate-400 font-bold uppercase">Online Sites</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-red-500/20 rounded-lg text-red-400"><XCircleIcon className="w-6 h-6" /></div>
+                            <div>
+                                <p className="text-2xl font-bold">{totalSites - onlineSites}</p>
+                                <p className="text-xs text-slate-400 font-bold uppercase">Offline</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400"><ExclamationCircleIcon className="w-6 h-6" /></div>
+                            <div>
+                                <p className="text-2xl font-bold">{criticalIssues}</p>
+                                <p className="text-xs text-slate-400 font-bold uppercase">Critical Issues</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Grid Content */}
+            <div className="max-w-7xl mx-auto px-6 py-8 w-full">
+                {loading && sites.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <div className="w-10 h-10 border-4 border-slate-200 border-t-primary-500 rounded-full animate-spin"></div>
+                        <p className="text-slate-400 mt-4 font-medium">Scanning sites...</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {sites.map(site => (
+                            <div key={site.customerId} className={`bg-white dark:bg-slate-900 rounded-2xl border transition-all hover:shadow-lg relative overflow-hidden group ${!site.isMonitoringEnabled ? 'border-slate-200 dark:border-slate-800 opacity-75 grayscale-[0.5]' :
+                                    !site.isOnline ? 'border-red-200 dark:border-red-900/50 shadow-red-100 dark:shadow-none' :
+                                        'border-slate-200 dark:border-slate-800 shadow-sm'
+                                }`}>
+                                {/* Status Indicator Strip */}
+                                <div className={`absolute top-0 left-0 w-1.5 h-full ${!site.isMonitoringEnabled ? 'bg-slate-300' :
+                                        !site.isOnline ? 'bg-red-500' :
+                                            site.hddStatus !== 'Healthy' ? 'bg-amber-500' :
+                                                'bg-emerald-500'
+                                    }`}></div>
+
+                                <div className="p-5 pl-7">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="font-bold text-lg text-slate-800 dark:text-white line-clamp-1" title={site.customerName}>{site.customerName}</h3>
+                                            <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
+                                                <ClockIcon className="w-3.5 h-3.5" />
+                                                <span>{new Date(site.lastChecked).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                            </div>
+                                        </div>
+                                        <ToggleSwitch
                                             enabled={site.isMonitoringEnabled}
                                             onChange={() => handleToggleMonitoring(site.customerId)}
                                             disabled={updatingMonitoringId === site.customerId}
                                         />
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button 
-                                            onClick={() => handleRunDiagnostics(site.customerId)}
-                                            disabled={runningDiagFor === site.customerId || !site.isMonitoringEnabled}
-                                            className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
-                                        >
-                                            {runningDiagFor === site.customerId ? 'Checking...' : 'Run Diagnostics'}
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                    </div>
+
+                                    {/* Grid of Statuses */}
+                                    <div className="grid grid-cols-2 gap-3 mb-5">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Connection</p>
+                                            <StatusBadge status={site.isOnline} type="online" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">HDD</p>
+                                            <StatusBadge status={site.hddStatus} type="hdd" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Recording</p>
+                                            <StatusBadge status={site.recordingStatus} type="rec" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Cameras</p>
+                                            <span className={`inline-flex items-center text-sm font-bold ${site.camerasOnline < site.totalCameras ? 'text-amber-600' : 'text-slate-700 dark:text-slate-300'
+                                                }`}>
+                                                <VideoCameraIcon className="w-4 h-4 mr-1.5 text-slate-400" />
+                                                {site.camerasOnline}/{site.totalCameras}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Footer */}
+                                    {site.isMonitoringEnabled && (
+                                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                                            <button
+                                                onClick={() => handleRunDiagnostics(site.customerId)}
+                                                disabled={runningDiagFor === site.customerId}
+                                                className={`text-sm font-bold flex items-center gap-2 transition-colors ${runningDiagFor === site.customerId ? 'text-primary-400' : 'text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300'
+                                                    }`}
+                                            >
+                                                <ArrowPathIcon className={`w-4 h-4 ${runningDiagFor === site.customerId ? 'animate-spin' : ''}`} />
+                                                {runningDiagFor === site.customerId ? 'Running...' : 'Run Diagnostics'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

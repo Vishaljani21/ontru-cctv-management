@@ -75,7 +75,38 @@ const ProjectDetailsPage: React.FC = () => {
 
     const [activeTab, setActiveTab] = useState<'overview' | 'materials' | 'files'>('overview');
 
-    // ... (keep existing fetch logic)
+    const advanceStage = async (index: number) => {
+        if (!project || updatingStage) return;
+
+        // Only allow advancing the current stage
+        const currentIdx = timeline.findIndex(s => s.status === 'current');
+        if (currentIdx !== -1 && index !== currentIdx) return;
+
+        setUpdatingStage(true);
+        try {
+            // Create deep copy of timeline to modify
+            const newTimeline = [...timeline];
+
+            // Mark current as completed
+            if (newTimeline[index]) {
+                newTimeline[index] = { ...newTimeline[index], status: 'completed', date: new Date().toISOString() };
+            }
+
+            // Mark next as current (if exists)
+            if (newTimeline[index + 1]) {
+                newTimeline[index + 1] = { ...newTimeline[index + 1], status: 'current' };
+            }
+
+            // Call API
+            await api.updateProjectTimeline(project.id, newTimeline);
+            await fetchProjectDetails(); // Refresh
+        } catch (error) {
+            console.error("Failed to advance stage", error);
+            alert("Failed to update stage. Please try again.");
+        } finally {
+            setUpdatingStage(false);
+        }
+    };
 
     // Calculate actual progress from timeline
     const completedSteps = timeline.filter(s => s.status === 'completed').length;
