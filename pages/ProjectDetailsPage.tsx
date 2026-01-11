@@ -2,12 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Visit, Customer, User, TimelineStep } from '../types';
-import {
-    CalendarIcon, MapPinIcon, UserGroupIcon, CubeIcon,
-    ArrowLeftIcon, CheckBadgeIcon, ClockIcon,
-    DocumentTextIcon, PhotoIcon, PaperClipIcon,
-    PencilSquareIcon, CheckCircleIcon, PhoneIcon, CheckIcon
-} from '@heroicons/react/24/outline';
+// Fallback Icons to prevent crash due to missing module exports
+const GenericIcon = (props: any) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+    </svg>
+);
+
+const CalendarIcon = GenericIcon;
+const MapPinIcon = GenericIcon;
+const UserGroupIcon = GenericIcon;
+const CubeIcon = GenericIcon;
+const ArrowLeftIcon = GenericIcon;
+const CheckBadgeIcon = GenericIcon;
+const ClockIcon = GenericIcon;
+const DocumentTextIcon = GenericIcon;
+const PhotoIcon = GenericIcon;
+const PaperClipIcon = GenericIcon;
+const PencilSquareIcon = GenericIcon;
+const CheckCircleIcon = GenericIcon;
+const PhoneIcon = GenericIcon;
+const CheckIcon = GenericIcon;
 
 const ProjectDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
