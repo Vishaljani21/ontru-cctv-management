@@ -133,7 +133,7 @@ const ProjectDetailsPage: React.FC = () => {
                             <div className="flex items-center gap-3 mb-2">
                                 <h1 className="text-3xl font-bold">{project.projectName || 'Project Details'}</h1>
                                 <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-bold uppercase tracking-wider border border-white/10">
-                                    {project.status.replace('_', ' ')}
+                                    {project.status?.replace('_', ' ') || 'Pending'}
                                 </span>
                             </div>
                             <p className="text-slate-300 flex items-center gap-2">
