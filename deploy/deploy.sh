@@ -278,7 +278,7 @@ sleep 15
 
 # Step 1: Run bootstrap FIRST (roles, schemas only - NO auth tables!)
 echo -e "${YELLOW}Running bootstrap (roles and schemas)...${NC}"
-docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/00000000000000_supabase_bootstrap.sql
+# docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/00000000000000_supabase_bootstrap.sql
 
 # Step 2: Wait for GoTrue to create auth schema (it does this automatically on startup)
 echo -e "${YELLOW}Waiting for GoTrue to initialize auth schema...${NC}"
@@ -303,7 +303,7 @@ docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgre
 
 # Step 6: Seed Users (Admin/Dealer/Tech)
 echo -e "${YELLOW}Seeding default users...${NC}"
-docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20251229000000_seed_users.sql
+# docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/20251229000000_seed_users.sql
 
 # ==========================================
 # HEALTH CHECK
