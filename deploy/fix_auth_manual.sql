@@ -1,12 +1,33 @@
 
--- MANUAL AUTH SCHEMA REPAIR
--- Skips SCHEMA creation, focuses on Tables & Data
--- Removed 'OWNER TO' commands to avoid permission errors
+-- MANUAL AUTH SCHEMA REPAIR v2
+-- DROPS broken tables first to ensure clean creation
 
--- 0. Grants (Ensure access)
+-- 0. Grants 
 GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
 
--- 1. Create Types (Idempotent)
+-- 1. DROP Tables (Cascade to remove dependencies)
+DROP TABLE IF EXISTS auth.refresh_tokens CASCADE;
+DROP TABLE IF EXISTS auth.audit_log_entries CASCADE;
+DROP TABLE IF EXISTS auth.instances CASCADE;
+DROP TABLE IF EXISTS auth.sessions CASCADE;
+DROP TABLE IF EXISTS auth.identities CASCADE;
+DROP TABLE IF EXISTS auth.users CASCADE; -- Triggers might need this last
+DROP TABLE IF EXISTS auth.flow_state CASCADE;
+DROP TABLE IF EXISTS auth.mfa_amr_claims CASCADE;
+DROP TABLE IF EXISTS auth.mfa_challenges CASCADE;
+DROP TABLE IF EXISTS auth.mfa_factors CASCADE;
+DROP TABLE IF EXISTS auth.oauth_authorizations CASCADE;
+DROP TABLE IF EXISTS auth.oauth_client_states CASCADE;
+DROP TABLE IF EXISTS auth.oauth_clients CASCADE;
+DROP TABLE IF EXISTS auth.oauth_consents CASCADE;
+DROP TABLE IF EXISTS auth.one_time_tokens CASCADE;
+DROP TABLE IF EXISTS auth.saml_providers CASCADE;
+DROP TABLE IF EXISTS auth.saml_relay_states CASCADE;
+DROP TABLE IF EXISTS auth.sso_domains CASCADE;
+DROP TABLE IF EXISTS auth.sso_providers CASCADE;
+DROP TABLE IF EXISTS auth.schema_migrations CASCADE;
+
+-- 2. Create Types (Idempotent)
 DO $$ BEGIN CREATE TYPE auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN CREATE TYPE auth.code_challenge_method AS ENUM ('s256', 'plain'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified'); EXCEPTION WHEN duplicate_object THEN null; END $$;
@@ -17,7 +38,7 @@ DO $$ BEGIN CREATE TYPE auth.oauth_registration_type AS ENUM ('dynamic', 'manual
 DO $$ BEGIN CREATE TYPE auth.oauth_response_type AS ENUM ('code'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN CREATE TYPE auth.one_time_token_type AS ENUM ('confirmation_token', 'reauthentication_token', 'recovery_token', 'email_change_token_new', 'email_change_token_current', 'phone_change_token'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 
--- 2. Functions
+-- 3. Functions
 CREATE OR REPLACE FUNCTION auth.email() RETURNS text LANGUAGE sql STABLE AS $$
   select coalesce(
     nullif(current_setting('request.jwt.claim.email', true), ''),
@@ -46,7 +67,7 @@ CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$
   )::uuid
 $$;
 
--- 3. Tables (Create if Not Exists)
+-- 4. Tables (Create if Not Exists)
 CREATE TABLE IF NOT EXISTS auth.audit_log_entries (
     instance_id uuid,
     id uuid NOT NULL PRIMARY KEY,
@@ -356,4 +377,3 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
