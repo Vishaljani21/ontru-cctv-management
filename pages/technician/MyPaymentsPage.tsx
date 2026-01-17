@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import type { Payment, PaymentStatus } from '../../types';
 import { api } from '../../services/api';
-import { AuthContext } from '../../App';
+import { AuthContext } from '../../components/contexts';
 import { DownloadIcon, FilterIcon, RefreshIcon } from '../../components/icons';
 
 const StatusIndicator: React.FC<{ status: PaymentStatus }> = ({ status }) => {

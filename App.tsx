@@ -1,11 +1,12 @@
 
 // FIX: Create the main App component with routing and context
-import React, { useState, createContext, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import type { User, Visit, WarrantyEntry, SubscriptionTier } from './types';
 import { api } from './services/api';
 import Layout from './components/Layout';
 import PublicLayout from './components/PublicLayout';
+import { AuthContext, AppContext } from './components/contexts';
 
 // Public Pages
 import HomePage from './pages/public/HomePage';
@@ -19,13 +20,11 @@ import { OnTruFullLogo } from './components/icons';
 
 // Protected Pages
 import DashboardPage from './pages/DashboardPage';
-import VisitsPage from './pages/VisitsPage';
 import VisitsPipelinePage from './pages/VisitsPipelinePage';
 import InventoryPage from './pages/InventoryPage';
 import GodownsPage from './pages/GodownsPage';
 import ProductsPage from './pages/ProductsPage';
 import SuppliersPage from './pages/SuppliersPage';
-import ProjectDetailsPage from './pages/ProjectDetailsPage';
 import CustomersPage from './pages/CustomersPage';
 import TechniciansPage from './pages/TechniciansPage';
 import PaymentsPage from './pages/PaymentsPage';
@@ -47,45 +46,20 @@ import AdminDealersPage from './pages/AdminDealersPage';
 import SupportPage from './pages/SupportPage';
 import AdminSupportPage from './pages/AdminSupportPage';
 
+// Complaints Module
+import ComplaintsPage from './pages/ComplaintsPage';
+import ComplaintDetailsPage from './pages/ComplaintDetailsPage';
+import ComplaintPipelinePage from './pages/ComplaintPipelinePage';
+
 // Technician Pages
 import TechnicianDashboardPage from './pages/technician/TechnicianDashboardPage';
 import MyVisitsPage from './pages/technician/MyVisitsPage';
 import MyPaymentsPage from './pages/technician/MyPaymentsPage';
 import MyExpensesPage from './pages/technician/MyExpensesPage';
 import MyTasksPage from './pages/technician/MyTasksPage';
+import MyComplaintsPage from './pages/technician/MyComplaintsPage';
 import CCTVInstallationChecklistPage from './pages/technician/CCTVInstallationChecklistPage';
-import ProjectsPage from './pages/ProjectsPage';
 import TaskManagerPage from './pages/TaskManagerPage';
-
-
-// --- Auth Context ---
-interface AuthContextType {
-    user: User | null;
-    login: (identifier: string, secret: string) => Promise<void>;
-    logout: () => void;
-    updateUser: (user: User) => void;
-}
-export const AuthContext = createContext<AuthContextType | null>(null);
-
-// --- App Context ---
-export interface AppContextType {
-    visits: Visit[];
-    setVisits: React.Dispatch<React.SetStateAction<Visit[]>>;
-    warrantyEntries: WarrantyEntry[];
-    setWarrantyEntries: React.Dispatch<React.SetStateAction<WarrantyEntry[]>>;
-    isEnterprise: boolean;
-    // Subscription controlled flags
-    subscriptionTier: SubscriptionTier;
-    isHrModuleEnabled: boolean;
-    setIsHrModuleEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-    isBillingModuleEnabled: boolean;
-    setIsBillingModuleEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-    isAmcModuleEnabled: boolean;
-    setIsAmcModuleEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-    isReportsEnabled: boolean;
-    isSiteHealthEnabled: boolean;
-}
-export const AppContext = createContext<AppContextType | null>(null);
 
 // FIX: Changed JSX.Element to React.ReactElement to resolve "Cannot find namespace 'JSX'" error.
 const ProtectedRoute: React.FC<{ children: React.ReactElement, role?: 'dealer' | 'technician' | 'admin' }> = ({ children, role }) => {
@@ -108,18 +82,20 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement, role?: 'dealer' |
     return children;
 };
 
+// ...
+
 const DealerRoutes = () => {
     const appContext = React.useContext(AppContext);
     return (
         <Routes>
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/pipeline" element={<VisitsPipelinePage />} />
+            <Route path="/complaints" element={<ComplaintsPage />} />
+            <Route path="/complaints/:id" element={<ComplaintDetailsPage />} />
+            <Route path="/pipeline" element={<ComplaintPipelinePage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/godowns" element={<GodownsPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/suppliers" element={<SuppliersPage />} />
-            <Route path="/projects/:id" element={<ProjectDetailsPage />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/technicians" element={<TechniciansPage />} />
             <Route path="/tasks" element={<TaskManagerPage />} />
@@ -140,6 +116,9 @@ const DealerRoutes = () => {
             {appContext?.isAmcModuleEnabled && (
                 <Route path="/amcs" element={<AMCsPage />} />
             )}
+
+            {/* ... other routes ... */}
+
 
             {appContext?.isReportsEnabled && (
                 <>
@@ -167,6 +146,8 @@ const DealerRoutes = () => {
 const TechnicianRoutes = () => (
     <Routes>
         <Route path="/tech/dashboard" element={<TechnicianDashboardPage />} />
+        <Route path="/tech/my-complaints" element={<MyComplaintsPage />} />
+        <Route path="/complaints/:id" element={<ComplaintDetailsPage />} />
         <Route path="/tech/my-visits" element={<MyVisitsPage />} />
         <Route path="/tech/my-payments" element={<MyPaymentsPage />} />
         <Route path="/tech/expenses" element={<MyExpensesPage />} />

@@ -232,8 +232,9 @@ CREATE INDEX IF NOT EXISTS refresh_tokens_token_idx ON auth.refresh_tokens USING
 CREATE INDEX IF NOT EXISTS refresh_tokens_session_id_idx ON auth.refresh_tokens USING btree (session_id);
 CREATE INDEX IF NOT EXISTS refresh_tokens_parent_idx ON auth.refresh_tokens USING btree (parent);
 
--- 6. Grants
-GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
-GRANT ALL ON ALL TABLES IN SCHEMA auth TO postgres, supabase_admin, dashboard_user, service_role;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA auth TO postgres, supabase_admin, dashboard_user, service_role;
-GRANT ALL ON ALL ROUTINES IN SCHEMA auth TO postgres, supabase_admin, dashboard_user, service_role;
+-- 6. Grants (Commented out - auth schema grants are managed by Supabase internally)
+-- These GRANT statements cause permission errors in local Supabase environments
+-- GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
+-- GRANT ALL ON ALL TABLES IN SCHEMA auth TO postgres, supabase_admin, dashboard_user, service_role;
+-- GRANT ALL ON ALL SEQUENCES IN SCHEMA auth TO postgres, supabase_admin, dashboard_user, service_role;
+-- GRANT ALL ON ALL ROUTINES IN SCHEMA auth TO postgres, supabase_admin, dashboard_user, service_role;

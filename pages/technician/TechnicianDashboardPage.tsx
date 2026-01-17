@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { TechnicianDashboardSummary, TechnicianProject, TechnicianAvailability, TimelineStep } from '../../types';
 import { api } from '../../services/api';
-import { AuthContext } from '../../App';
+import { AuthContext } from '../../components/contexts';
 import { VisitsIcon, CheckCircleIcon, CurrencyRupeeIcon, ProjectIcon, ClipboardDocumentListIcon, MapPinIcon, PhoneIcon, ChevronRightIcon } from '../../components/icons';
 import StatsCard from '../../components/StatsCard';
 import CustomSelect from '../../components/CustomSelect';
@@ -191,7 +191,29 @@ const TechnicianDashboardPage: React.FC = () => {
     const handleTimelineUpdate = async (projectId: number, stepIndex: number) => {
         setUpdatingProjectId(projectId);
         try {
-            await api.updateProjectTimeline(projectId, stepIndex, 'completed');
+            // Find project to get current timeline
+            const project = projects.find(p => p.id === projectId);
+            if (!project || !project.timelineStatus) return;
+
+            // Clone and update timeline
+            const newTimeline = [...project.timelineStatus];
+            if (newTimeline[stepIndex]) {
+                newTimeline[stepIndex] = {
+                    ...newTimeline[stepIndex],
+                    status: 'completed',
+                    date: new Date().toISOString()
+                };
+
+                // Set next step as current
+                if (stepIndex + 1 < newTimeline.length) {
+                    newTimeline[stepIndex + 1] = {
+                        ...newTimeline[stepIndex + 1],
+                        status: 'current'
+                    };
+                }
+            }
+
+            await api.updateProjectTimeline(projectId, newTimeline);
 
             // Refresh projects
             const updatedProjects = await api.getMyProjectsWithTimeline();
@@ -223,7 +245,7 @@ const TechnicianDashboardPage: React.FC = () => {
     return (
         <div className="space-y-6 animate-fade-in-up pb-10">
             {/* Header */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-700 shadow-2xl ring-1 ring-white/10">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary-600 via-primary-700 to-primary-700 shadow-2xl ring-1 ring-white/10">
                 <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
                 <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
 

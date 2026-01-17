@@ -45,14 +45,14 @@ const ProjectDetailsPage: React.FC = () => {
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-black">
-            <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-indigo-500/30"></div>
+            <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-primary-500/30"></div>
         </div>
     );
 
     if (!project) return (
         <div className="p-10 text-center">
             <h3 className="text-xl font-bold text-slate-700">Project Not Found</h3>
-            <button onClick={() => navigate('/projects')} className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium">Back to Projects</button>
+            <button onClick={() => navigate('/projects')} className="mt-4 text-primary-600 hover:text-primary-700 font-medium">Back to Projects</button>
         </div>
     );
 
@@ -99,7 +99,7 @@ const ProjectDetailsPage: React.FC = () => {
     const currentStage = timeline.find(s => s.status === 'current') || { label: 'Completed', date: new Date().toISOString() };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-black pb-24 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-black pb-24 font-sans selection:bg-primary-100 selection:text-primary-900">
             {/* Premium Header with Radial Gradient */}
             <div className="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-slate-950 text-white relative isolate overflow-hidden">
                 {/* Decorative Grid Pattern */}
@@ -126,7 +126,7 @@ const ProjectDetailsPage: React.FC = () => {
                             <div className="flex flex-wrap items-center gap-6 text-slate-300 text-sm font-medium">
                                 <span className="text-white/60">{project.projectCode || 'No Code'}</span>
                                 <span className="w-1 h-1 rounded-full bg-slate-600"></span>
-                                <div className="flex items-center gap-2 text-indigo-300">
+                                <div className="flex items-center gap-2 text-primary-300">
                                     <MapPinIcon className="w-4 h-4" />
                                     <span>{project.siteType || 'Site'} • {customer?.city || 'Location'}</span>
                                 </div>
@@ -144,7 +144,7 @@ const ProjectDetailsPage: React.FC = () => {
                                 <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Current Stage</p>
                                 <p className="text-xl font-bold text-white flex items-center gap-2">
                                     {currentStage.label}
-                                    {updatingStage && <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />}
+                                    {updatingStage && <div className="w-3 h-3 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />}
                                 </p>
                             </div>
                             <div className="flex-1 pl-6">
@@ -168,7 +168,7 @@ const ProjectDetailsPage: React.FC = () => {
                             <div className="p-6">
                                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Customer Profile</h3>
                                 <div className="flex items-center gap-4 mb-8">
-                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-indigo-500/25">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-primary-500/25">
                                         {customer?.companyName?.charAt(0) || 'C'}
                                     </div>
                                     <div>
@@ -179,7 +179,7 @@ const ProjectDetailsPage: React.FC = () => {
                                 <div className="space-y-4">
                                     <div className="group flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><PhoneIcon className="w-4 h-4" /></div>
+                                            <div className="p-2 bg-primary-50 text-primary-600 rounded-lg"><PhoneIcon className="w-4 h-4" /></div>
                                             <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{customer?.mobile}</span>
                                         </div>
                                     </div>
@@ -220,10 +220,10 @@ const ProjectDetailsPage: React.FC = () => {
                         <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800">
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
-                                    <span className="w-1.5 h-6 bg-indigo-500 rounded-full"></span>
+                                    <span className="w-1.5 h-6 bg-primary-500 rounded-full"></span>
                                     Project Stage
                                 </h3>
-                                {updatingStage && <span className="text-xs font-bold text-indigo-500 animate-pulse">UPDATING...</span>}
+                                {updatingStage && <span className="text-xs font-bold text-primary-500 animate-pulse">UPDATING...</span>}
                             </div>
 
                             <div className="relative pt-2 pb-6 overflow-x-auto">
@@ -247,19 +247,19 @@ const ProjectDetailsPage: React.FC = () => {
                                                     ${isCompleted
                                                         ? 'bg-emerald-500 border-emerald-50 text-white shadow-emerald-500/30'
                                                         : isCurrent
-                                                            ? 'bg-white dark:bg-slate-900 border-indigo-500 text-indigo-500 shadow-indigo-500/20 scale-110 ring-4 ring-indigo-50 dark:ring-indigo-900/20'
+                                                            ? 'bg-white dark:bg-slate-900 border-primary-500 text-primary-500 shadow-primary-500/20 scale-110 ring-4 ring-primary-50 dark:ring-primary-900/20'
                                                             : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-700 text-slate-300'
                                                     }
                                                     ${isClickable ? 'group-hover:scale-110 group-hover:border-emerald-300' : ''}
                                                 `}>
                                                     {isCompleted ? <CheckIcon className="w-6 h-6 stroke-[3px]" /> :
-                                                        isCurrent ? (updatingStage ? <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" /> : <div className="w-3 h-3 bg-indigo-500 rounded-full animate-ping" />) :
+                                                        isCurrent ? (updatingStage ? <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /> : <div className="w-3 h-3 bg-primary-500 rounded-full animate-ping" />) :
                                                             <div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700" />}
                                                 </div>
 
                                                 {/* Labels */}
                                                 <div className="md:text-center w-24">
-                                                    <p className={`text-[11px] font-bold uppercase tracking-wider transition-colors mb-0.5 ${isCurrent ? 'text-indigo-600 dark:text-indigo-400' : isCompleted ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                                    <p className={`text-[11px] font-bold uppercase tracking-wider transition-colors mb-0.5 ${isCurrent ? 'text-primary-600 dark:text-primary-400' : isCompleted ? 'text-emerald-600' : 'text-slate-400'}`}>
                                                         Step {idx + 1}
                                                     </p>
                                                     <p className={`text-xs font-bold leading-tight ${isCurrent ? 'text-slate-900 dark:text-white scale-105' : 'text-slate-500'}`}>
@@ -281,7 +281,7 @@ const ProjectDetailsPage: React.FC = () => {
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab.toLowerCase() as any)}
-                                        className={`px-6 py-5 text-sm font-bold border-b-[3px] transition-all duration-300 ${activeTab === tab.toLowerCase() ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                                        className={`px-6 py-5 text-sm font-bold border-b-[3px] transition-all duration-300 ${activeTab === tab.toLowerCase() ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                                     >
                                         {tab}
                                     </button>
@@ -293,7 +293,7 @@ const ProjectDetailsPage: React.FC = () => {
                                     <div className="space-y-8 animate-fade-in-up">
                                         <div className="flex items-center justify-between">
                                             <h4 className="font-bold text-slate-900 dark:text-white text-lg">Project Notes</h4>
-                                            <button className="flex items-center gap-2 text-xs font-bold px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors">
+                                            <button className="flex items-center gap-2 text-xs font-bold px-4 py-2 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors">
                                                 <PencilSquareIcon className="w-4 h-4" /> Edit
                                             </button>
                                         </div>
@@ -350,11 +350,11 @@ const ProjectDetailsPage: React.FC = () => {
                                     <div className="animate-fade-in-up">
                                         <h4 className="font-bold text-slate-900 dark:text-white text-lg mb-6">Project Attachments</h4>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                            <div className="aspect-[4/3] bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-indigo-300 hover:shadow-lg transition-all group">
-                                                <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+                                            <div className="aspect-[4/3] bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-primary-300 hover:shadow-lg transition-all group">
+                                                <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary-500 group-hover:scale-110 transition-transform">
                                                     <PhotoIcon className="w-6 h-6" />
                                                 </div>
-                                                <span className="text-xs font-bold text-slate-400 group-hover:text-indigo-600">Site_Plan.jpg</span>
+                                                <span className="text-xs font-bold text-slate-400 group-hover:text-primary-600">Site_Plan.jpg</span>
                                             </div>
                                         </div>
                                     </div>

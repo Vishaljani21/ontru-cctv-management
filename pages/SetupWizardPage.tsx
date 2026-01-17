@@ -1,7 +1,7 @@
 
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../App';
+import { AuthContext } from '../components/contexts';
 import { api } from '../services/api';
 import { OnTruFullLogo } from '../components/icons';
 
@@ -67,6 +67,7 @@ const SetupWizardPage: React.FC = () => {
 
             // Update context AND localStorage via the new method
             console.log("Updating AuthContext...");
+            // @ts-ignore
             authContext.updateUser(updatedUser);
 
             console.log("Redirecting to dashboard...");
@@ -96,32 +97,32 @@ const SetupWizardPage: React.FC = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700">Your Full Name</label>
-                            <input type="text" required value={name} onChange={e => setName(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                            <input type="text" required value={name} onChange={e => setName(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-3 px-4 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-medium" placeholder="Enter your full name" />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700">Company Name</label>
-                            <input type="text" required value={companyName} onChange={e => setCompanyName(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                            <input type="text" required value={companyName} onChange={e => setCompanyName(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-3 px-4 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-medium" placeholder="Enter company name" />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700">GSTIN (Optional)</label>
-                            <input type="text" value={gstin} onChange={e => setGstin(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                            <input type="text" value={gstin} onChange={e => setGstin(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-3 px-4 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-medium" placeholder="Enter GSTIN number" />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700">Business Address</label>
-                            <textarea required value={address} onChange={e => setAddress(e.target.value)} rows={3} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                            <textarea required value={address} onChange={e => setAddress(e.target.value)} rows={3} className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-3 px-4 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-medium" placeholder="Enter business address" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700">Email</label>
-                                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-slate-50" />
+                                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-3 px-4 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-medium" placeholder="email@example.com" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700">Mobile</label>
-                                <input type="tel" required value={mobile} onChange={e => setMobile(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-slate-50" />
+                                <input type="tel" required value={mobile} onChange={e => setMobile(e.target.value)} className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-3 px-4 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-medium" placeholder="+91 98765 43210" />
                             </div>
                         </div>
 

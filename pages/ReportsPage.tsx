@@ -405,7 +405,7 @@ const ReportsPage: React.FC = () => {
                             </div>
                             <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                                 <p className="text-sm font-medium text-slate-500">Efficiency Rate</p>
-                                <p className="text-3xl font-bold text-indigo-600 mt-2">94%</p>
+                                <p className="text-3xl font-bold text-primary-600 mt-2">94%</p>
                             </div>
                         </div>
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import type { WarrantyEntry, WarrantyStatus } from '../types';
 import { api } from '../services/api';
-import { AppContext, AppContextType } from '../App';
+import { AppContext, AppContextType } from '../components/contexts';
 import WarrantyEntryModal from '../components/WarrantyEntryModal';
 import CustomSelect from '../components/CustomSelect';
 
@@ -14,7 +14,7 @@ const StatusIndicator: React.FC<{ status: WarrantyStatus }> = ({ status }) => {
     const styles: { [key: string]: string } = {
         'Awaiting Pickup': 'bg-slate-100 text-slate-800',
         'Received at Office': 'bg-blue-100 text-blue-800',
-        'Sent to Service': 'bg-indigo-100 text-indigo-800',
+        'Sent to Service': 'bg-primary-100 text-primary-800',
         'Under Repair': 'bg-yellow-100 text-yellow-800',
         'Repaired': 'bg-green-100 text-green-800',
         'Replaced': 'bg-cyan-100 text-cyan-800',

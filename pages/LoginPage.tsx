@@ -1,7 +1,7 @@
 
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../App';
+import { AuthContext } from '../components/contexts';
 import { OnTruFullLogo } from '../components/icons';
 
 const LoginPage: React.FC = () => {
@@ -67,15 +67,17 @@ const LoginPage: React.FC = () => {
     if (loginMethod === 'otp') {
       try {
         await authContext?.login(identifier, password);
-      } catch (err) {
-        setError('Incorrect Phone Number or OTP.');
+      } catch (err: any) {
+        console.error("Login Error (OTP):", err);
+        setError(err.message || 'Incorrect Phone Number or OTP.');
         setIsLoading(false);
       }
     } else {
       try {
         await authContext?.login(identifier, password);
-      } catch (err) {
-        const message = 'Incorrect Email/Phone or Password.';
+      } catch (err: any) {
+        console.error("Login Error (Password):", err);
+        const message = err.message || 'Incorrect Email/Phone or Password.';
         setError(message);
         setIsLoading(false);
       }
@@ -96,7 +98,7 @@ const LoginPage: React.FC = () => {
           required
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          className="w-full px-3 py-2 mt-1 placeholder-slate-400 border border-slate-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+          className="w-full px-4 py-3 mt-1 bg-white border border-slate-300 rounded-xl shadow-sm appearance-none text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
           placeholder={role === 'technician' ? 'Enter Phone Number' : 'Enter Email'}
         />
       </div>
@@ -111,7 +113,7 @@ const LoginPage: React.FC = () => {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 mt-1 placeholder-slate-400 border border-slate-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-4 py-3 mt-1 bg-white border border-slate-300 rounded-xl shadow-sm appearance-none text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
             placeholder="Enter Password"
           />
         </div>
@@ -126,7 +128,7 @@ const LoginPage: React.FC = () => {
               required
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              className="w-full px-3 py-2 mt-1 placeholder-slate-400 border border-slate-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-4 py-3 mt-1 bg-white border border-slate-300 rounded-xl shadow-sm appearance-none text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
               placeholder="Enter 6-digit code"
             />
             <button

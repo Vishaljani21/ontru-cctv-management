@@ -369,7 +369,7 @@ const AdminLicensePage: React.FC = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 {key.status === 'used' ? (
                                                     <div className="flex items-center">
-                                                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs mr-3 border border-indigo-200 dark:border-indigo-800">
+                                                        <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs mr-3 border border-primary-200 dark:border-primary-800">
                                                             {key.usedBy ? key.usedBy.substring(0, 2).toUpperCase() : '??'}
                                                         </div>
                                                         <div>

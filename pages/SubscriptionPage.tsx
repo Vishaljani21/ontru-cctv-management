@@ -1,7 +1,7 @@
 
 
 import React, { useContext, useEffect, useState } from 'react';
-import { AppContext } from '../App';
+import { AppContext } from '../components/contexts';
 import { api } from '../services/api';
 import { CheckIcon, CrossIcon, CrownIcon, KeyIcon } from '../components/icons';
 import type { SubscriptionTier } from '../types';
@@ -222,17 +222,17 @@ const SubscriptionPage: React.FC = () => {
             </div>
 
             <div className="max-w-4xl mx-auto mt-16 px-4">
-                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border border-indigo-100 dark:border-indigo-800 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-                    <div className="bg-white dark:bg-indigo-900 p-4 rounded-2xl shadow-lg shadow-indigo-200/50 dark:shadow-none text-indigo-600 dark:text-indigo-400 transform -rotate-3">
+                <div className="bg-gradient-to-br from-primary-50 to-blue-50 dark:from-primary-900/20 dark:to-blue-900/20 border border-primary-100 dark:border-primary-800 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+                    <div className="bg-white dark:bg-primary-900 p-4 rounded-2xl shadow-lg shadow-primary-200/50 dark:shadow-none text-primary-600 dark:text-primary-400 transform -rotate-3">
                         <CrownIcon className="w-8 h-8" />
                     </div>
                     <div className="flex-1">
-                        <h4 className="text-xl font-bold text-indigo-900 dark:text-white">Need a Custom Enterprise Solution?</h4>
-                        <p className="text-indigo-700 dark:text-indigo-300 mt-2 text-sm leading-relaxed">
+                        <h4 className="text-xl font-bold text-primary-900 dark:text-white">Need a Custom Enterprise Solution?</h4>
+                        <p className="text-primary-700 dark:text-primary-300 mt-2 text-sm leading-relaxed">
                             For large organizations with multiple branches and over 50 technicians, we offer custom deployment, dedicated support, and volume pricing.
                         </p>
                     </div>
-                    <button onClick={openPurchaseModal} className="whitespace-nowrap px-6 py-3 bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all text-sm">
+                    <button onClick={openPurchaseModal} className="whitespace-nowrap px-6 py-3 bg-white dark:bg-primary-600 text-primary-700 dark:text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all text-sm">
                         Contact Sales
                     </button>
                 </div>

@@ -1,4 +1,4 @@
-import { AuthContext } from '../../App';
+import { AuthContext } from '../../components/contexts';
 import React, { useState, useEffect, useContext } from 'react';
 import { api } from '../../services/api';
 import { TechnicianTask } from '../../types';
@@ -89,8 +89,8 @@ const MyTasksPage: React.FC = () => {
 
                 {/* Summary Card */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-4 text-white shadow-lg shadow-indigo-500/20">
-                        <p className="text-indigo-100 text-sm font-medium">Pending</p>
+                    <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl p-4 text-white shadow-lg shadow-primary-500/20">
+                        <p className="text-primary-100 text-sm font-medium">Pending</p>
                         <p className="text-3xl font-bold mt-1">{pendingCount}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">

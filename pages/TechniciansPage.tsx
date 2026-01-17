@@ -6,6 +6,7 @@ import { UserIcon, PlusIcon, CrossIcon } from '../components/icons';
 import Modal from '../components/Modal';
 import CustomSelect from '../components/CustomSelect';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import PageHeader from '../components/PageHeader';
 
 const TechniciansPage: React.FC = () => {
   const [technicians, setTechnicians] = useState<Technician[]>([]);
@@ -116,35 +117,45 @@ const TechniciansPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Technicians</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage your field team and view their profiles.</p>
+    <div className="space-y-8 animate-fade-in-up pb-10">
+      <PageHeader
+        title="Technicians"
+        description="Manage your field team, view profiles, and track specializations."
+        action={
+          <button
+            onClick={openCreateModal}
+            className="flex items-center justify-center px-6 py-3 text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 rounded-xl shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5 whitespace-nowrap"
+          >
+            <span className="mr-2 text-lg leading-none">+</span> Add Technician
+          </button>
+        }
+      >
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+            <p className="text-3xl font-bold text-white">{technicians.length}</p>
+            <p className="text-xs text-primary-200 font-bold uppercase tracking-widest mt-1">Total Team</p>
+          </div>
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+            <p className="text-3xl font-bold text-emerald-300">{technicians.filter(t => t.status === 'active').length}</p>
+            <p className="text-xs text-emerald-200 font-bold uppercase tracking-widest mt-1">Active</p>
+          </div>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="inline-flex items-center justify-center px-5 py-2 text-sm font-semibold text-white bg-primary-500 border border-transparent rounded-lg shadow-sm hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-        >
-          <span className="flex items-center">
-            Add Technician <PlusIcon className="ml-2 w-4 h-4" />
-          </span>
-        </button>
-      </div>
+      </PageHeader>
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-[0_2px_20px_rgba(0,0,0,0.02)] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-            <thead className="bg-slate-50 dark:bg-slate-800">
+          <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Phone</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Specialization</th>
-                <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Phone</th>
+                <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Specialization</th>
+                <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-5 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
               {loading ? (
                 // Skeleton Rows
                 Array.from({ length: 5 }).map((_, idx) => (
@@ -161,43 +172,43 @@ const TechniciansPage: React.FC = () => {
                 ))
               ) : (
                 technicians.map(tech => (
-                  <tr key={tech.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <tr key={tech.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold mr-3">
-                          <UserIcon className="w-4 h-4" />
+                        <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold mr-4 text-sm">
+                          {tech.name.charAt(0)}
                         </div>
                         <div className="text-sm font-bold text-slate-900 dark:text-white">{tech.name}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{tech.phone}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400 font-medium">{tech.phone}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                         {tech.specialization}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${tech.status === 'active'
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${tech.status === 'active'
+                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                         }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${tech.status === 'active' ? 'bg-green-500' : 'bg-slate-400'
+                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${tech.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'
                           }`}></span>
                         {tech.status === 'active' ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-3">
+                      <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => openEditModal(tech)}
-                          className="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                          className="p-2 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                           title="Edit"
                         >
                           <PencilIcon className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleDelete(tech.id)}
-                          className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                          className="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                           title="Delete"
                         >
                           <TrashIcon className="w-5 h-5" />
@@ -211,13 +222,17 @@ const TechniciansPage: React.FC = () => {
           </table>
         </div>
         {!loading && technicians.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-slate-500 dark:text-slate-400">No technicians found.</p>
+          <div className="text-center py-20">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <UserIcon className="w-8 h-8 text-slate-400" />
+            </div>
+            <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No technicians found.</p>
+            <p className="text-sm text-slate-500 mt-1 mb-4">Get started by adding your first team member.</p>
             <button
               onClick={openCreateModal}
-              className="mt-4 text-primary-600 hover:text-primary-700 font-medium text-sm"
+              className="text-primary-600 hover:text-primary-700 font-bold text-sm hover:underline"
             >
-              Add your first technician
+              Add Technician
             </button>
           </div>
         )}
@@ -232,7 +247,7 @@ const TechniciansPage: React.FC = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="techName" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+            <label htmlFor="techName" className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
               Full Name
             </label>
             <input
@@ -242,12 +257,12 @@ const TechniciansPage: React.FC = () => {
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
               placeholder="e.g. John Doe"
-              className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400"
+              className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 outline-none transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400 font-medium"
             />
           </div>
 
           <div>
-            <label htmlFor="techPhone" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+            <label htmlFor="techPhone" className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
               Phone Number
             </label>
             <input
@@ -257,7 +272,7 @@ const TechniciansPage: React.FC = () => {
               value={formData.phone}
               onChange={e => setFormData({ ...formData, phone: e.target.value })}
               placeholder="e.g. +91 98765 43210"
-              className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400"
+              className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 outline-none transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400 font-medium"
             />
           </div>
 
@@ -272,7 +287,7 @@ const TechniciansPage: React.FC = () => {
           {modalMode === 'create' && (
             <>
               <div>
-                <label htmlFor="techEmail" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                <label htmlFor="techEmail" className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                   Email Address
                 </label>
                 <input
@@ -282,12 +297,12 @@ const TechniciansPage: React.FC = () => {
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
                   placeholder="e.g. technician@ontru.com"
-                  className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400"
+                  className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 outline-none transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400 font-medium"
                 />
               </div>
 
               <div>
-                <label htmlFor="techPassword" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                <label htmlFor="techPassword" className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                   Password
                 </label>
                 <input
@@ -298,7 +313,7 @@ const TechniciansPage: React.FC = () => {
                   value={formData.password}
                   onChange={e => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Create a password"
-                  className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400"
+                  className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 outline-none transition-all text-slate-900 dark:text-slate-100 placeholder-slate-400 font-medium"
                 />
                 <p className="mt-1 text-xs text-slate-400">Must be at least 6 characters.</p>
               </div>
@@ -309,14 +324,14 @@ const TechniciansPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg font-medium transition-colors"
+              className="px-5 py-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-bold transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitLoading}
-              className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium shadow-lg shadow-primary-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold shadow-lg shadow-primary-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center hover:translate-y-px"
             >
               {submitLoading ? (
                 <>

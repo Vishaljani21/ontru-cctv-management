@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../App';
+import { AuthContext } from '../components/contexts';
 import { api } from '../services/api';
 import { OnTruFullLogo, EyeIcon, EyeSlashIcon, EnvelopeIcon, PhoneIcon } from '../components/icons';
 
@@ -19,7 +19,7 @@ const RegisterPage: React.FC = () => {
 
   // DEBUG: Check connection config on load
   useEffect(() => {
-    console.log("RegisterPage mounted. Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+    console.log("RegisterPage mounted. Supabase URL:", (import.meta as any).env.VITE_SUPABASE_URL);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,7 +60,7 @@ const RegisterPage: React.FC = () => {
     }
   };
 
-  const API_DEBUG = import.meta.env.VITE_SUPABASE_URL;
+  const API_DEBUG = (import.meta as any).env.VITE_SUPABASE_URL;
 
   return (
     <div className="min-h-screen flex bg-white">
@@ -69,7 +69,7 @@ const RegisterPage: React.FC = () => {
         {/* Abstract Background Blobs - MATCHING HOME PAGE */}
         <div className="absolute top-0 left-1/2 w-full -translate-x-1/2 h-full z-0 pointer-events-none">
           <div className="absolute top-20 left-10 w-96 h-96 bg-primary-500/30 rounded-full mix-blend-overlay filter blur-3xl opacity-50 animate-blob"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-500/30 rounded-full mix-blend-overlay filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary-500/30 rounded-full mix-blend-overlay filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
         </div>
 
         <div className="relative z-10 p-12 text-center">
@@ -81,18 +81,18 @@ const RegisterPage: React.FC = () => {
           <h1 className="text-4xl font-extrabold text-white tracking-tight mb-6">
             Join the Network
           </h1>
-          <p className="text-lg text-indigo-100 max-w-md mx-auto leading-relaxed">
+          <p className="text-lg text-primary-100 max-w-md mx-auto leading-relaxed">
             Connect with thousands of CCTV professionals managing their projects, inventory, and billing on OnTru.
           </p>
 
           <div className="mt-12 grid grid-cols-2 gap-4 max-w-sm mx-auto">
             <div className="bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-white/10">
               <div className="text-2xl font-bold text-white">500+</div>
-              <div className="text-xs text-indigo-200 uppercase tracking-widest mt-1">Dealers</div>
+              <div className="text-xs text-primary-200 uppercase tracking-widest mt-1">Dealers</div>
             </div>
             <div className="bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-white/10">
               <div className="text-2xl font-bold text-white">12k+</div>
-              <div className="text-xs text-indigo-200 uppercase tracking-widest mt-1">Cameras</div>
+              <div className="text-xs text-primary-200 uppercase tracking-widest mt-1">Cameras</div>
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ const RegisterPage: React.FC = () => {
                 <p className="text-sm text-red-700 font-medium">{error}</p>
                 {/* Debug help for Failed to fetch */}
                 {error.includes('Connection') && (
-                  <p className="text-xs text-red-500 mt-1">API: {import.meta.env.VITE_SUPABASE_URL}</p>
+                  <p className="text-xs text-red-500 mt-1">API: {(import.meta as any).env.VITE_SUPABASE_URL}</p>
                 )}
               </div>
             )}
@@ -130,7 +130,7 @@ const RegisterPage: React.FC = () => {
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium sm:text-sm"
+                  className="block w-full pl-10 pr-4 py-3.5 border border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                   placeholder="name@company.com"
                 />
               </div>
@@ -147,7 +147,7 @@ const RegisterPage: React.FC = () => {
                   required
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium sm:text-sm"
+                  className="block w-full pl-10 pr-4 py-3.5 border border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                   placeholder="+91 98765 43210"
                 />
               </div>
@@ -162,7 +162,7 @@ const RegisterPage: React.FC = () => {
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="block w-full px-3 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium sm:text-sm"
+                    className="block w-full px-4 py-3.5 border border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                     placeholder="••••••••"
                   />
                 </div>
@@ -175,7 +175,7 @@ const RegisterPage: React.FC = () => {
                     required
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
-                    className="block w-full px-3 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium sm:text-sm"
+                    className="block w-full px-4 py-3.5 pr-10 border border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                     placeholder="••••••••"
                   />
                   <button

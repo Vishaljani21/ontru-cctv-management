@@ -102,6 +102,30 @@ const transformDealerInfo = (row: any): DealerInfo => ({
     }
 });
 
+import type { Complaint, ComplaintHistory, ComplaintVisit, ComplaintNote, ComplaintAssignment, ComplaintStats } from '../types';
+
+const transformComplaint = (row: any): Complaint => ({
+    id: row.id,
+    complaintId: row.complaint_id,
+    userId: row.user_id,
+    customerId: row.customer_id,
+    customerName: row.customers?.company_name || 'Unknown',
+    siteAddress: row.site_address,
+    siteArea: row.site_area,
+    siteCity: row.site_city,
+    contactPersonName: row.contact_person_name,
+    contactPersonPhone: row.contact_person_phone,
+    category: row.category,
+    priority: row.priority,
+    source: row.source,
+    title: row.title,
+    description: row.description,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    // Optional joins logic to be handled in fetch
+});
+
 export const api = {
     // ==========================================
     // AUTHENTICATION
@@ -158,7 +182,10 @@ export const api = {
             password: secret
         });
 
-        if (error) throw new Error('Invalid credentials');
+        if (error) {
+            console.error("Supabase Login Error:", error);
+            throw error;
+        }
 
         // Get profile
         const { data: profile, error: profileError } = await supabase
@@ -233,11 +260,13 @@ export const api = {
                 owner_name: setupData.name,
                 address: setupData.address || '',
                 gstin: setupData.gstin || '',
+                email: setupData.email || '',
+                mobile: setupData.mobile || '',
                 subscription_tier: 'starter',
                 subscription_start_date: new Date().toISOString(),
                 subscription_expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                 subscription_status: 'trial'
-            });
+            }, { onConflict: 'user_id' });
 
         if (dealerError) throw dealerError;
 
@@ -1182,70 +1211,9 @@ export const api = {
         });
     },
 
-    // Update project timeline step
-    updateProjectTimeline: async (projectId: number, stepIndex: number, status: 'completed' | 'current' | 'pending'): Promise<Visit> => {
-        // 1. Fetch current project
-        const { data: project, error: fetchError } = await supabase
-            .from('visits')
-            .select('*, visit_items(*)')
-            .eq('id', projectId)
-            .single();
 
-        if (fetchError) throw fetchError;
 
-        // 2. Get or create timeline
-        let timeline = project.timeline_status || [
-            { label: 'Enquiry Received', date: project.scheduled_at, status: 'completed' },
-            { label: 'Site Survey', date: '', status: 'current' },
-            { label: 'Quotation', date: '', status: 'pending' },
-            { label: 'Material', date: '', status: 'pending' },
-            { label: 'Installation', date: '', status: 'pending' },
-            { label: 'Testing', date: '', status: 'pending' },
-            { label: 'Handover', date: '', status: 'pending' },
-            { label: 'Payment', date: '', status: 'pending' }
-        ];
 
-        // 3. Update the specified step
-        if (stepIndex >= 0 && stepIndex < timeline.length) {
-            // If marking as completed, set date and move current to next
-            if (status === 'completed') {
-                timeline[stepIndex].status = 'completed';
-                timeline[stepIndex].date = new Date().toISOString();
-
-                // Set next step as current if exists
-                if (stepIndex + 1 < timeline.length) {
-                    timeline[stepIndex + 1].status = 'current';
-                }
-            } else {
-                timeline[stepIndex].status = status;
-            }
-        }
-
-        // 4. Determine project status based on timeline
-        const allCompleted = timeline.every(s => s.status === 'completed');
-        const anyInProgress = timeline.some(s => s.status === 'current');
-        let projectStatus = project.status;
-
-        if (allCompleted) {
-            projectStatus = 'completed';
-        } else if (anyInProgress) {
-            projectStatus = 'in_progress';
-        }
-
-        // 5. Save updated timeline
-        const { data, error } = await supabase
-            .from('visits')
-            .update({
-                timeline_status: timeline,
-                status: projectStatus
-            })
-            .eq('id', projectId)
-            .select('*, visit_items(*)')
-            .single();
-
-        if (error) throw error;
-        return transformVisit(data);
-    },
 
     // ==========================================
     // PAYMENTS
@@ -1264,7 +1232,8 @@ export const api = {
             technicianName: row.technician_name,
             jobCardId: row.visit_id,
             amount: row.amount,
-            status: row.status
+            status: row.status,
+            date: row.created_at
         }));
     },
 
@@ -1280,7 +1249,8 @@ export const api = {
             technicianName: row.technician_name,
             jobCardId: row.visit_id,
             amount: row.amount,
-            status: row.status
+            status: row.status,
+            date: row.created_at
         }));
     },
 
@@ -2542,6 +2512,7 @@ export const api = {
         }));
     },
 
+
     getAllWorkLogs: async (): Promise<WorkLogEntry[]> => {
         // Fetch work logs from visits (stored as JSONB in 'work_log' column)
         const { data: visits, error } = await supabase
@@ -2553,5 +2524,305 @@ export const api = {
 
         // Flatten and return all work log entries
         return (visits || []).flatMap((v: any) => v.work_log || []) as WorkLogEntry[];
+    },
+
+    // ==========================================
+    // COMPLAINT MANAGEMENT
+    // ==========================================
+
+    getComplaints: async (filters?: { status?: string, priority?: string, category?: string }): Promise<Complaint[]> => {
+        const user = await supabase.auth.getUser();
+        const userId = user.data.user?.id;
+        if (!userId) throw new Error('Not authenticated');
+
+        // Get Role from Profile
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single();
+        const role = profile?.role;
+
+        let query = supabase.from('complaints').select('*, customers(company_name)');
+
+        if (role === 'dealer') {
+            query = query.eq('user_id', userId);
+        } else if (role === 'technician') {
+            // For technicians, finding assignments
+            // Since complex joins with filtering on join table can be tricky in one go, 
+            // we'll filter by existence of assignment or use Supabase's !inner join if setup 
+            // Simplified: Fetch assignments first
+            const { data: assignments } = await supabase
+                .from('complaint_assignments')
+                .select('complaint_id')
+                .eq('technician_id', (await api.getTechnicianProfileId(userId)))
+                .eq('is_active', true);
+
+            const assignedIds = assignments?.map(a => a.complaint_id) || [];
+            if (assignedIds.length === 0) return []; // No assignments
+            query = query.in('id', assignedIds);
+        }
+
+        if (filters?.status) query = query.eq('status', filters.status);
+        if (filters?.priority) query = query.eq('priority', filters.priority);
+        if (filters?.category) query = query.eq('category', filters.category);
+
+        const { data, error } = await query.order('created_at', { ascending: false });
+        if (error) throw error;
+
+        return data.map(transformComplaint);
+    },
+
+    getComplaintById: async (id: number): Promise<Complaint | null> => {
+        const { data, error } = await supabase
+            .from('complaints')
+            .select(`
+                *,
+                customers(company_name),
+                complaint_assignments!left(
+                    technician_id,
+                    is_active,
+                    technicians(id, name, phone)
+                )
+            `)
+            .eq('id', id)
+            .single();
+
+        if (error) return null;
+
+        // Find active assignment and get technician
+        const activeAssignment = data.complaint_assignments?.find((a: any) => a.is_active);
+        const assignedTechnician = activeAssignment?.technicians ? {
+            id: activeAssignment.technicians.id,
+            name: activeAssignment.technicians.name,
+            phone: activeAssignment.technicians.phone
+        } : null;
+
+        return {
+            ...transformComplaint(data),
+            assignedTechnician
+        };
+    },
+
+    createComplaint: async (complaintData: Partial<Complaint>): Promise<Complaint> => {
+        const userId = await getCurrentUserId();
+
+        // Ensure customer exists or use ID. 
+        // For MVP, assuming customer_id is passed.
+
+        const { data, error } = await supabase
+            .from('complaints')
+            .insert({
+                user_id: userId,
+                customer_id: complaintData.customerId,
+                site_address: complaintData.siteAddress,
+                site_area: complaintData.siteArea,
+                site_city: complaintData.siteCity,
+                site_landmark: complaintData.siteLandmark,
+                site_pincode: complaintData.sitePincode,
+                contact_person_name: complaintData.contactPersonName,
+                contact_person_phone: complaintData.contactPersonPhone,
+                category: complaintData.category,
+                priority: complaintData.priority,
+                source: complaintData.source,
+                title: complaintData.title,
+                description: complaintData.description,
+                status: 'New'
+            })
+            .select('*, customers(company_name)')
+            .single();
+
+        if (error) throw error;
+
+        // Create Initial History
+        await api.logComplaintHistory(data.id, 'New', 'New', 'Created Complaint');
+
+        return transformComplaint(data);
+    },
+
+    updateComplaint: async (id: number, updates: Partial<Complaint>): Promise<Complaint> => {
+        const { data, error } = await supabase
+            .from('complaints')
+            .update({
+                category: updates.category,
+                priority: updates.priority,
+                title: updates.title,
+                description: updates.description,
+                site_address: updates.siteAddress,
+                contact_person_name: updates.contactPersonName,
+                contact_person_phone: updates.contactPersonPhone
+            })
+            .eq('id', id)
+            .select('*, customers(company_name)')
+            .single();
+
+        if (error) throw error;
+        return transformComplaint(data);
+    },
+
+    updateComplaintStatus: async (id: number, newStatus: string, remark?: string): Promise<void> => {
+        const current = await api.getComplaintById(id);
+        if (!current) throw new Error('Complaint not found');
+
+        const { error } = await supabase
+            .from('complaints')
+            .update({ status: newStatus, updated_at: new Date().toISOString() })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        await api.logComplaintHistory(id, current.status, newStatus, remark || `Status updated to ${newStatus}`);
+    },
+
+    assignTechnician: async (complaintId: number, technicianId: number): Promise<void> => {
+        const userId = await getCurrentUserId();
+
+        // Deactivate old assignments for this complaint
+        await supabase
+            .from('complaint_assignments')
+            .update({ is_active: false })
+            .eq('complaint_id', complaintId);
+
+        // Delete existing assignment for this technician-complaint pair if exists, then insert new
+        await supabase
+            .from('complaint_assignments')
+            .delete()
+            .eq('complaint_id', complaintId)
+            .eq('technician_id', technicianId);
+
+        // Create new assignment
+        const { error } = await supabase
+            .from('complaint_assignments')
+            .insert({
+                complaint_id: complaintId,
+                technician_id: technicianId,
+                assigned_by: userId,
+                is_active: true
+            });
+
+        if (error) throw error;
+
+        // Auto-update status to Assigned if currently New
+        const complaint = await api.getComplaintById(complaintId);
+        if (complaint?.status === 'New') {
+            await api.updateComplaintStatus(complaintId, 'Assigned', 'Technician Assigned');
+        } else {
+            await api.logComplaintHistory(complaintId, complaint?.status || '', complaint?.status || '', 'Technician Re-assigned');
+        }
+    },
+
+    removeAssignment: async (complaintId: number): Promise<void> => {
+        // Deactivate all assignments for this complaint
+        const { error } = await supabase
+            .from('complaint_assignments')
+            .update({ is_active: false })
+            .eq('complaint_id', complaintId);
+
+        if (error) throw error;
+
+        // Log history
+        const complaint = await api.getComplaintById(complaintId);
+        await api.logComplaintHistory(complaintId, complaint?.status || '', complaint?.status || '', 'Technician removed from assignment');
+    },
+
+    // Internal Helper to get Technician ID from Auth ID
+    getTechnicianProfileId: async (authId: string): Promise<number | null> => {
+        const { data } = await supabase.from('technicians').select('id').eq('profile_id', authId).single();
+        // If not linked by profile_id, try finding by user_id owner (which is flawed logic for tech, assume profile_id is consistent)
+        // Actually, if I am a technician, my auth.uid() should match technicians.profile_id
+        return data?.id || null;
+    },
+
+    logComplaintHistory: async (complaintId: number, oldStatus: string, newStatus: string, remark: string) => {
+        const user = await supabase.auth.getUser();
+        const userId = user.data.user?.id;
+        if (!userId) return;
+
+        // Get Name/Role
+        const { data: profile } = await supabase.from('profiles').select('name, role').eq('id', userId).single();
+
+        await supabase.from('complaint_status_history').insert({
+            complaint_id: complaintId,
+            old_status: oldStatus,
+            new_status: newStatus,
+            changed_by: userId,
+            role: profile?.role || 'unknown',
+            remark: remark
+        });
+    },
+
+    getComplaintHistory: async (complaintId: number): Promise<ComplaintHistory[]> => {
+        const { data, error } = await supabase
+            .from('complaint_status_history')
+            .select('*')
+            .eq('complaint_id', complaintId)
+            .order('created_at', { ascending: false });
+
+        if (error) return [];
+
+        // Fetch names for changed_by requires join or separate fetch. 
+        // For simplicity, returning raw or simple mapping if profile joined.
+        return data.map((h: any) => ({
+            id: h.id,
+            complaintId: h.complaint_id,
+            oldStatus: h.old_status,
+            newStatus: h.new_status,
+            changedBy: 'User', // Requires lookup or join in real app
+            role: h.role,
+            remark: h.remark,
+            createdAt: h.created_at
+        }));
+    },
+
+    getComplaintStats: async (): Promise<ComplaintStats> => {
+        const complaints = await api.getComplaints(); // Reuse logic for scoping
+
+        const total = complaints.length;
+        const open = complaints.filter(c => !['Resolved', 'Closed', 'Cancelled'].includes(c.status)).length;
+        const resolved = complaints.filter(c => c.status === 'Resolved').length;
+
+        // Today's visits calculation would require fetching visits table
+        // Mocking visits count for now based on 'Visit Scheduled' status or similar
+        const todayVisits = complaints.filter(c => c.status === 'Visit Scheduled').length;
+
+        return { total, open, resolved, todayVisits };
+    },
+
+    // Notes
+    getComplaintNotes: async (complaintId: number): Promise<ComplaintNote[]> => {
+        const { data, error } = await supabase
+            .from('complaint_notes')
+            .select('*')
+            .eq('complaint_id', complaintId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error("Error fetching notes:", error);
+            return [];
+        }
+
+        // We need user names. In a real app we'd join. For now, fetch or rely on client?
+        // Let's assume we can display without name or fetch name separately if critical.
+        // Actually, let's just return the data properly mapped.
+        return data.map((n: any) => ({
+            id: n.id,
+            complaintId: n.complaint_id,
+            userId: n.user_id,
+            role: n.role,
+            note: n.note,
+            createdAt: n.created_at,
+            userName: 'User' // Placeholder
+        }));
+    },
+
+    addComplaintNote: async (complaintId: number, note: string): Promise<void> => {
+        const userId = await getCurrentUserId();
+        const { data: profile } = await supabase.from('profiles').select('name, role').eq('id', userId).single();
+
+        const { error } = await supabase.from('complaint_notes').insert({
+            complaint_id: complaintId,
+            user_id: userId,
+            role: profile?.role || 'dealer',
+            note: note
+        });
+
+        if (error) throw error;
     }
 };
+

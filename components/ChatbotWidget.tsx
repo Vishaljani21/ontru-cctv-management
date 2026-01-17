@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { GoogleGenAI } from '@google/genai';
-import { AppContext, AppContextType } from '../App';
+import { AppContext, AppContextType } from '../components/contexts';
 import type { ChatMessage } from '../types';
 import { ChatbotIcon, CloseIcon, SendIcon, SparklesIcon } from './icons';
 import { api } from '../services/api';
@@ -15,7 +15,7 @@ const ChatbotWidget: React.FC = () => {
     const hasInitialized = useRef(false);
 
     // Initialize Gemini AI
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
     // Only init if key exists, otherwise we'll handle gracefully
     const aiRef = useRef<GoogleGenAI | null>(null);
     if (!aiRef.current && apiKey) {
@@ -77,7 +77,7 @@ const ChatbotWidget: React.FC = () => {
                             model: 'gemini-2.5-flash',
                             contents: prompt,
                         });
-                        setMessages([{ role: 'model', text: response.text() }]); // Corrected: .text() is a function in some versions or property in others. GoogleGenAI usually returns .response.text() -- checking lib docs mentally. Actually response.text() is correct for @google/genai usually.
+                        setMessages([{ role: 'model', text: (response as any).text() }]);
                     } catch (error) {
                         console.error("Error generating reminders:", error);
                         setMessages([{ role: 'model', text: 'નમસ્તે! હું તમારા ડેટાનું વિશ્લેષણ કરી રહ્યો હતો, પરંતુ મને એક સમસ્યા આવી.' }]);
@@ -125,7 +125,7 @@ const ChatbotWidget: React.FC = () => {
                 config: { systemInstruction }
             });
 
-            setMessages(prev => [...prev, { role: 'model', text: response.text() }]);
+            setMessages(prev => [...prev, { role: 'model', text: (response as any).text() }]);
         } catch (error) {
             console.error("Gemini API error:", error);
             setMessages(prev => [...prev, { role: 'model', text: "માફ કરશો, મને જવાબ આપવામાં સમસ્યા આવી રહી છે." }]);

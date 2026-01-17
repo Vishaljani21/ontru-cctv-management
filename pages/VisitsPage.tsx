@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 // FIX: Import Customer type for use in the details modal.
 import type { Visit, Technician, Godown, GodownStock, JobCardItem, Customer } from '../types';
 import { api } from '../services/api';
-import { AppContext, AppContextType } from '../App';
+import { AppContext, AppContextType } from '../components/contexts';
 import ManageItemsModal from '../components/ManageItemsModal';
 import { DownloadIcon, KeyIcon, SignatureIcon } from '../components/icons';
 import CustomSelect from '../components/CustomSelect';
@@ -296,7 +296,7 @@ const VisitsPage: React.FC = () => {
                           <button
                             onClick={() => handleGenerateChalan(visit.id)}
                             disabled={generatingChalanId === visit.id || visit.items.length === 0}
-                            className="px-3 py-1 text-xs font-semibold text-white bg-indigo-500 rounded-md hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
+                            className="px-3 py-1 text-xs font-semibold text-white bg-primary-500 rounded-md hover:bg-primary-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
                           >
                             {generatingChalanId === visit.id ? 'Generating...' : 'Generate Chalan'}
                           </button>

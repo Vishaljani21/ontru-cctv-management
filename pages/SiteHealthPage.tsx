@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 import type { SiteHealth, HDDStatus, RecordingStatus } from '../types';
 import { CheckCircleIcon, ExclamationCircleIcon, XCircleIcon, VideoCameraIcon, ServerIcon, ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline'; // Adjust imports if needed
+import PageHeader from '../components/PageHeader';
 
-// --- Helper Components ---
+// ... (Helper Components StatusBadge and ToggleSwitch remain unchanged)
 
 const StatusBadge: React.FC<{ status: boolean | string; type: 'online' | 'hdd' | 'rec' }> = ({ status, type }) => {
     let color = 'bg-slate-100 text-slate-500';
@@ -103,48 +104,30 @@ const SiteHealthPage: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full bg-slate-50 dark:bg-black min-h-screen pb-20">
-            {/* Premium Header */}
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white shrink-0 shadow-lg z-10 sticky top-0">
-                <div className="max-w-7xl mx-auto px-6 py-6">
-                    <div className="flex justify-between items-start gap-6">
-                        <div>
-                            <h1 className="text-2xl font-bold flex items-center gap-2">
-                                <span className="bg-white/20 p-1.5 rounded-lg"><ServerIcon className="w-5 h-5 text-white" /></span>
-                                Smart Site Health
-                            </h1>
-                            <p className="text-slate-400 text-sm mt-1">Real-time NVR and camera connectivity monitoring.</p>
-                        </div>
-                        <button onClick={fetchData} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-300 hover:text-white" title="Refresh Data">
-                            <ArrowPathIcon className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                        </button>
+            <PageHeader
+                title="Smart Site Health"
+                description="Real-time NVR and camera connectivity monitoring."
+                action={
+                    <button onClick={fetchData} className="flex items-center justify-center p-3 text-white bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/10" title="Refresh Data">
+                        <ArrowPathIcon className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+                }
+            >
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+                        <p className="text-3xl font-bold text-emerald-300">{onlineSites}</p>
+                        <p className="text-xs text-emerald-200 font-bold uppercase tracking-widest mt-1">Online</p>
                     </div>
-
-                    {/* Stats */}
-                    <div className="grid grid-cols-3 gap-6 mt-6 pt-6 border-t border-white/10">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400"><CheckCircleIcon className="w-6 h-6" /></div>
-                            <div>
-                                <p className="text-2xl font-bold">{onlineSites}</p>
-                                <p className="text-xs text-slate-400 font-bold uppercase">Online Sites</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-red-500/20 rounded-lg text-red-400"><XCircleIcon className="w-6 h-6" /></div>
-                            <div>
-                                <p className="text-2xl font-bold">{totalSites - onlineSites}</p>
-                                <p className="text-xs text-slate-400 font-bold uppercase">Offline</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400"><ExclamationCircleIcon className="w-6 h-6" /></div>
-                            <div>
-                                <p className="text-2xl font-bold">{criticalIssues}</p>
-                                <p className="text-xs text-slate-400 font-bold uppercase">Critical Issues</p>
-                            </div>
-                        </div>
+                    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+                        <p className="text-3xl font-bold text-red-300">{totalSites - onlineSites}</p>
+                        <p className="text-xs text-red-200 font-bold uppercase tracking-widest mt-1">Offline</p>
+                    </div>
+                    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+                        <p className="text-3xl font-bold text-amber-300">{criticalIssues}</p>
+                        <p className="text-xs text-amber-200 font-bold uppercase tracking-widest mt-1">Issues</p>
                     </div>
                 </div>
-            </div>
+            </PageHeader>
 
             {/* Grid Content */}
             <div className="max-w-7xl mx-auto px-6 py-8 w-full">
@@ -157,14 +140,14 @@ const SiteHealthPage: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {sites.map(site => (
                             <div key={site.customerId} className={`bg-white dark:bg-slate-900 rounded-2xl border transition-all hover:shadow-lg relative overflow-hidden group ${!site.isMonitoringEnabled ? 'border-slate-200 dark:border-slate-800 opacity-75 grayscale-[0.5]' :
-                                    !site.isOnline ? 'border-red-200 dark:border-red-900/50 shadow-red-100 dark:shadow-none' :
-                                        'border-slate-200 dark:border-slate-800 shadow-sm'
+                                !site.isOnline ? 'border-red-200 dark:border-red-900/50 shadow-red-100 dark:shadow-none' :
+                                    'border-slate-200 dark:border-slate-800 shadow-sm'
                                 }`}>
                                 {/* Status Indicator Strip */}
                                 <div className={`absolute top-0 left-0 w-1.5 h-full ${!site.isMonitoringEnabled ? 'bg-slate-300' :
-                                        !site.isOnline ? 'bg-red-500' :
-                                            site.hddStatus !== 'Healthy' ? 'bg-amber-500' :
-                                                'bg-emerald-500'
+                                    !site.isOnline ? 'bg-red-500' :
+                                        site.hddStatus !== 'Healthy' ? 'bg-amber-500' :
+                                            'bg-emerald-500'
                                     }`}></div>
 
                                 <div className="p-5 pl-7">

@@ -169,6 +169,7 @@ export interface Payment {
   jobCardId: number;
   amount: number;
   status: PaymentStatus;
+  date?: string;
 }
 
 export interface TechnicianDashboardSummary {
@@ -428,3 +429,111 @@ export interface TechnicianProject extends Visit {
   estimatedCompletion?: string;
 }
 
+
+// ==========================================
+// COMPLAINT MANAGEMENT SYSTEM TYPES
+// ==========================================
+
+export type ComplaintStatus = 'New' | 'Assigned' | 'Visit Scheduled' | 'In Progress' | 'Resolved' | 'Closed' | 'Cancelled';
+export type ComplaintPriority = 'Low' | 'Normal' | 'High' | 'Urgent';
+export type ComplaintSource = 'Phone' | 'WhatsApp' | 'Walk-in' | 'AMC' | 'Other';
+export type ComplaintCategory = 'No Power' | 'No Video' | 'DVR/NVR Issue' | 'Camera Fault' | 'HDD Issue' | 'Network Issue' | 'Mobile App Remote View' | 'Cable/Connector' | 'Other';
+
+export interface Complaint {
+  id: number;
+  complaintId: string; // CMP-YYYY-0001
+  userId: string; // Dealer UUID
+  customerId: number;
+  customerName?: string; // Joined
+
+  // Site Details
+  siteAddress: string;
+  siteArea?: string;
+  siteCity?: string;
+  sitePincode?: string;
+  siteLandmark?: string;
+
+  // Contact
+  contactPersonName: string;
+  contactPersonPhone: string;
+
+  // Details
+  category: ComplaintCategory;
+  priority: ComplaintPriority;
+  source: ComplaintSource;
+  title: string;
+  description?: string;
+  status: ComplaintStatus;
+
+  // Timestamps
+  createdAt: string;
+  updatedAt: string;
+
+  // Joined Fields for UI
+  lastUpdated?: string;
+  assignedTechnician?: Technician;
+  visitDate?: string;
+}
+
+export interface ComplaintHistory {
+  id: number;
+  complaintId: number;
+  oldStatus?: ComplaintStatus;
+  newStatus: ComplaintStatus;
+  changedBy: string; // User Name
+  role: 'dealer' | 'technician';
+  remark?: string;
+  createdAt: string;
+}
+
+export interface ComplaintAssignment {
+  id: number;
+  complaintId: number;
+  technicianId: number;
+  technicianName?: string;
+  assignedBy: string;
+  assignedAt: string;
+  isActive: boolean;
+}
+
+export interface ComplaintVisit {
+  id: number;
+  complaintId: number;
+  technicianId: number;
+  visitDate: string; // YYYY-MM-DD
+  startTime?: string;
+  endTime?: string;
+  schedulingNotes?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+}
+
+export interface ComplaintNote {
+  id: number;
+  complaintId: number;
+  userId: string;
+  userName?: string; // Joined or fetched
+  role: 'dealer' | 'technician';
+  note: string;
+  createdAt: string;
+}
+
+export interface ComplaintAttachment {
+  id: number;
+  complaintId: number;
+  uploadedBy: string;
+  filePath: string;
+  fileType: 'image' | 'doc';
+  description?: string;
+  createdAt: string;
+}
+
+// Stats for Dashboards
+export interface ComplaintStats {
+  total: number;
+  open: number;
+  resolved: number;
+  todayVisits: number;
+  assigned?: number; // For Technician
+  inProgress?: number; // For Technician
+}

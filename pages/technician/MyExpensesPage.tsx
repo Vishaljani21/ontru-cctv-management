@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import type { Expense, Visit } from '../../types';
 import { api } from '../../services/api';
-import { AuthContext } from '../../App';
+import { AuthContext } from '../../components/contexts';
 import { PlusIcon, FilterIcon, RefreshIcon, CurrencyRupeeIcon, CrossIcon } from '../../components/icons';
 import CustomSelect from '../../components/CustomSelect';
 
@@ -59,7 +59,7 @@ const AddExpenseModal: React.FC<{ onClose: () => void; onSave: () => void; userI
     const categoryOptions = [
         { value: 'travel', label: 'Travel', color: 'bg-blue-500' },
         { value: 'food', label: 'Food', color: 'bg-orange-500' },
-        { value: 'material', label: 'Material', color: 'bg-indigo-500' },
+        { value: 'material', label: 'Material', color: 'bg-primary-500' },
         { value: 'other', label: 'Other', color: 'bg-slate-500' },
     ];
 
@@ -184,7 +184,7 @@ const MyExpensesPage: React.FC = () => {
                 />
             )}
 
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary-600 to-indigo-700 shadow-2xl ring-1 ring-white/10">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-2xl ring-1 ring-white/10">
                 <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
                 <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
 

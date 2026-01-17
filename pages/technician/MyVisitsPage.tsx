@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import type { Visit, VisitStatus, JobCardItem, Customer, WorkLogEntry, TimelineStep } from '../../types';
 import { api } from '../../services/api';
-import { AuthContext } from '../../App';
+import { AuthContext } from '../../components/contexts';
 import ManageItemsModal from '../../components/ManageItemsModal';
 import { DownloadIcon, SearchIcon, FilterIcon, RefreshIcon, LocationMarkerIcon, PhoneIcon, CheckCircleIcon, ClockIcon, CalendarIcon, BoxIcon, ChevronRightIcon } from '../../components/icons';
 import SignaturePad, { SignaturePadRef } from '../../components/SignaturePad';
@@ -163,15 +163,15 @@ const ProjectCard: React.FC<{
 
     return (
         <div className={`bg-white dark:bg-slate-900 rounded-2xl border-2 transition-all duration-300 overflow-hidden group hover:shadow-xl ${isOverdue ? 'border-red-300 dark:border-red-800' :
-                visit.status === 'in_progress' ? 'border-amber-300 dark:border-amber-800' :
-                    visit.status === 'completed' ? 'border-green-300 dark:border-green-800' :
-                        'border-slate-200 dark:border-slate-800 hover:border-primary-300 dark:hover:border-primary-700'
+            visit.status === 'in_progress' ? 'border-amber-300 dark:border-amber-800' :
+                visit.status === 'completed' ? 'border-green-300 dark:border-green-800' :
+                    'border-slate-200 dark:border-slate-800 hover:border-primary-300 dark:hover:border-primary-700'
             }`}>
             {/* Header with gradient based on status */}
             <div className={`p-5 ${visit.status === 'completed' ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20' :
-                    visit.status === 'in_progress' ? 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' :
-                        isOverdue ? 'bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20' :
-                            'bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50'
+                visit.status === 'in_progress' ? 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' :
+                    isOverdue ? 'bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20' :
+                        'bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50'
                 }`}>
                 <div className="flex justify-between items-start gap-3">
                     <div className="flex-1 min-w-0">
@@ -318,7 +318,7 @@ const ProjectCard: React.FC<{
                         <button
                             onClick={() => onGenerateChalanClick(visit.id)}
                             disabled={generatingChalanId === visit.id || visit.items.length === 0}
-                            className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                            className="px-4 py-2 text-sm font-bold text-white bg-primary-600 rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
                         >
                             {generatingChalanId === visit.id ? 'Generating...' : 'Get Chalan'}
                         </button>
@@ -466,7 +466,7 @@ const MyVisitsPage: React.FC = () => {
             {managingVisit && <ManageItemsModal visit={managingVisit} onClose={() => setManagingVisit(null)} onSave={handleSaveItems} />}
 
             {/* Page Header */}
-            <div className="bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-700 rounded-3xl p-6 sm:p-8 text-white shadow-2xl">
+            <div className="bg-gradient-to-r from-primary-600 via-primary-700 to-primary-700 rounded-3xl p-6 sm:p-8 text-white shadow-2xl">
                 <h1 className="text-3xl font-bold mb-2">My Projects</h1>
                 <p className="text-primary-100">Manage and track all your assigned installation projects</p>
 
@@ -514,8 +514,8 @@ const MyVisitsPage: React.FC = () => {
                             key={status}
                             onClick={() => setStatusFilter(status)}
                             className={`px-4 py-2 rounded-lg text-sm font-bold capitalize whitespace-nowrap transition-all ${statusFilter === status
-                                    ? 'bg-primary-600 text-white shadow-md'
-                                    : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700'
+                                ? 'bg-primary-600 text-white shadow-md'
+                                : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700'
                                 }`}
                         >
                             {status === 'all' ? 'All' : status.replace('_', ' ')}

@@ -118,7 +118,7 @@ const TaskManagerPage: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={!newTaskDesc}
-                                className="w-full md:w-auto px-6 py-2 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white rounded-xl font-medium shadow-lg shadow-primary-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full md:w-auto px-6 py-2 bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-700 hover:to-primary-700 text-white rounded-xl font-medium shadow-lg shadow-primary-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <PlusIcon className="w-5 h-5" />
                                 <span>Assign</span>

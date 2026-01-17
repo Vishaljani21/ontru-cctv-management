@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import Modal from '../components/Modal';
 import CustomSelect from '../components/CustomSelect';
 import CustomDatePicker from '../components/CustomDatePicker';
+import PageHeader from '../components/PageHeader';
 
 const VisitsPipelinePage: React.FC = () => {
     const [visits, setVisits] = useState<Visit[]>([]);
@@ -107,55 +108,47 @@ const VisitsPipelinePage: React.FC = () => {
 
     return (
         <div className="h-full flex flex-col overflow-hidden">
-            {/* Premium Header */}
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white shrink-0 shadow-lg z-10">
-                <div className="max-w-7xl mx-auto px-6 py-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div>
-                            <h1 className="text-2xl font-bold flex items-center gap-2">
-                                <span className="bg-white/20 p-1.5 rounded-lg"><ProjectIcon className="w-5 h-5 text-white" /></span>
-                                Visit Pipeline
-                            </h1>
-                            <p className="text-slate-400 text-sm mt-1">Drag and drop to manage technician visits workflow.</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Link
-                                to="/projects"
-                                className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-sm font-medium transition-colors backdrop-blur-sm"
-                            >
-                                List View
-                            </Link>
-                            <button
-                                onClick={() => setIsCreateModalOpen(true)}
-                                className="px-5 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-bold text-sm shadow-lg shadow-primary-900/20 transition-all flex items-center gap-2"
-                            >
-                                <PlusIcon className="w-4 h-4" />
-                                <span>New Visit</span>
-                            </button>
-                        </div>
+            <PageHeader
+                title="Visit Pipeline"
+                description="Drag and drop to manage technician visits workflow."
+                action={
+                    <div className="flex items-center gap-3">
+                        <Link
+                            to="/projects"
+                            className="px-5 py-3 text-sm font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl transition-all backdrop-blur-sm"
+                        >
+                            List View
+                        </Link>
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="flex items-center justify-center px-6 py-3 text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 rounded-xl shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5 whitespace-nowrap gap-2"
+                        >
+                            <PlusIcon className="w-4 h-4" />
+                            <span>New Visit</span>
+                        </button>
                     </div>
-
-                    {/* Stats Bar */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-white/10">
-                        <div>
-                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Scheduled</p>
-                            <p className="text-xl font-bold text-blue-400">{visits.filter(v => v.status === 'scheduled').length}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">In Progress</p>
-                            <p className="text-xl font-bold text-amber-400">{visits.filter(v => v.status === 'in_progress').length}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Completed</p>
-                            <p className="text-xl font-bold text-emerald-400">{visits.filter(v => v.status === 'completed').length}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Total Active</p>
-                            <p className="text-xl font-bold text-white">{visits.length}</p>
-                        </div>
+                }
+            >
+                {/* Stats Bar */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+                        <p className="text-3xl font-bold text-blue-300">{visits.filter(v => v.status === 'scheduled').length}</p>
+                        <p className="text-xs text-blue-200 font-bold uppercase tracking-widest mt-1">Scheduled</p>
+                    </div>
+                    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+                        <p className="text-3xl font-bold text-amber-300">{visits.filter(v => v.status === 'in_progress').length}</p>
+                        <p className="text-xs text-amber-200 font-bold uppercase tracking-widest mt-1">In Progress</p>
+                    </div>
+                    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+                        <p className="text-3xl font-bold text-emerald-300">{visits.filter(v => v.status === 'completed').length}</p>
+                        <p className="text-xs text-emerald-200 font-bold uppercase tracking-widest mt-1">Completed</p>
+                    </div>
+                    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+                        <p className="text-3xl font-bold text-white">{visits.length}</p>
+                        <p className="text-xs text-primary-200 font-bold uppercase tracking-widest mt-1">Total Active</p>
                     </div>
                 </div>
-            </div>
+            </PageHeader>
 
             <main className="flex-1 overflow-x-auto overflow-y-hidden px-6 py-8 bg-slate-50 dark:bg-black">
                 {loading ? (

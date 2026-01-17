@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { AppContext } from '../App';
+import { AppContext } from '../components/contexts';
 import { api } from '../services/api';
 import type { DealerInfo } from '../types';
 // --- Icons (Inline to avoid dependencies) ---
