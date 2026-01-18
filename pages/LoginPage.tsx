@@ -67,10 +67,10 @@ const LoginPage: React.FC = () => {
       let message = err.message || 'Incorrect credentials. Please try again.';
       // Make error message more user-friendly
       if (message.includes('fetch') || message.includes('network') || message.includes('Failed to fetch')) {
-        message = 'Unable to connect to server. Ensure VITE_SUPABASE_URL is correct on VPS.';
+        message = `Unable to connect to ${import.meta.env.VITE_SUPABASE_URL}`;
         console.error('Connection failed to:', import.meta.env.VITE_SUPABASE_URL);
       }
-      setError(message);
+      setError(`${message} (API: ${import.meta.env.VITE_SUPABASE_URL})`);
       setIsLoading(false);
     }
   };
