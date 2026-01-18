@@ -206,6 +206,10 @@ echo -e "${YELLOW}Generating Kong configuration...${NC}"
 if [ -f deploy/kong_template.yml ]; then
     # Use envsubst if available, or a simple sed fallback if not (envsubst is part of gettext-base, usually present)
     # We'll use a robust sed approach to avoid dependency issues on minimal VPS
+    
+    # IMPORTANT: Docker might create this as a directory if missing. Force remove it first.
+    rm -rf deploy/kong.yml
+    
     cp deploy/kong_template.yml deploy/kong.yml
     sed -i "s/\${ANON_KEY}/$ANON_KEY/g" deploy/kong.yml
     sed -i "s/\${SERVICE_ROLE_KEY}/$SERVICE_ROLE_KEY/g" deploy/kong.yml
