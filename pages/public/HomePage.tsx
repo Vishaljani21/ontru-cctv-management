@@ -322,7 +322,7 @@ const HomePage: React.FC = () => {
                             Start Your Free Trial
                         </a>
                         <a
-                            href="mailto:sales@ontru.in"
+                            href="mailto:info@softwarelicensehub.in"
                             className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white border-2 border-white/30 rounded-xl hover:bg-white/10 transition-all"
                         >
                             Contact Sales
@@ -334,15 +334,50 @@ const HomePage: React.FC = () => {
             {/* Footer */}
             <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div className="text-2xl font-bold text-white">OnTru</div>
-                        <div className="flex gap-8 text-sm">
-                            <Link to="/about" className="hover:text-white transition-colors">About</Link>
-                            <Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-                            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
-                            <a href="mailto:support@ontru.in" className="hover:text-white transition-colors">Support</a>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                        <div className="md:col-span-2">
+                            <div className="text-2xl font-bold text-white mb-4">OnTru</div>
+                            <p className="text-slate-400 mb-4 max-w-md">
+                                India's leading CCTV business management platform. Streamline your operations, boost productivity, and scale with confidence.
+                            </p>
+                            <p className="text-sm text-slate-500">
+                                A product of <span className="text-primary-400">Software License Hub</span>
+                            </p>
                         </div>
-                        <div className="text-sm">© 2025 OnTru. All rights reserved.</div>
+                        <div>
+                            <h4 className="text-white font-semibold mb-4">Quick Links</h4>
+                            <ul className="space-y-2 text-sm">
+                                <li><Link to="/about" className="hover:text-white transition-colors">About</Link></li>
+                                <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                                <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+                                <li><a href="https://app.ontru.in/login" className="hover:text-white transition-colors">Sign In</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-white font-semibold mb-4">Contact</h4>
+                            <ul className="space-y-2 text-sm">
+                                <li className="flex items-center gap-2">
+                                    <span className="text-primary-400">📧</span>
+                                    <a href="mailto:info@softwarelicensehub.in" className="hover:text-white transition-colors">info@softwarelicensehub.in</a>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-primary-400">📱</span>
+                                    <span>+91 7777 955 344</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-primary-400">📱</span>
+                                    <span>+91 7777 997 309</span>
+                                </li>
+                                <li className="flex items-center gap-2 mt-4 text-xs">
+                                    <span className="text-primary-400">📍</span>
+                                    <span>Ahmedabad, Gujarat</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div className="text-sm">© 2025 OnTru by Software License Hub. All rights reserved.</div>
+                        <div className="text-xs text-slate-500">GSTIN: 24AFKFS3394E1ZT</div>
                     </div>
                 </div>
             </footer>
