@@ -265,7 +265,7 @@ fi
 # ==========================================
 # SSL CERTIFICATE (Initial Setup Only)
 # ==========================================
-if [ "$IS_UPDATE" = false ] && [ ! -d "deploy/ssl/live/$DOMAIN" ]; then
+if [ ! -d "deploy/ssl/live/$DOMAIN" ]; then
     echo -e "${YELLOW}Setting up SSL certificate...${NC}"
     mkdir -p deploy/ssl
 
