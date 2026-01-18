@@ -1,0 +1,114 @@
+
+-- CREATE TECHNICIAN USER FUNCTION
+-- This function creates a user in auth.users AND auth.identities properly
+-- bypassing GoTrue's broken identity creation
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE OR REPLACE FUNCTION public.create_technician_user(
+    p_email TEXT,
+    p_password TEXT,
+    p_name TEXT,
+    p_phone TEXT DEFAULT ''
+) RETURNS UUID AS $$
+DECLARE
+    new_user_id UUID;
+    encrypted_pw TEXT;
+BEGIN
+    -- Check if user already exists
+    SELECT id INTO new_user_id FROM auth.users WHERE email = p_email;
+    
+    IF new_user_id IS NOT NULL THEN
+        RETURN new_user_id; -- User already exists, return their ID
+    END IF;
+    
+    -- Generate new UUID
+    new_user_id := uuid_generate_v4();
+    
+    -- Hash the password using bcrypt (same as GoTrue)
+    encrypted_pw := crypt(p_password, gen_salt('bf'));
+    
+    -- Insert into auth.users
+    INSERT INTO auth.users (
+        id,
+        instance_id,
+        aud,
+        role,
+        email,
+        encrypted_password,
+        email_confirmed_at,
+        confirmation_token,
+        recovery_token,
+        email_change_token_new,
+        email_change,
+        email_change_token_current,
+        phone_change,
+        phone_change_token,
+        reauthentication_token,
+        raw_user_meta_data,
+        raw_app_meta_data,
+        is_super_admin,
+        created_at,
+        updated_at
+    ) VALUES (
+        new_user_id,
+        '00000000-0000-0000-0000-000000000000',
+        'authenticated',
+        'authenticated',
+        p_email,
+        encrypted_pw,
+        NOW(), -- Confirm email immediately
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        jsonb_build_object('name', p_name, 'phone', p_phone, 'role', 'technician'),
+        jsonb_build_object('provider', 'email', 'providers', ARRAY['email']),
+        FALSE,
+        NOW(),
+        NOW()
+    );
+    
+    -- Insert into auth.identities (this is what GoTrue fails to do!)
+    INSERT INTO auth.identities (
+        id,
+        user_id,
+        identity_data,
+        provider,
+        provider_id,
+        last_sign_in_at,
+        created_at,
+        updated_at
+    ) VALUES (
+        uuid_generate_v4(),
+        new_user_id,
+        jsonb_build_object(
+            'sub', new_user_id::text,
+            'email', p_email,
+            'email_verified', true,
+            'phone_verified', false
+        ),
+        'email',
+        new_user_id::text,
+        NOW(),
+        NOW(),
+        NOW()
+    );
+    
+    RETURN new_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION public.create_technician_user(TEXT, TEXT, TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_technician_user(TEXT, TEXT, TEXT, TEXT) TO anon;
+
+-- Notify completion
+DO $$
+BEGIN
+    RAISE NOTICE 'create_technician_user function created successfully!';
+END $$;
