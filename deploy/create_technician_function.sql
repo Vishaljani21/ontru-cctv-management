@@ -23,7 +23,7 @@ BEGIN
     END IF;
     
     -- Generate new UUID
-    new_user_id := uuid_generate_v4();
+    new_user_id := gen_random_uuid();
     
     -- Hash the password using bcrypt (same as GoTrue)
     encrypted_pw := crypt(p_password, gen_salt('bf'));
@@ -84,7 +84,7 @@ BEGIN
         created_at,
         updated_at
     ) VALUES (
-        uuid_generate_v4(),
+        gen_random_uuid(),
         new_user_id,
         jsonb_build_object(
             'sub', new_user_id::text,
