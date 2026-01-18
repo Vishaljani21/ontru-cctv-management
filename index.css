@@ -302,11 +302,29 @@ h6 {
 
 /* Utility Classes for Glassmorphism */
 .glass {
-  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-lg dark:bg-slate-900/70 dark:border-slate-700/50;
+  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-lg;
+}
+
+.dark .glass {
+  background-color: rgba(17, 17, 17, 0.9) !important;
+  border-color: #262626 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5) !important;
 }
 
 .glass-card {
-  @apply bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 dark:bg-slate-900/50 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-900;
+  @apply bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300;
+}
+
+.dark .glass-card {
+  background-color: #111111 !important;
+  border-color: #262626 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark .glass-card:hover {
+  background-color: #171717 !important;
+  border-color: #3f3f3f !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6) !important;
 }
 
 /* Custom DatePicker Styles */
@@ -488,4 +506,294 @@ body .react-datepicker__navigation-icon::before {
 /* Force Z-Index for Popper to beat Modal (z-100) */
 .react-datepicker-popper {
   z-index: 99999 !important;
+}
+
+/* ========================================
+   PREMIUM DARK THEME OVERHAUL
+   True blacks with subtle greys for depth
+   ======================================== */
+
+/* Dark Mode Scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}
+
+/* Dark Mode Cards - All card variants */
+.dark .bg-white {
+  background-color: #111111 !important;
+}
+
+/* Sidebar Dark Mode */
+.dark aside,
+.dark nav {
+  background-color: #0a0a0a !important;
+  border-color: #1a1a1a !important;
+}
+
+/* Main Content Area */
+.dark main {
+  background-color: #000000 !important;
+}
+
+/* Stats Cards & Dashboard Cards */
+.dark [class*="rounded"][class*="shadow"],
+.dark [class*="rounded-lg"][class*="bg-white"],
+.dark [class*="rounded-xl"][class*="bg-white"],
+.dark [class*="rounded-2xl"][class*="bg-white"] {
+  background-color: #111111 !important;
+  border-color: #262626 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Tables Dark Mode */
+.dark table {
+  background-color: #111111 !important;
+  border-color: #262626 !important;
+}
+
+.dark thead {
+  background-color: #0a0a0a !important;
+}
+
+.dark th {
+  background-color: #0a0a0a !important;
+  border-color: #262626 !important;
+  color: #a3a3a3 !important;
+}
+
+.dark td {
+  border-color: #1a1a1a !important;
+  color: #e5e5e5 !important;
+}
+
+.dark tbody tr:hover {
+  background-color: #171717 !important;
+}
+
+.dark tbody tr:nth-child(even) {
+  background-color: #0d0d0d !important;
+}
+
+/* Modals & Dialogs */
+.dark [role="dialog"],
+.dark .modal,
+.dark [class*="fixed"][class*="inset"][class*="bg-white"],
+.dark [class*="fixed"][class*="z-"]>div[class*="bg-white"] {
+  background-color: #111111 !important;
+  border: 1px solid #262626 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Dropdown Menus */
+.dark [class*="absolute"][class*="bg-white"][class*="shadow"],
+.dark [class*="dropdown"],
+.dark .menu,
+.dark [role="menu"] {
+  background-color: #111111 !important;
+  border-color: #262626 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark [role="menuitem"]:hover,
+.dark [class*="dropdown"] li:hover {
+  background-color: #1a1a1a !important;
+}
+
+/* Form Containers */
+.dark form,
+.dark fieldset {
+  background-color: transparent !important;
+}
+
+/* Card Header Areas */
+.dark [class*="border-b"] {
+  border-color: #262626 !important;
+}
+
+/* Status Badges - Enhanced for Dark Mode */
+.dark .bg-green-100 {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+}
+
+.dark .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+.dark .bg-yellow-100 {
+  background-color: rgba(234, 179, 8, 0.15) !important;
+}
+
+.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+.dark .bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+}
+
+.dark .bg-orange-100 {
+  background-color: rgba(249, 115, 22, 0.15) !important;
+}
+
+.dark .bg-teal-100,
+.dark .bg-primary-100 {
+  background-color: rgba(20, 184, 166, 0.15) !important;
+}
+
+/* Slate backgrounds for dark mode */
+.dark .bg-slate-50 {
+  background-color: #0a0a0a !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #111111 !important;
+}
+
+.dark .bg-slate-200 {
+  background-color: #171717 !important;
+}
+
+/* Hover States Enhancement */
+.dark .hover\:bg-slate-50:hover {
+  background-color: #1a1a1a !important;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  background-color: #1a1a1a !important;
+}
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: #1a1a1a !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+  background-color: #1a1a1a !important;
+}
+
+/* Tab Navigation */
+.dark [role="tablist"] {
+  background-color: #0a0a0a !important;
+  border-color: #262626 !important;
+}
+
+.dark [role="tab"][aria-selected="true"] {
+  background-color: #111111 !important;
+  border-color: #14b8a6 !important;
+}
+
+/* Pipeline/Kanban Boards */
+.dark [class*="kanban"],
+.dark [class*="pipeline"],
+.dark [class*="board"] {
+  background-color: #0a0a0a !important;
+}
+
+.dark [class*="kanban"]>div,
+.dark [class*="pipeline"]>div {
+  background-color: #0d0d0d !important;
+  border-color: #1a1a1a !important;
+}
+
+/* Icons in Dark Mode - Ensure visibility */
+.dark svg:not([class*="text-"]) {
+  color: #a3a3a3;
+}
+
+/* Pagination */
+.dark [class*="pagination"] button,
+.dark [class*="page"] button {
+  background-color: #111111 !important;
+  border-color: #262626 !important;
+  color: #e5e5e5 !important;
+}
+
+.dark [class*="pagination"] button:hover,
+.dark [class*="page"] button:hover {
+  background-color: #1a1a1a !important;
+  border-color: #14b8a6 !important;
+}
+
+/* Search Boxes - Special Dark Styling */
+.dark input[type="search"] {
+  background-color: #0a0a0a !important;
+  border-color: #262626 !important;
+  color: #fafafa !important;
+}
+
+.dark input[type="search"]::placeholder {
+  color: #525252 !important;
+}
+
+/* Accordion/Collapsible Sections */
+.dark details,
+.dark summary {
+  background-color: #111111 !important;
+  border-color: #262626 !important;
+}
+
+.dark details[open] {
+  background-color: #0d0d0d !important;
+}
+
+/* Primary Button Enhancement in Dark Mode */
+.dark .bg-primary-500:hover,
+.dark .bg-teal-500:hover {
+  box-shadow: 0 0 20px rgba(20, 184, 166, 0.3) !important;
+}
+
+/* Loading Skeletons */
+.dark .animate-pulse {
+  background-color: #1a1a1a !important;
+}
+
+/* Tooltips */
+.dark [role="tooltip"],
+.dark .tooltip {
+  background-color: #1a1a1a !important;
+  border-color: #262626 !important;
+  color: #fafafa !important;
+}
+
+/* Empty State Cards */
+.dark [class*="empty"],
+.dark [class*="no-data"] {
+  background-color: #0d0d0d !important;
+  border-color: #1a1a1a !important;
+}
+
+/* Ensure text contrast */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: #fafafa !important;
+}
+
+.dark p,
+.dark span,
+.dark label {
+  color: #e5e5e5;
+}
+
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: #a3a3a3 !important;
+}
+
+.dark .text-slate-400,
+.dark .text-gray-400 {
+  color: #737373 !important;
 }
