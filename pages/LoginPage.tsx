@@ -70,6 +70,8 @@ const LoginPage: React.FC = () => {
         message = `Unable to connect to ${import.meta.env.VITE_SUPABASE_URL}`;
         console.error('Connection failed to:', import.meta.env.VITE_SUPABASE_URL);
       }
+      // Enhanced Debugging for {} error
+      console.error("FULL LOGIN ERROR OBJ:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
       setError(`${message} (API: ${import.meta.env.VITE_SUPABASE_URL})`);
       setIsLoading(false);
     }
@@ -156,8 +158,8 @@ const LoginPage: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ color: '#0f172a' }}
-                  className="w-full px-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                  style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                  className="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
                   placeholder="Enter Password"
                 />
               </div>
@@ -174,8 +176,8 @@ const LoginPage: React.FC = () => {
                     required
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    style={{ color: '#0f172a' }}
-                    className="flex-1 px-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                    className="flex-1 px-4 py-3.5 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
                     placeholder="6-digit code"
                   />
                   <button
