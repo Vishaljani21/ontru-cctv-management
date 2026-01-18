@@ -533,8 +533,7 @@ body .react-datepicker__navigation-icon::before {
 }
 
 /* Sidebar Dark Mode */
-.dark aside,
-.dark nav {
+.dark aside {
   background-color: #0a0a0a !important;
   border-color: #1a1a1a !important;
 }
