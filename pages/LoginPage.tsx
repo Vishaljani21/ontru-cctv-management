@@ -136,8 +136,8 @@ const LoginPage: React.FC = () => {
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                style={{ color: '#0f172a' }}
-                className="w-full px-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                className="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
                 placeholder={role === 'technician' ? 'Enter Phone Number' : 'Enter Email'}
               />
             </div>
