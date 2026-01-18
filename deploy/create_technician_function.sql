@@ -29,7 +29,8 @@ BEGIN
     new_user_id := gen_random_uuid();
     
     -- Hash the password using bcrypt (same as GoTrue)
-    encrypted_pw := crypt(p_password, gen_salt('bf'));
+    -- Use extensions schema where Supabase installs pgcrypto
+    encrypted_pw := extensions.crypt(p_password, extensions.gen_salt('bf'));
     
     -- Insert into auth.users
     INSERT INTO auth.users (
