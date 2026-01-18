@@ -243,8 +243,16 @@ const CustomersPage: React.FC = () => {
                         <p className="text-xs text-primary-200 font-bold uppercase tracking-widest mt-1">Total</p>
                     </div>
                     <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
-                        <p className="text-3xl font-bold text-emerald-300">{customers.filter(c => c.city === 'Mumbai').length}</p> {/* Example Stat */}
-                        <p className="text-xs text-emerald-200 font-bold uppercase tracking-widest mt-1">Mumbai</p>
+                        <p className="text-3xl font-bold text-emerald-300">{customers.filter(c => c.gst && c.gst.trim() !== '').length}</p>
+                        <p className="text-xs text-emerald-200 font-bold uppercase tracking-widest mt-1">With GST</p>
+                    </div>
+                    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+                        <p className="text-3xl font-bold text-blue-300">{new Set(customers.map(c => c.city)).size}</p>
+                        <p className="text-xs text-blue-200 font-bold uppercase tracking-widest mt-1">Cities</p>
+                    </div>
+                    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
+                        <p className="text-3xl font-bold text-amber-300">{new Set(customers.map(c => c.area)).size}</p>
+                        <p className="text-xs text-amber-200 font-bold uppercase tracking-widest mt-1">Areas</p>
                     </div>
                 </div>
             </PageHeader>
