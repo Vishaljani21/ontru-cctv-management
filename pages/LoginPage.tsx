@@ -136,8 +136,8 @@ const LoginPage: React.FC = () => {
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                style={{ color: '#ffffff' }}
-                className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all dark:[color-scheme:dark]"
+                style={{ color: '#0f172a' }}
+                className="w-full px-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
                 placeholder={role === 'technician' ? 'Enter Phone Number' : 'Enter Email'}
               />
             </div>
@@ -156,8 +156,8 @@ const LoginPage: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ color: '#ffffff' }}
-                  className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all dark:[color-scheme:dark]"
+                  style={{ color: '#0f172a' }}
+                  className="w-full px-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
                   placeholder="Enter Password"
                 />
               </div>
@@ -174,8 +174,8 @@ const LoginPage: React.FC = () => {
                     required
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    style={{ color: '#ffffff' }}
-                    className="flex-1 px-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all dark:[color-scheme:dark]"
+                    style={{ color: '#0f172a' }}
+                    className="flex-1 px-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
                     placeholder="6-digit code"
                   />
                   <button
