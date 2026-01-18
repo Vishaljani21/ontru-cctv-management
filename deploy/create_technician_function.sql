@@ -8,6 +8,9 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 -- Also try extensions schema (Supabase default)
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
+-- Drop old function if it exists (to clear any cached old definition)
+DROP FUNCTION IF EXISTS public.create_technician_user(TEXT, TEXT, TEXT, TEXT);
+
 CREATE OR REPLACE FUNCTION public.create_technician_user(
     p_email TEXT,
     p_password TEXT,
