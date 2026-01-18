@@ -3,7 +3,10 @@
 -- This function creates a user in auth.users AND auth.identities properly
 -- bypassing GoTrue's broken identity creation
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- Ensure pgcrypto extension is installed (for password hashing)
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+-- Also try extensions schema (Supabase default)
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
 CREATE OR REPLACE FUNCTION public.create_technician_user(
     p_email TEXT,
