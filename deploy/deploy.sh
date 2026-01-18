@@ -39,7 +39,7 @@ fi
 
 # Load existing domain if updating
 if [ "$IS_UPDATE" = true ]; then
-    if [ -f .env ]; then
+    if [ -z "$DOMAIN" ] && [ -f .env ]; then
         # Extract domain from .env matching DOMAIN=...
         DOMAIN=$(grep "^DOMAIN=" .env | cut -d '=' -f2)
     fi
