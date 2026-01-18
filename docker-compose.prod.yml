@@ -44,6 +44,8 @@ services:
       GOTRUE_JWT_SECRET: ${JWT_SECRET}
       GOTRUE_EXTERNAL_EMAIL_ENABLED: true
       GOTRUE_MAILER_AUTOCONFIRM: true
+      # Disable automatic migrations - we've manually built the schema
+      GOTRUE_DB_MIGRATIONS_PATH: /dev/null
     depends_on:
       db:
         condition: service_healthy
