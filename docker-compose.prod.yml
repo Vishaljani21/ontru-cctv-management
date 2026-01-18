@@ -133,6 +133,8 @@ services:
       - certbot-data:/var/www/certbot:ro
     depends_on:
       - kong
+      - auth
+      - rest
 
   # ==========================================
   # CERTBOT (SSL Certificates)
