@@ -1,23 +1,23 @@
 
--- MANUAL AUTH SCHEMA REPAIR v3 (Final)
--- Fixes "Relation does not exist" by setting SEARCH_PATH and marking migration as done.
+-- MANUAL AUTH SCHEMA REPAIR v4 (The Real Fix)
+-- We found that GoTrue uses the 'postgres' user, so we must set the path for THAT user.
 
--- 1. Fix Search Path for the Service User
--- GoTrue often runs queries without "auth." prefix, so it needs this in the path.
+-- 1. Fix Search Path for 'postgres' (Superuser used by GoTrue)
+ALTER ROLE postgres SET search_path = "$user", public, auth, extensions;
+
+-- 2. Also set it for the specific auth admin, just in case
 ALTER ROLE supabase_auth_admin SET search_path = auth, public, extensions;
 
--- 2. Force-Mark the problematic migration as "Done"
--- The error is on `20210927181326`, so we must ensure it's in the table so GoTrue skips it.
+-- 3. Also set it database-wide to be absolutely safe
+ALTER DATABASE postgres SET search_path = "$user", public, auth, extensions;
+
+-- 4. Fast-Forward the failing migration
+-- Mark '20210927181326' as done so GoTrue stops trying to run it
 INSERT INTO auth.schema_migrations (version) VALUES ('20210927181326') 
 ON CONFLICT (version) DO NOTHING;
 
--- 3. Re-Grant permissions (Just to be 100% sure)
-GRANT USAGE ON SCHEMA auth TO supabase_auth_admin;
-GRANT ALL ON ALL TABLES IN SCHEMA auth TO supabase_auth_admin;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA auth TO supabase_auth_admin;
-
--- 4. Verify connection
+-- 5. Notify
 DO $$
 BEGIN
-    RAISE NOTICE 'Permissions granted and Search Path updated for supabase_auth_admin';
+    RAISE NOTICE 'FIX APPLIED: Search Path set for postgres user and database.';
 END $$;
