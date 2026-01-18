@@ -21,7 +21,7 @@ BEGIN
             created_at,
             updated_at
         ) VALUES (
-            uuid_generate_v4(),
+            gen_random_uuid(),
             NEW.id,
             jsonb_build_object(
                 'sub', NEW.id::text,
