@@ -201,6 +201,20 @@ fi
 echo -e "${YELLOW}Configuring Nginx for $DOMAIN...${NC}"
 sed -i "s/ontru.yourdomain.com/$DOMAIN/g" deploy/nginx.conf
 
+# Generate Kong Configuration from Template
+echo -e "${YELLOW}Generating Kong configuration...${NC}"
+if [ -f deploy/kong_template.yml ]; then
+    # Use envsubst if available, or a simple sed fallback if not (envsubst is part of gettext-base, usually present)
+    # We'll use a robust sed approach to avoid dependency issues on minimal VPS
+    cp deploy/kong_template.yml deploy/kong.yml
+    sed -i "s/\${ANON_KEY}/$ANON_KEY/g" deploy/kong.yml
+    sed -i "s/\${SERVICE_ROLE_KEY}/$SERVICE_ROLE_KEY/g" deploy/kong.yml
+    echo "Kong config generated with active keys."
+else
+    echo -e "${RED}Error: deploy/kong_template.yml not found!${NC}"
+    exit 1
+fi
+
 # ==========================================
 # BUILD
 # ==========================================
