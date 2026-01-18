@@ -231,10 +231,18 @@ if [ -f package.json ]; then
         fi
     fi
     
+    # IMPORTANT: Export VITE_ variables so Vite can read them during build
+    echo -e "${YELLOW}Exporting environment variables for Vite build...${NC}"
+    source .env
+    export VITE_SUPABASE_URL
+    export VITE_SUPABASE_ANON_KEY
+    echo "  VITE_SUPABASE_URL=$VITE_SUPABASE_URL"
+    
     # Use clean install for CI/consistency
     npm ci || npm install
     npm run build
 fi
+
 
 # ==========================================
 # SSL CERTIFICATE (Initial Setup Only)
