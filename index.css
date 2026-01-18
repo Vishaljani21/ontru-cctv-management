@@ -794,7 +794,7 @@ body .react-datepicker__navigation-icon::before {
 
 .dark .text-slate-400,
 .dark .text-gray-400 {
-  color: #737373 !important;
+  color: #c3c3c3 !important;
 }
 
 /* Fix for modal inputs - ensure they're always interactive */
