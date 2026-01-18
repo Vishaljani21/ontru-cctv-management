@@ -240,6 +240,23 @@ select {
   /* primary-600 cursor */
 }
 
+/* Dark mode inputs override */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="tel"],
+.dark input[type="number"],
+.dark input[type="search"],
+.dark input[type="url"],
+.dark textarea,
+.dark select {
+  color: #ffffff !important;
+  background-color: #1e293b !important;
+  /* slate-800 */
+  border-color: #475569 !important;
+  /* slate-600 */
+}
+
 /* Placeholder text - visible but lighter */
 input::placeholder,
 textarea::placeholder {
