@@ -66,8 +66,9 @@ const LoginPage: React.FC = () => {
       console.error("Login Error:", err);
       let message = err.message || 'Incorrect credentials. Please try again.';
       // Make error message more user-friendly
-      if (message.includes('fetch') || message.includes('network')) {
-        message = 'Unable to connect to server. Please check your connection.';
+      if (message.includes('fetch') || message.includes('network') || message.includes('Failed to fetch')) {
+        message = 'Unable to connect to server. Ensure VITE_SUPABASE_URL is correct on VPS.';
+        console.error('Connection failed to:', import.meta.env.VITE_SUPABASE_URL);
       }
       setError(message);
       setIsLoading(false);
@@ -103,8 +104,8 @@ const LoginPage: React.FC = () => {
             <button
               onClick={() => setRole('dealer')}
               className={`flex-1 px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-200 ${role === 'dealer'
-                  ? 'bg-white dark:bg-teal-600 text-teal-600 dark:text-white shadow-md'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-teal-600 text-teal-600 dark:text-white shadow-md'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
             >
               Dealer
@@ -112,8 +113,8 @@ const LoginPage: React.FC = () => {
             <button
               onClick={() => setRole('technician')}
               className={`flex-1 px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-200 ${role === 'technician'
-                  ? 'bg-white dark:bg-teal-600 text-teal-600 dark:text-white shadow-md'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-teal-600 text-teal-600 dark:text-white shadow-md'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
             >
               Technician
@@ -135,7 +136,8 @@ const LoginPage: React.FC = () => {
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                style={{ color: '#ffffff' }}
+                className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all dark:[color-scheme:dark]"
                 placeholder={role === 'technician' ? 'Enter Phone Number' : 'Enter Email'}
               />
             </div>
@@ -154,7 +156,8 @@ const LoginPage: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                  style={{ color: '#ffffff' }}
+                  className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all dark:[color-scheme:dark]"
                   placeholder="Enter Password"
                 />
               </div>
@@ -171,7 +174,8 @@ const LoginPage: React.FC = () => {
                     required
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    className="flex-1 px-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                    style={{ color: '#ffffff' }}
+                    className="flex-1 px-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all dark:[color-scheme:dark]"
                     placeholder="6-digit code"
                   />
                   <button
