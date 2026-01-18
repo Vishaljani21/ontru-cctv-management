@@ -70,14 +70,14 @@ const HomePage: React.FC = () => {
         <div className="bg-slate-950">
             {/* Hero Section */}
             <section className="relative pt-32 pb-24 overflow-hidden">
-                {/* Gradient Orbs */}
-                <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-teal-500/20 rounded-full blur-[150px]"></div>
-                <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-500/15 rounded-full blur-[120px]"></div>
-                <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-violet-500/10 rounded-full blur-[80px]"></div>
+                {/* Animated Gradient Orbs */}
+                <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-teal-500/20 rounded-full blur-[150px] animate-pulse-glow"></div>
+                <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-500/15 rounded-full blur-[120px] animate-pulse-glow delay-200"></div>
+                <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-violet-500/10 rounded-full blur-[80px] animate-pulse-glow delay-400"></div>
 
                 <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
                     {/* Badge */}
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8">
+                    <div className="animate-fade-in inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
@@ -86,23 +86,23 @@ const HomePage: React.FC = () => {
                     </div>
 
                     {/* Headline */}
-                    <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white tracking-tight mb-8 leading-[1.1]">
+                    <h1 className="animate-slide-up text-4xl sm:text-5xl lg:text-7xl font-bold text-white tracking-tight mb-8 leading-[1.1]">
                         Run your CCTV business
                         <span className="block bg-gradient-to-r from-teal-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
                             like never before
                         </span>
                     </h1>
 
-                    <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-400 mb-12 leading-relaxed">
+                    <p className="animate-slide-up delay-100 max-w-2xl mx-auto text-lg sm:text-xl text-slate-400 mb-12 leading-relaxed">
                         The all-in-one platform for CCTV dealers. Manage projects, inventory,
                         technicians, billing, and AMCs from a single powerful dashboard.
                     </p>
 
                     {/* CTA Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
+                    <div className="animate-slide-up delay-200 flex flex-col sm:flex-row gap-4 justify-center mb-20">
                         <a
                             href="https://app.ontru.in/register"
-                            className="group inline-flex items-center justify-center px-8 py-4 text-base font-semibold bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl hover:from-teal-400 hover:to-teal-500 transition-all shadow-lg shadow-teal-500/25"
+                            className="group inline-flex items-center justify-center px-8 py-4 text-base font-semibold bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl hover:from-teal-400 hover:to-teal-500 transition-all shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:-translate-y-0.5"
                         >
                             Start Free Trial
                             <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -111,7 +111,7 @@ const HomePage: React.FC = () => {
                         </a>
                         <a
                             href="https://app.ontru.in/login"
-                            className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white border border-white/20 rounded-xl hover:bg-white/5 transition-all"
+                            className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white border border-white/20 rounded-xl hover:bg-white/5 hover:-translate-y-0.5 transition-all"
                         >
                             Sign In
                         </a>
@@ -120,7 +120,11 @@ const HomePage: React.FC = () => {
                     {/* Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
                         {stats.map((stat, idx) => (
-                            <div key={idx} className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                            <div
+                                key={idx}
+                                className="animate-scale-in p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 hover:border-white/20 transition-all"
+                                style={{ animationDelay: `${0.3 + idx * 0.1}s` }}
+                            >
                                 <div className="text-3xl lg:text-4xl font-bold text-white mb-1">{stat.value}</div>
                                 <div className="text-sm text-slate-500">{stat.label}</div>
                             </div>
@@ -149,7 +153,7 @@ const HomePage: React.FC = () => {
                         {features.map((feature, idx) => (
                             <div
                                 key={idx}
-                                className="group p-8 rounded-2xl bg-slate-900/50 border border-white/5 hover:border-teal-500/30 hover:bg-slate-900 transition-all duration-300"
+                                className="group p-8 rounded-2xl bg-slate-900/50 border border-white/5 hover:border-teal-500/30 hover:bg-slate-900 transition-all duration-300 hover:-translate-y-1"
                             >
                                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500/20 to-teal-500/5 flex items-center justify-center text-teal-400 mb-6 group-hover:scale-110 transition-transform">
                                     {feature.icon}
@@ -176,8 +180,8 @@ const HomePage: React.FC = () => {
                     </p>
 
                     <div className="relative inline-block">
-                        <div className="absolute inset-0 bg-gradient-to-r from-teal-500/20 to-blue-500/20 rounded-3xl blur-xl"></div>
-                        <div className="relative bg-slate-900 border border-white/10 rounded-3xl p-10 max-w-md mx-auto">
+                        <div className="absolute inset-0 bg-gradient-to-r from-teal-500/20 to-blue-500/20 rounded-3xl blur-xl animate-pulse-glow"></div>
+                        <div className="relative bg-slate-900 border border-white/10 rounded-3xl p-10 max-w-md mx-auto hover:border-white/20 transition-all">
                             <div className="text-sm font-semibold text-teal-400 uppercase tracking-wider mb-3">Free Plan</div>
                             <div className="flex items-baseline justify-center gap-1 mb-4">
                                 <span className="text-6xl font-bold text-white">₹0</span>
@@ -198,7 +202,7 @@ const HomePage: React.FC = () => {
 
                             <a
                                 href="https://app.ontru.in/register"
-                                className="block w-full py-4 px-6 text-center text-base font-semibold bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl hover:from-teal-400 hover:to-teal-500 transition-all shadow-lg shadow-teal-500/25"
+                                className="block w-full py-4 px-6 text-center text-base font-semibold bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl hover:from-teal-400 hover:to-teal-500 transition-all shadow-lg shadow-teal-500/25 hover:-translate-y-0.5"
                             >
                                 Get Started Free
                             </a>
@@ -223,7 +227,7 @@ const HomePage: React.FC = () => {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <a
                             href="https://app.ontru.in/register"
-                            className="group inline-flex items-center justify-center px-8 py-4 text-base font-semibold bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl hover:from-teal-400 hover:to-teal-500 transition-all shadow-lg shadow-teal-500/25"
+                            className="group inline-flex items-center justify-center px-8 py-4 text-base font-semibold bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl hover:from-teal-400 hover:to-teal-500 transition-all shadow-lg shadow-teal-500/25 hover:-translate-y-0.5"
                         >
                             Start Your Free Trial
                             <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -232,7 +236,7 @@ const HomePage: React.FC = () => {
                         </a>
                         <Link
                             to="/contact"
-                            className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white border border-white/20 rounded-xl hover:bg-white/5 transition-all"
+                            className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white border border-white/20 rounded-xl hover:bg-white/5 hover:-translate-y-0.5 transition-all"
                         >
                             Contact Sales
                         </Link>
