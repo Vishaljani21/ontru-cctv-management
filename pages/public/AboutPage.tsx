@@ -1,27 +1,46 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-// Premium Header Component
+// Official OnTru Logo Component
+const OnTruLogo = ({ size = 'default' }: { size?: 'small' | 'default' | 'large' }) => {
+    const sizes = {
+        small: { icon: 'w-8 h-8', text: 'text-lg' },
+        default: { icon: 'w-10 h-10', text: 'text-xl' },
+        large: { icon: 'w-12 h-12', text: 'text-2xl' }
+    };
+
+    return (
+        <div className="flex items-center gap-3">
+            <div className={`${sizes[size].icon} bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20`}>
+                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                </svg>
+            </div>
+            <span className={`${sizes[size].text} font-bold text-slate-900`}>OnTru</span>
+        </div>
+    );
+};
+
+// Header Component
 const Header = () => (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-b border-white/10">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <Link to="/" className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/25">
-                    <span className="text-white font-bold text-lg">O</span>
-                </div>
-                <span className="text-xl font-semibold text-white">OnTru</span>
+            <Link to="/">
+                <OnTruLogo size="small" />
             </Link>
             <nav className="hidden md:flex items-center gap-8">
-                <Link to="/" className="text-sm text-gray-300 hover:text-white transition-colors">Home</Link>
-                <Link to="/about" className="text-sm text-white font-medium">About</Link>
-                <Link to="/pricing" className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</Link>
-                <Link to="/contact" className="text-sm text-gray-300 hover:text-white transition-colors">Contact</Link>
+                <Link to="/" className="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Home</Link>
+                <Link to="/about" className="text-sm font-medium text-slate-900 hover:text-teal-600 transition-colors">About</Link>
+                <Link to="/pricing" className="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Pricing</Link>
+                <Link to="/contact" className="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Contact</Link>
             </nav>
             <div className="flex items-center gap-4">
-                <a href="https://app.ontru.in/login" className="text-sm text-gray-300 hover:text-white transition-colors hidden sm:block">
+                <a href="https://app.ontru.in/login" className="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors hidden sm:block">
                     Log in
                 </a>
-                <a href="https://app.ontru.in/register" className="px-4 py-2 text-sm font-medium bg-white text-black rounded-lg hover:bg-gray-100 transition-colors">
+                <a href="https://app.ontru.in/register" className="px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl hover:from-teal-600 hover:to-teal-700 transition-all shadow-md shadow-teal-500/20">
                     Get Started
                 </a>
             </div>
@@ -29,55 +48,55 @@ const Header = () => (
     </header>
 );
 
-// Premium Footer Component
+// Footer Component
 const Footer = () => (
-    <footer className="bg-black text-gray-400 py-20 border-t border-white/10">
+    <footer className="bg-slate-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
                 <div className="col-span-2 md:col-span-1">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">O</span>
+                        <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center">
+                            <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
+                                <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" fill="none" />
+                                <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                            </svg>
                         </div>
-                        <span className="text-xl font-semibold text-white">OnTru</span>
+                        <span className="text-xl font-bold">OnTru</span>
                     </div>
-                    <p className="text-sm text-gray-500 leading-relaxed mb-4">
+                    <p className="text-sm text-slate-400 leading-relaxed">
                         India's #1 CCTV business management platform for modern dealers.
-                    </p>
-                    <p className="text-xs text-gray-600">
-                        By Software License Hub
                     </p>
                 </div>
                 <div>
-                    <h4 className="text-sm font-semibold text-white mb-4">Product</h4>
-                    <ul className="space-y-3 text-sm">
+                    <h4 className="text-sm font-semibold mb-4">Product</h4>
+                    <ul className="space-y-3 text-sm text-slate-400">
                         <li><Link to="/" className="hover:text-white transition-colors">Features</Link></li>
                         <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 className="text-sm font-semibold text-white mb-4">Company</h4>
-                    <ul className="space-y-3 text-sm">
+                    <h4 className="text-sm font-semibold mb-4">Company</h4>
+                    <ul className="space-y-3 text-sm text-slate-400">
                         <li><Link to="/about" className="hover:text-white transition-colors">About</Link></li>
                         <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 className="text-sm font-semibold text-white mb-4">Contact</h4>
-                    <ul className="space-y-3 text-sm">
+                    <h4 className="text-sm font-semibold mb-4">Contact</h4>
+                    <ul className="space-y-3 text-sm text-slate-400">
                         <li>
                             <a href="mailto:info@softwarelicensehub.in" className="hover:text-white transition-colors">
                                 info@softwarelicensehub.in
                             </a>
                         </li>
                         <li>+91 7777 955 344</li>
-                        <li>+91 7777 997 309</li>
                     </ul>
                 </div>
             </div>
-            <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/10 gap-4">
-                <p className="text-xs text-gray-600">© 2025 OnTru by Software License Hub. GSTIN: 24AFKFS3394E1ZT</p>
-                <p className="text-xs text-gray-600">Ahmedabad, Gujarat, India</p>
+            <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-slate-800 gap-4">
+                <p className="text-xs text-slate-500">© 2025 OnTru by Software License Hub. GSTIN: 24AFKFS3394E1ZT</p>
+                <p className="text-xs text-slate-500">Ahmedabad, Gujarat, India</p>
             </div>
         </div>
     </footer>
@@ -106,41 +125,38 @@ const values = [
     }
 ];
 
+const stats = [
+    { value: "500+", label: "Active Projects" },
+    { value: "150+", label: "Happy Dealers" },
+    { value: "12,000+", label: "Cameras Managed" },
+    { value: "99.9%", label: "Uptime" }
+];
+
 const AboutPage: React.FC = () => {
     return (
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen bg-white">
             <Header />
 
             {/* Hero Section */}
-            <section className="relative pt-32 pb-20 overflow-hidden">
-                <div className="absolute inset-0">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-violet-600/20 via-fuchsia-600/10 to-transparent rounded-full blur-3xl"></div>
-                </div>
-
-                <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-                    <h1 className="text-5xl sm:text-6xl font-bold tracking-tight mb-6">
-                        <span className="text-white">About </span>
-                        <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">OnTru</span>
+            <section className="pt-32 pb-16 bg-gradient-to-b from-slate-50 to-white">
+                <div className="max-w-4xl mx-auto px-6 text-center">
+                    <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight mb-6">
+                        About <span className="text-teal-600">OnTru</span>
                     </h1>
-                    <p className="text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto">
+                    <p className="text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">
                         Empowering CCTV businesses with technology built specifically for the security installation industry.
                     </p>
                 </div>
             </section>
 
             {/* Stats */}
-            <section className="py-16">
+            <section className="py-12">
                 <div className="max-w-5xl mx-auto px-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {[
-                            { value: "500+", label: "Active Projects" },
-                            { value: "150+", label: "Happy Dealers" },
-                            { value: "12,000+", label: "Cameras Managed" },
-                            { value: "99.9%", label: "Uptime" }
-                        ].map((stat, idx) => (
-                            <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
-                                <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
-                                <div className="text-sm text-gray-500">{stat.label}</div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {stats.map((stat, idx) => (
+                            <div key={idx} className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center">
+                                <div className="text-3xl font-bold text-slate-900 mb-1">{stat.value}</div>
+                                <div className="text-sm text-slate-500">{stat.label}</div>
                             </div>
                         ))}
                     </div>
@@ -148,15 +164,15 @@ const AboutPage: React.FC = () => {
             </section>
 
             {/* Story Section */}
-            <section className="py-20 bg-gradient-to-b from-black to-gray-950">
+            <section className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                         <div>
-                            <div className="text-sm text-violet-400 font-medium mb-4">OUR STORY</div>
-                            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+                            <div className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-4">Our Story</div>
+                            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-6">
                                 Built by Industry Experts
                             </h2>
-                            <div className="space-y-4 text-gray-400 leading-relaxed">
+                            <div className="space-y-4 text-slate-600 leading-relaxed">
                                 <p>
                                     OnTru was founded with a simple mission: to simplify the complex operations of CCTV dealers
                                     and system integrators. We understand that managing inventory, technicians, projects, and
@@ -172,18 +188,16 @@ const AboutPage: React.FC = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-gradient-to-br from-violet-600/20 via-fuchsia-600/10 to-transparent p-px rounded-3xl">
-                            <div className="bg-gray-950 rounded-3xl p-10">
-                                <h3 className="text-xl font-bold text-white mb-4">Our Vision</h3>
-                                <p className="text-gray-400 mb-8 leading-relaxed">
-                                    To be the leading operational backbone for security system integrators globally,
-                                    fostering efficiency and transparency in the industry.
-                                </p>
-                                <div className="pt-6 border-t border-white/10">
-                                    <div className="text-sm text-violet-400 font-medium mb-2">A Product By</div>
-                                    <div className="text-xl font-bold text-white mb-1">Software License Hub</div>
-                                    <p className="text-sm text-gray-500">GSTIN: 24AFKFS3394E1ZT</p>
-                                </div>
+                        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-10">
+                            <h3 className="text-xl font-bold text-slate-900 mb-4">Our Vision</h3>
+                            <p className="text-slate-600 mb-8 leading-relaxed">
+                                To be the leading operational backbone for security system integrators globally,
+                                fostering efficiency and transparency in the industry.
+                            </p>
+                            <div className="pt-6 border-t border-slate-200">
+                                <div className="text-sm font-semibold text-teal-600 mb-2">A Product By</div>
+                                <div className="text-xl font-bold text-slate-900 mb-1">Software License Hub</div>
+                                <p className="text-sm text-slate-500">GSTIN: 24AFKFS3394E1ZT</p>
                             </div>
                         </div>
                     </div>
@@ -191,13 +205,13 @@ const AboutPage: React.FC = () => {
             </section>
 
             {/* Values Section */}
-            <section className="py-24 bg-black">
+            <section className="py-20 bg-slate-50">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
                             What Drives Us
                         </h2>
-                        <p className="text-lg text-gray-400">
+                        <p className="text-lg text-slate-600">
                             Core principles that guide everything we do.
                         </p>
                     </div>
@@ -206,11 +220,11 @@ const AboutPage: React.FC = () => {
                         {values.map((value, idx) => (
                             <div
                                 key={idx}
-                                className="group p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-violet-500/50 transition-all"
+                                className="p-8 rounded-2xl bg-white border border-slate-200 hover:border-teal-300 hover:shadow-lg transition-all"
                             >
-                                <div className="text-4xl mb-6">{value.icon}</div>
-                                <h3 className="text-lg font-semibold text-white mb-2">{value.title}</h3>
-                                <p className="text-sm text-gray-400 leading-relaxed">{value.description}</p>
+                                <div className="text-4xl mb-5">{value.icon}</div>
+                                <h3 className="text-lg font-bold text-slate-900 mb-2">{value.title}</h3>
+                                <p className="text-sm text-slate-600 leading-relaxed">{value.description}</p>
                             </div>
                         ))}
                     </div>
@@ -218,24 +232,24 @@ const AboutPage: React.FC = () => {
             </section>
 
             {/* CTA Section */}
-            <section className="py-24 bg-gradient-to-b from-black to-gray-950">
+            <section className="py-20 bg-gradient-to-r from-teal-500 to-teal-600">
                 <div className="max-w-4xl mx-auto px-6 text-center">
                     <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
                         Ready to transform your business?
                     </h2>
-                    <p className="text-lg text-gray-400 mb-10">
+                    <p className="text-lg text-teal-100 mb-10">
                         Join hundreds of successful CCTV dealers who run smarter with OnTru.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <a
                             href="https://app.ontru.in/register"
-                            className="inline-flex items-center justify-center px-8 py-4 text-base font-medium bg-white text-black rounded-xl hover:bg-gray-100 transition-all"
+                            className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold bg-white text-teal-600 rounded-xl hover:bg-teal-50 transition-all shadow-lg"
                         >
                             Start Free Trial
                         </a>
                         <Link
                             to="/contact"
-                            className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+                            className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white border-2 border-white/30 rounded-xl hover:bg-white/10 transition-all"
                         >
                             Contact Sales
                         </Link>
