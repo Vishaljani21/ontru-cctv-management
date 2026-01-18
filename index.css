@@ -797,3 +797,41 @@ body .react-datepicker__navigation-icon::before {
 .dark .text-gray-400 {
   color: #737373 !important;
 }
+
+/* Fix for modal inputs - ensure they're always interactive */
+[role="dialog"] input,
+[role="dialog"] textarea,
+[role="dialog"] select,
+.modal input,
+.modal textarea,
+.modal select {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10;
+}
+
+/* Ensure dark mode form inputs in modals have correct styling */
+.dark [role="dialog"] input,
+.dark .modal input,
+.dark [role="dialog"] textarea,
+.dark .modal textarea {
+  background-color: #1a1a1a !important;
+  color: #fafafa !important;
+  border-color: #404040 !important;
+  caret-color: #14b8a6 !important;
+}
+
+.dark [role="dialog"] input::placeholder,
+.dark .modal input::placeholder,
+.dark [role="dialog"] textarea::placeholder,
+.dark .modal textarea::placeholder {
+  color: #737373 !important;
+}
+
+.dark [role="dialog"] input:focus,
+.dark .modal input:focus,
+.dark [role="dialog"] textarea:focus,
+.dark .modal textarea:focus {
+  border-color: #14b8a6 !important;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2) !important;
+}
