@@ -402,66 +402,30 @@ export const api = {
 
         // 1. Create Login Credential if email/pass provided
         if (technicianData.email && technicianData.password) {
-            // We use a separate client to avoid logging out the current dealer
-            // Using standard import for createClient
-            const { createClient } = await import('@supabase/supabase-js');
-
-            // Allow both Vite and standard env vars
-            // @ts-ignore
-            const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-            // @ts-ignore
-            const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-
-            const tempClient = createClient(supabaseUrl, supabaseKey, {
-                auth: {
-                    persistSession: false,
-                    autoRefreshToken: false,
-                    detectSessionInUrl: false
-                }
+            // Use RPC to create user directly in database (bypasses broken GoTrue identity creation)
+            const { data: newUserId, error: rpcError } = await supabase.rpc('create_technician_user', {
+                p_email: technicianData.email,
+                p_password: technicianData.password,
+                p_name: technicianData.name,
+                p_phone: technicianData.phone || ''
             });
 
-            let authResponse = await tempClient.auth.signUp({
-                email: technicianData.email,
-                password: technicianData.password,
-                options: {
-                    data: {
-                        name: technicianData.name,
-                        role: 'technician',
-                        phone: technicianData.phone
-                    }
-                }
-            });
-
-            if (authResponse.error && authResponse.error.message.includes("already registered")) {
-                console.log("User already exists, attempting to sign in to retrieve ID...");
-                // Attempt to sign in to get the ID (since Dealer provided the password)
-                const signInResponse = await tempClient.auth.signInWithPassword({
-                    email: technicianData.email,
-                    password: technicianData.password
-                });
-
-                if (signInResponse.error) {
-                    throw new Error(`User already registered. Failed to sign in: ${signInResponse.error.message}`);
-                }
-                // Use the existing user session
-                authResponse = { data: { user: signInResponse.data.user }, error: null } as any;
-            } else if (authResponse.error) {
-                console.error("Failed to create auth user:", authResponse.error);
-                throw new Error(`Failed to create login: ${authResponse.error.message}`);
+            if (rpcError) {
+                console.error("Failed to create auth user via RPC:", rpcError);
+                throw new Error(`Failed to create login: ${rpcError.message}`);
             }
 
-            if (authResponse.data?.user) {
-                techUserId = authResponse.data.user.id;
+            techUserId = newUserId;
 
-                // 2. Ensure Profile entry exists/updates USING TEMP CLIENT (as the user themselves)
-                const { error: profileError } = await tempClient
+            // 2. Ensure Profile entry exists/updates
+            if (techUserId) {
+                const { error: profileError } = await supabase
                     .from('profiles')
                     .upsert({
                         id: techUserId,
                         name: technicianData.name,
                         role: 'technician',
                         phone: technicianData.phone,
-                        // Don't overwrite created_at if exists
                     }, { onConflict: 'id' });
 
                 if (profileError) console.error("Failed to upsert profile:", profileError);
