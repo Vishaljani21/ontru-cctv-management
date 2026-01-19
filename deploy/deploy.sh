@@ -304,7 +304,11 @@ sleep 15
 
 # Step 1: Run bootstrap FIRST (roles, schemas only - NO auth tables!)
 echo -e "${YELLOW}Running bootstrap (roles and schemas)...${NC}"
-# docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/00000000000000_supabase_bootstrap.sql
+docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres < supabase/migrations/00000000000000_supabase_bootstrap.sql
+
+# Set authenticator password to match POSTGRES_PASSWORD (env var was loaded earlier)
+echo -e "${YELLOW}Setting authenticator role password...${NC}"
+docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres -c "ALTER ROLE authenticator WITH PASSWORD '$POSTGRES_PASSWORD';"
 
 # Step 2: Wait for GoTrue to create auth schema (it does this automatically on startup)
 echo -e "${YELLOW}Waiting for GoTrue to initialize auth schema...${NC}"
