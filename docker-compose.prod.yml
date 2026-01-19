@@ -85,6 +85,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: postgres
       POSTGRES_DB: postgres
+      # Required for PostgREST to connect as authenticator
+      AUTHENTICATOR_PASSWORD: ${POSTGRES_PASSWORD}
     healthcheck:
       test: pg_isready -U postgres -h localhost
       interval: 5s
