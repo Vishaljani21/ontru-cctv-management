@@ -283,7 +283,7 @@ if [ ! -d "deploy/ssl/live/$DOMAIN" ]; then
         --agree-tos \
         --no-eff-email \
         --non-interactive \
-        -d $DOMAIN
+        -d $DOMAIN -d www.$DOMAIN -d app.$DOMAIN
 fi
 
 # ==========================================
