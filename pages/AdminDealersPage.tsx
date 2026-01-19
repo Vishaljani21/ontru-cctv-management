@@ -5,6 +5,7 @@ import Skeleton from '../components/Skeleton';
 import StatsCard from '../components/StatsCard';
 import { UserIcon, SearchIcon, FilterIcon, EyeIcon, CrossIcon, TrashIcon, CrownIcon, CheckCircleIcon, AlertTriangleIcon } from '../components/icons';
 import Modal from '../components/Modal';
+import { handleError } from '../utils/errorHandler';
 
 const AdminDealersPage: React.FC = () => {
     const [dealers, setDealers] = useState<DealerInfo[]>([]);
@@ -29,8 +30,8 @@ const AdminDealersPage: React.FC = () => {
             console.log("Fetched Dealers:", data);
             setDealers(data);
         } catch (err: any) {
-            console.error("Failed to fetch dealers", err);
-            setError(err.message || "Unknown error occurred");
+            const friendlyMessage = handleError(err, 'Fetch Dealers');
+            setError(friendlyMessage);
         } finally {
             setLoading(false);
         }
@@ -41,9 +42,9 @@ const AdminDealersPage: React.FC = () => {
             try {
                 await api.deleteDealer(id);
                 setDealers(dealers.filter(d => d.id !== id));
-            } catch (error) {
-                alert('Failed to delete dealer');
-                console.error(error);
+            } catch (error: any) {
+                const friendlyMessage = handleError(error, 'Delete Dealer');
+                alert(friendlyMessage);
             }
         }
     };
@@ -96,8 +97,8 @@ const AdminDealersPage: React.FC = () => {
             alert("Dealer created successfully!");
             fetchDealers();
         } catch (error: any) {
-            console.error("Failed to create dealer", error);
-            alert("Failed to create dealer: " + (error.message || "Unknown error"));
+            const friendlyMessage = handleError(error, 'Create Dealer');
+            alert(friendlyMessage);
         } finally {
             setCreateLoading(false);
         }

@@ -2,18 +2,14 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../components/contexts';
+import { handleError } from '../utils/errorHandler';
 
 const LoginPage: React.FC = () => {
   const [role, setRole] = useState<'dealer' | 'technician' | 'admin'>('dealer');
-  const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password');
-
   const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('password123');
-  const [otp, setOtp] = useState('');
-
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -29,31 +25,11 @@ const LoginPage: React.FC = () => {
   }, [authContext, navigate]);
 
   useEffect(() => {
-    if (role === 'admin') {
-      setIdentifier('admin@ontru.com');
-      setPassword('admin123');
-    } else {
-      setIdentifier(role === 'dealer' ? 'dealer@example.com' : '9876543210');
-      setPassword('password123');
-    }
-    setOtp('');
+    // Clear form on role change
+    setIdentifier('');
+    setPassword('');
     setError(null);
-    setLoginMethod('password');
-    setOtpSent(false);
   }, [role]);
-
-  const handleSendOtp = async () => {
-    if (!identifier) {
-      setError(role === 'dealer' ? 'Please enter your email or phone.' : 'Please enter your phone number.');
-      return;
-    }
-    setIsLoading(true);
-    console.log(`Sending OTP to ${identifier}`);
-    await new Promise(res => setTimeout(res, 1000));
-    setOtpSent(true);
-    setIsLoading(false);
-    setError(null);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,16 +39,9 @@ const LoginPage: React.FC = () => {
     try {
       await authContext?.login(identifier, password);
     } catch (err: any) {
-      console.error("Login Error:", err);
-      let message = err.message || 'Incorrect credentials. Please try again.';
-      // Make error message more user-friendly
-      if (message.includes('fetch') || message.includes('network') || message.includes('Failed to fetch')) {
-        message = `Unable to connect to ${import.meta.env.VITE_SUPABASE_URL}`;
-        console.error('Connection failed to:', import.meta.env.VITE_SUPABASE_URL);
-      }
-      // Enhanced Debugging for {} error
-      console.error("FULL LOGIN ERROR OBJ:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
-      setError(`${message} (API: ${import.meta.env.VITE_SUPABASE_URL})`);
+      // Use friendly error handler - no technical details shown to user
+      const friendlyMessage = handleError(err, 'Login');
+      setError(friendlyMessage);
       setIsLoading(false);
     }
   };
@@ -101,7 +70,7 @@ const LoginPage: React.FC = () => {
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Sign in to your account</p>
           </div>
 
-          {/* Role Tabs - Enhanced visibility */}
+          {/* Role Tabs */}
           <div className="flex items-center p-1.5 bg-slate-200 dark:bg-slate-800 rounded-xl">
             <button
               onClick={() => setRole('dealer')}
@@ -145,70 +114,31 @@ const LoginPage: React.FC = () => {
             </div>
 
             {/* Password Field */}
-            {loginMethod === 'password' ? (
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-                  className="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
-                  placeholder="Enter Password"
-                />
-              </div>
-            ) : (
-              <div>
-                <label htmlFor="otp" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Enter OTP
-                </label>
-                <div className="flex gap-3">
-                  <input
-                    id="otp"
-                    name="otp"
-                    type="text"
-                    required
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-                    className="flex-1 px-4 py-3.5 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
-                    placeholder="6-digit code"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    disabled={isLoading || otpSent}
-                    className="px-4 py-3 text-sm font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/20 border-2 border-teal-200 dark:border-teal-500/40 rounded-xl hover:bg-teal-100 dark:hover:bg-teal-500/30 disabled:opacity-50 whitespace-nowrap transition-all"
-                  >
-                    {otpSent ? 'Resend' : 'Send OTP'}
-                  </button>
-                </div>
-              </div>
-            )}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                className="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                placeholder="Enter Password"
+              />
+            </div>
 
-            {/* Toggle Login Method */}
-            {role !== 'admin' && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setLoginMethod(prev => prev === 'password' ? 'otp' : 'password')}
-                  className="text-sm font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
-                >
-                  {loginMethod === 'password' ? 'Use OTP' : 'Use Password'}
-                </button>
-              </div>
-            )}
-
-            {/* Error Message */}
+            {/* Error Message - User Friendly */}
             {error && (
-              <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-2 border-red-200 dark:border-red-500/30 rounded-xl text-center">
-                {error}
+              <div className="p-4 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-3">
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{error}</span>
               </div>
             )}
 
@@ -227,7 +157,7 @@ const LoginPage: React.FC = () => {
                   <span>Signing In...</span>
                 </>
               ) : (
-                <span>{loginMethod === 'otp' ? 'Verify & Sign In' : 'Sign In'}</span>
+                <span>Sign In</span>
               )}
             </button>
           </form>
