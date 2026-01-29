@@ -2515,7 +2515,15 @@ export const api = {
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single();
         const role = profile?.role;
 
-        let query = supabase.from('complaints').select('*, customers(company_name)');
+        let query = supabase.from('complaints').select(`
+            *,
+            customers(company_name),
+            complaint_assignments!left(
+                technician_id,
+                is_active,
+                technicians(id, name, phone)
+            )
+        `);
 
         if (role === 'dealer') {
             query = query.eq('user_id', userId);
@@ -2542,7 +2550,22 @@ export const api = {
         const { data, error } = await query.order('created_at', { ascending: false });
         if (error) throw error;
 
-        return data.map(transformComplaint);
+        return data.map((row: any) => {
+            // Find active assignment and get technician
+            const activeAssignment = row.complaint_assignments?.find((a: any) => a.is_active);
+            const assignedTechnician = activeAssignment?.technicians ? {
+                id: activeAssignment.technicians.id,
+                name: activeAssignment.technicians.name,
+                phone: activeAssignment.technicians.phone,
+                specialization: '', // Default as not fetched
+                status: 'active' as const // Default
+            } : undefined;
+
+            return {
+                ...transformComplaint(row),
+                assignedTechnician
+            };
+        });
     },
 
     getComplaintById: async (id: number): Promise<Complaint | null> => {
