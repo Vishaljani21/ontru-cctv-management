@@ -124,8 +124,8 @@ const PublicPricingPage: React.FC = () => {
                             <div
                                 key={index}
                                 className={`relative rounded-2xl overflow-hidden flex flex-col transition-all duration-300 ${plan.popular
-                                        ? 'bg-gradient-to-b from-teal-500/10 to-slate-900 border-2 border-teal-500/50 scale-[1.02] shadow-2xl shadow-teal-500/10'
-                                        : 'bg-slate-900/80 border border-white/10 hover:border-white/20'
+                                    ? 'bg-gradient-to-b from-teal-500/10 to-slate-900 border-2 border-teal-500/50 scale-[1.02] shadow-2xl shadow-teal-500/10'
+                                    : 'bg-slate-900/80 border border-white/10 hover:border-white/20'
                                     }`}
                             >
                                 {plan.popular && (
@@ -150,11 +150,15 @@ const PublicPricingPage: React.FC = () => {
                                     <a
                                         href={plan.name === 'Enterprise' ? '/contact' : 'https://app.ontru.in/register'}
                                         className={`block w-full py-3.5 px-6 rounded-xl font-semibold text-center transition-all ${plan.popular
-                                                ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white hover:from-teal-400 hover:to-teal-500 shadow-lg shadow-teal-500/25'
-                                                : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
+                                            ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white hover:from-teal-400 hover:to-teal-500 shadow-lg shadow-teal-500/25'
+                                            : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
                                             }`}
                                     >
                                         {plan.cta}
+                                    </a>
+
+                                    <a href="tel:+917777955344" className="block text-center mt-3 text-sm font-medium text-slate-400 hover:text-teal-400 transition-colors">
+                                        <span className="mr-1">📞</span> Call: +91 7777 955 344
                                     </a>
                                 </div>
 
@@ -181,10 +185,10 @@ const PublicPricingPage: React.FC = () => {
                         All plans include 14-day free trial • No credit card required • Cancel anytime
                     </p>
                 </div>
-            </section>
+            </section >
 
             {/* FAQ Section */}
-            <section className="py-24 bg-slate-900/50">
+            < section className="py-24 bg-slate-900/50" >
                 <div className="max-w-4xl mx-auto px-6">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl font-bold text-white mb-4">
@@ -204,10 +208,10 @@ const PublicPricingPage: React.FC = () => {
                         ))}
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* CTA Section */}
-            <section className="py-24">
+            < section className="py-24" >
                 <div className="max-w-4xl mx-auto px-6 text-center">
                     <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
                         Need a custom solution?
@@ -225,8 +229,8 @@ const PublicPricingPage: React.FC = () => {
                         </svg>
                     </Link>
                 </div>
-            </section>
-        </div>
+            </section >
+        </div >
     );
 };
 
