@@ -375,6 +375,15 @@ export const api = {
         return transformCustomer(data);
     },
 
+    deleteCustomer: async (customerId: number): Promise<void> => {
+        const { error } = await supabase
+            .from('customers')
+            .delete()
+            .eq('id', customerId);
+
+        if (error) throw error;
+    },
+
     // ==========================================
     // TECHNICIANS
     // ==========================================
