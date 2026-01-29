@@ -37,13 +37,37 @@ const ComplaintsPage: React.FC = () => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'New': return 'bg-primary-100 text-primary-700 border-primary-200';
-            case 'Assigned': return 'bg-primary-100 text-primary-700 border-primary-200';
-            case 'In Progress': return 'bg-amber-100 text-amber-700 border-amber-200';
-            case 'Resolved': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-            case 'Closed': return 'bg-slate-100 text-slate-700 border-slate-200';
-            case 'Cancelled': return 'bg-red-50 text-red-600 border-red-100';
-            default: return 'bg-slate-50 text-slate-600';
+            case 'New': return 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700';
+            case 'Assigned': return 'bg-violet-100 text-violet-700 border-violet-300 dark:bg-violet-900/30 dark:text-violet-400 dark:border-violet-700';
+            case 'In Progress': return 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700';
+            case 'Resolved': return 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700';
+            case 'Closed': return 'bg-slate-200 text-slate-700 border-slate-400 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600';
+            case 'Cancelled': return 'bg-red-100 text-red-600 border-red-300 dark:bg-red-900/30 dark:text-red-400 dark:border-red-700';
+            default: return 'bg-slate-100 text-slate-600 border-slate-300';
+        }
+    };
+
+    // Card border color based on status
+    const getCardBorderColor = (status: string) => {
+        switch (status) {
+            case 'New': return 'border-l-blue-500';
+            case 'Assigned': return 'border-l-violet-500';
+            case 'In Progress': return 'border-l-amber-500';
+            case 'Resolved': return 'border-l-emerald-500';
+            case 'Closed': return 'border-l-slate-500';
+            case 'Cancelled': return 'border-l-red-500';
+            default: return 'border-l-slate-400';
+        }
+    };
+
+    // Card background tint based on status
+    const getCardBackground = (status: string) => {
+        switch (status) {
+            case 'Resolved': return 'bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-900/10 dark:to-slate-900';
+            case 'In Progress': return 'bg-gradient-to-r from-amber-50 to-white dark:from-amber-900/10 dark:to-slate-900';
+            case 'New': return 'bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/10 dark:to-slate-900';
+            case 'Assigned': return 'bg-gradient-to-r from-violet-50 to-white dark:from-violet-900/10 dark:to-slate-900';
+            default: return 'bg-white dark:bg-slate-900';
         }
     };
 
@@ -131,24 +155,24 @@ const ComplaintsPage: React.FC = () => {
                         <Link
                             to={`/complaints/${complaint.id}`}
                             key={complaint.id}
-                            className="group block bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 hover:border-primary-500 hover:shadow-lg transition-all duration-300"
+                            className={`group block rounded-2xl p-5 border-l-4 border border-slate-100 dark:border-slate-800 hover:border-primary-500 hover:shadow-lg hover:shadow-primary-500/10 transition-all duration-300 ${getCardBorderColor(complaint.status)} ${getCardBackground(complaint.status)}`}
                         >
                             <div className="flex flex-col md:flex-row justify-between gap-4">
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="text-xs font-bold text-slate-400 font-mono tracking-wider">{complaint.complaintId}</span>
-                                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${getStatusColor(complaint.status)}`}>
+                                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 font-mono tracking-wider bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">{complaint.complaintId}</span>
+                                        <span className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase border ${getStatusColor(complaint.status)}`}>
                                             {complaint.status}
                                         </span>
-                                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300">
                                             {getPriorityIcon(complaint.priority)}
                                             {complaint.priority}
                                         </div>
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white group-hover:text-primary-600 transition-colors mb-1">
+                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white group-hover:text-primary-600 transition-colors mb-2 leading-snug">
                                         {complaint.title}
                                     </h3>
-                                    <p className="text-sm text-slate-500 line-clamp-1">{complaint.description}</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{complaint.description}</p>
 
                                     <div className="mt-4 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-500">
                                         <span className="flex items-center gap-1">
