@@ -2757,6 +2757,180 @@ export const api = {
         });
 
         if (error) throw error;
+    },
+
+    // ==========================================
+    // JOB CARDS
+    // ==========================================
+
+    // Create job card from a resolved complaint
+    createJobCard: async (complaintId: number): Promise<any> => {
+        const { data, error } = await supabase.rpc('create_job_card_from_complaint', {
+            p_complaint_id: complaintId
+        });
+
+        if (error) throw error;
+        return data;
+    },
+
+    // Get job card by complaint ID
+    getJobCardByComplaint: async (complaintId: number): Promise<any | null> => {
+        const { data, error } = await supabase
+            .from('job_cards')
+            .select(`
+                *,
+                technicians(name)
+            `)
+            .eq('complaint_id', complaintId)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+        if (!data) return null;
+
+        return {
+            id: data.id,
+            jobCardNumber: data.job_card_number,
+            complaintId: data.complaint_id,
+            dealerId: data.dealer_id,
+            technicianId: data.technician_id,
+            customerId: data.customer_id,
+            customerName: data.customer_name,
+            customerPhone: data.customer_phone,
+            customerAddress: data.customer_address,
+            customerCity: data.customer_city,
+            complaintTitle: data.complaint_title,
+            complaintCategory: data.complaint_category,
+            workDone: data.work_done,
+            partsUsed: data.parts_used,
+            resolutionNotes: data.resolution_notes,
+            serviceDate: data.service_date,
+            arrivalTime: data.arrival_time,
+            departureTime: data.departure_time,
+            technicianSignature: data.technician_signature,
+            customerSignature: data.customer_signature,
+            status: data.status,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+            technicianName: data.technicians?.name
+        };
+    },
+
+    // Get all job cards for dealer
+    getJobCards: async (): Promise<any[]> => {
+        const userId = await getCurrentUserId();
+        const { data, error } = await supabase
+            .from('job_cards')
+            .select(`
+                *,
+                technicians(name),
+                complaints(complaint_id)
+            `)
+            .eq('dealer_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return (data || []).map((jc: any) => ({
+            id: jc.id,
+            jobCardNumber: jc.job_card_number,
+            complaintId: jc.complaint_id,
+            dealerId: jc.dealer_id,
+            technicianId: jc.technician_id,
+            customerId: jc.customer_id,
+            customerName: jc.customer_name,
+            customerPhone: jc.customer_phone,
+            customerAddress: jc.customer_address,
+            customerCity: jc.customer_city,
+            complaintTitle: jc.complaint_title,
+            complaintCategory: jc.complaint_category,
+            workDone: jc.work_done,
+            partsUsed: jc.parts_used,
+            resolutionNotes: jc.resolution_notes,
+            serviceDate: jc.service_date,
+            arrivalTime: jc.arrival_time,
+            departureTime: jc.departure_time,
+            status: jc.status,
+            createdAt: jc.created_at,
+            updatedAt: jc.updated_at,
+            technicianName: jc.technicians?.name,
+            complaintNo: jc.complaints?.complaint_id
+        }));
+    },
+
+    // Get job cards for technician
+    getMyJobCards: async (): Promise<any[]> => {
+        const userId = await getCurrentUserId();
+
+        // Get technician ID from profile
+        const { data: techData } = await supabase
+            .from('technicians')
+            .select('id')
+            .eq('profile_id', userId)
+            .single();
+
+        if (!techData) return [];
+
+        const { data, error } = await supabase
+            .from('job_cards')
+            .select(`
+                *,
+                complaints(complaint_id)
+            `)
+            .eq('technician_id', techData.id)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return (data || []).map((jc: any) => ({
+            id: jc.id,
+            jobCardNumber: jc.job_card_number,
+            complaintId: jc.complaint_id,
+            dealerId: jc.dealer_id,
+            technicianId: jc.technician_id,
+            customerId: jc.customer_id,
+            customerName: jc.customer_name,
+            customerPhone: jc.customer_phone,
+            customerAddress: jc.customer_address,
+            customerCity: jc.customer_city,
+            complaintTitle: jc.complaint_title,
+            complaintCategory: jc.complaint_category,
+            workDone: jc.work_done,
+            partsUsed: jc.parts_used,
+            resolutionNotes: jc.resolution_notes,
+            serviceDate: jc.service_date,
+            status: jc.status,
+            createdAt: jc.created_at,
+            complaintNo: jc.complaints?.complaint_id
+        }));
+    },
+
+    // Update job card (work done, parts used, signatures)
+    updateJobCard: async (id: number, updates: {
+        workDone?: string;
+        partsUsed?: string;
+        resolutionNotes?: string;
+        arrivalTime?: string;
+        departureTime?: string;
+        technicianSignature?: string;
+        customerSignature?: string;
+        status?: string;
+    }): Promise<void> => {
+        const { error } = await supabase
+            .from('job_cards')
+            .update({
+                work_done: updates.workDone,
+                parts_used: updates.partsUsed,
+                resolution_notes: updates.resolutionNotes,
+                arrival_time: updates.arrivalTime,
+                departure_time: updates.departureTime,
+                technician_signature: updates.technicianSignature,
+                customer_signature: updates.customerSignature,
+                status: updates.status,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id);
+
+        if (error) throw error;
     }
 };
 

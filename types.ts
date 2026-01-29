@@ -537,3 +537,53 @@ export interface ComplaintStats {
   assigned?: number; // For Technician
   inProgress?: number; // For Technician
 }
+
+// ==========================================
+// JOB CARD TYPES
+// ==========================================
+
+export type JobCardDocStatus = 'draft' | 'completed' | 'signed';
+
+export interface JobCard {
+  id: number;
+  jobCardNumber: string; // JC-YYYY-0001
+  complaintId: number;
+  dealerId: string;
+  technicianId?: number;
+  customerId: number;
+
+  // Customer Snapshot
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  customerCity?: string;
+
+  // Complaint Info
+  complaintTitle: string;
+  complaintCategory: string;
+
+  // Service Details
+  workDone?: string;
+  partsUsed?: string;
+  resolutionNotes?: string;
+
+  // Times
+  serviceDate: string;
+  arrivalTime?: string;
+  departureTime?: string;
+
+  // Signatures
+  technicianSignature?: string;
+  customerSignature?: string;
+
+  // Status
+  status: JobCardDocStatus;
+
+  createdAt: string;
+  updatedAt: string;
+
+  // Joined fields for display
+  technicianName?: string;
+  complaintNo?: string;
+}
+

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
-import { Complaint, ComplaintHistory, ComplaintNote, ComplaintStatus, Technician } from '../types';
-import { ClockIcon, MapPinIcon, UserIcon, PhoneIcon, ChevronRightIcon } from '../components/icons';
+import { Complaint, ComplaintHistory, ComplaintNote, ComplaintStatus, Technician, DealerInfo } from '../types';
+import { ClockIcon, MapPinIcon, UserIcon, PhoneIcon, ChevronRightIcon, PrinterIcon } from '../components/icons';
 import { AuthContext } from '../components/contexts';
 import Modal from '../components/Modal';
+import JobCardModal from '../components/JobCardModal';
 
 const ComplaintDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -25,6 +26,8 @@ const ComplaintDetailsPage: React.FC = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [editForm, setEditForm] = useState({ title: '', description: '', category: '', priority: '' });
     const [savingEdit, setSavingEdit] = useState(false);
+    const [showJobCardModal, setShowJobCardModal] = useState(false);
+    const [dealerInfo, setDealerInfo] = useState<DealerInfo | null>(null);
 
     const isTechnician = authContext?.user?.role === 'technician';
 
@@ -42,6 +45,11 @@ const ComplaintDetailsPage: React.FC = () => {
             setHistory(historyData);
             const notesData = await api.getComplaintNotes(complaintId);
             setNotes(notesData);
+            // Load dealer info for job card
+            try {
+                const dealer = await api.getDealerInfo();
+                setDealerInfo(dealer);
+            } catch (e) { /* ignore */ }
         } catch (error) {
             console.error("Failed to load complaint details", error);
         } finally {
@@ -180,6 +188,18 @@ const ComplaintDetailsPage: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
+            {/* Job Card Modal */}
+            <JobCardModal
+                isOpen={showJobCardModal}
+                onClose={() => setShowJobCardModal(false)}
+                complaintId={complaint?.id || 0}
+                dealerInfo={dealerInfo ? {
+                    companyName: dealerInfo.companyName,
+                    address: dealerInfo.address,
+                    mobile: dealerInfo.mobile
+                } : undefined}
+            />
+
             {/* Technician Assignment Modal */}
             {showAssignModal && (
                 <Modal isOpen={true} title="Assign Technician" onClose={() => setShowAssignModal(false)}>
@@ -486,6 +506,17 @@ const ComplaintDetailsPage: React.FC = () => {
                                     </>
                                 )}
                             </div>
+                        )}
+
+                        {/* View Job Card Button - Show for Resolved/Closed complaints */}
+                        {(complaint.status === 'Resolved' || complaint.status === 'Closed') && (
+                            <button
+                                onClick={() => setShowJobCardModal(true)}
+                                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:-translate-y-0.5 flex items-center gap-2"
+                            >
+                                <PrinterIcon className="w-4 h-4" />
+                                View Job Card
+                            </button>
                         )}
                     </div>
                 </div>
