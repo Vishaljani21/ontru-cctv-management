@@ -130,7 +130,7 @@ const RegisterPage: React.FC = () => {
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-3.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
+                  className="block w-full pl-10 pr-4 py-3.5 border border-slate-300 dark:border-slate-500 rounded-xl bg-white dark:bg-white text-slate-900 dark:text-slate-900 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                   placeholder="name@company.com"
                 />
               </div>
@@ -147,7 +147,7 @@ const RegisterPage: React.FC = () => {
                   required
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-3.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
+                  className="block w-full pl-10 pr-4 py-3.5 border border-slate-300 dark:border-slate-500 rounded-xl bg-white dark:bg-white text-slate-900 dark:text-slate-900 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                   placeholder="+91 98765 43210"
                 />
               </div>
@@ -162,7 +162,7 @@ const RegisterPage: React.FC = () => {
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="block w-full px-4 py-3.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
+                    className="block w-full px-4 py-3.5 border border-slate-300 dark:border-slate-500 rounded-xl bg-white dark:bg-white text-slate-900 dark:text-slate-900 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                     placeholder="••••••••"
                   />
                 </div>
@@ -175,7 +175,7 @@ const RegisterPage: React.FC = () => {
                     required
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
-                    className="block w-full px-4 py-3.5 pr-10 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
+                    className="block w-full px-4 py-3.5 pr-10 border border-slate-300 dark:border-slate-500 rounded-xl bg-white dark:bg-white text-slate-900 dark:text-slate-900 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                     placeholder="••••••••"
                   />
                   <button
