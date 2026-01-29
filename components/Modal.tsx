@@ -63,8 +63,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidt
                     </button>
                 </div>
 
-                {/* Body */}
-                <div className={`p-6 custom-scrollbar ${allowOverflow ? 'overflow-visible' : 'overflow-y-auto'}`}>
+                {/* Body - always scrollable to prevent overflow */}
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
                     {children}
                 </div>
             </div>

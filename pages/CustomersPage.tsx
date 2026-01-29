@@ -220,7 +220,7 @@ const CustomersPage: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in-up pb-10">
-            {isModalOpen && <Modal isOpen={true} title={editingCustomer ? "Edit Customer" : "Add New Customer"} onClose={handleCloseModal} allowOverflow>
+            {isModalOpen && <Modal isOpen={true} title={editingCustomer ? "Edit Customer" : "Add New Customer"} onClose={handleCloseModal} maxWidth="max-w-2xl">
                 <CustomerForm onSave={handleSave} onCancel={handleCloseModal} customer={editingCustomer} />
             </Modal>}
 
