@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Complaint, ComplaintStats } from '../types';
 import { api } from '../services/api';
-import { ProjectIcon, UsersIcon, DocumentTextIcon, ChevronRightIcon } from '../components/icons';
+import { ClipboardDocumentListIcon, AlertTriangleIcon, CheckCircleIcon, CalendarIcon, ChevronRightIcon } from '../components/icons';
 import StatsCard from '../components/StatsCard';
 
 // Premium Section Container
@@ -21,10 +21,6 @@ const SectionContainer: React.FC<{ title: string; children: React.ReactNode; act
     </div>
 );
 
-// Simplified Icons for local usage
-const CheckCircleIcon = (props: any) => (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-);
 
 const DashboardPage: React.FC = () => {
     const [stats, setStats] = useState<ComplaintStats | null>(null);
@@ -101,10 +97,10 @@ const DashboardPage: React.FC = () => {
 
             {/* Stats Cards - Overlapping hero */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 -mt-8 relative z-20">
-                <StatsCard title="Total Complaints" value={stats?.total || 0} icon={<ProjectIcon />} gradient="teal" />
-                <StatsCard title="Open Tickets" value={stats?.open || 0} icon={<DocumentTextIcon />} gradient="red" />
+                <StatsCard title="Total Complaints" value={stats?.total || 0} icon={<ClipboardDocumentListIcon />} gradient="teal" />
+                <StatsCard title="Open Tickets" value={stats?.open || 0} icon={<AlertTriangleIcon />} gradient="red" />
                 <StatsCard title="Resolved" value={stats?.resolved || 0} icon={<CheckCircleIcon />} gradient="teal" />
-                <StatsCard title="Today's Visits" value={stats?.todayVisits || 0} icon={<UsersIcon />} gradient="purple" />
+                <StatsCard title="Today's Visits" value={stats?.todayVisits || 0} icon={<CalendarIcon />} gradient="purple" />
             </div>
 
             {/* Recent Complaints Table */}

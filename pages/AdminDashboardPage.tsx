@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import StatsCard from '../components/StatsCard';
-import { UserIcon, CrownIcon, KeyIcon, TrendingUpIcon } from '../components/icons';
+import { UsersIcon, CheckCircleIcon, KeyIcon, BillingIcon } from '../components/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { DealerInfo } from '../types';
 import PageHeader from '../components/PageHeader';
@@ -59,13 +59,13 @@ const AdminDashboardPage: React.FC = () => {
                 <StatsCard
                     title="Total Dealers"
                     value={stats.totalDealers}
-                    icon={<UserIcon />}
+                    icon={<UsersIcon />}
                     gradient="blue"
                 />
                 <StatsCard
                     title="Active Subscribers"
                     value={stats.activeSubscribers}
-                    icon={<CrownIcon />}
+                    icon={<CheckCircleIcon />}
                     gradient="teal"
                 />
                 <StatsCard
@@ -77,7 +77,7 @@ const AdminDashboardPage: React.FC = () => {
                 <StatsCard
                     title="Estimated Revenue"
                     value={`₹${stats.totalRevenue.toLocaleString()}`}
-                    icon={<TrendingUpIcon />}
+                    icon={<BillingIcon />}
                     gradient="red"
                 />
             </div>

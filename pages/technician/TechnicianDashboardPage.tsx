@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import type { TechnicianDashboardSummary, TechnicianProject, TechnicianAvailability, TimelineStep } from '../../types';
 import { api } from '../../services/api';
 import { AuthContext } from '../../components/contexts';
-import { VisitsIcon, CheckCircleIcon, CurrencyRupeeIcon, ProjectIcon, ClipboardDocumentListIcon, MapPinIcon, PhoneIcon, ChevronRightIcon } from '../../components/icons';
+import { VisitsIcon, CheckCircleIcon, CurrencyRupeeIcon, ClipboardDocumentListIcon, MapPinIcon, PhoneIcon, ChevronRightIcon, CalendarIcon } from '../../components/icons';
 import StatsCard from '../../components/StatsCard';
 import CustomSelect from '../../components/CustomSelect';
 import ProjectTimelineCard from '../../components/ProjectTimelineCard';
@@ -283,7 +283,7 @@ const TechnicianDashboardPage: React.FC = () => {
                 <StatsCard
                     title="Active Projects"
                     value={activeProjects.length}
-                    icon={<ProjectIcon />}
+                    icon={<CalendarIcon />}
                     gradient="teal"
                 />
                 <StatsCard
@@ -336,7 +336,7 @@ const TechnicianDashboardPage: React.FC = () => {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <ProjectIcon className="w-5 h-5 text-primary-500" />
+                            <CalendarIcon className="w-5 h-5 text-primary-500" />
                             Active Projects
                         </h3>
                         <Link
@@ -372,7 +372,7 @@ const TechnicianDashboardPage: React.FC = () => {
             ) : (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800">
                     <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <ProjectIcon className="w-10 h-10 text-slate-400" />
+                        <CalendarIcon className="w-10 h-10 text-slate-400" />
                     </div>
                     <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">No Active Projects</h3>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">
