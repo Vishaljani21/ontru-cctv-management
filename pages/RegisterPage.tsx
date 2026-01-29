@@ -63,7 +63,7 @@ const RegisterPage: React.FC = () => {
   const API_DEBUG = (import.meta as any).env.VITE_SUPABASE_URL;
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex bg-white dark:bg-slate-950">
       {/* Left Side - visually rich */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 overflow-hidden items-center justify-center">
         {/* Abstract Background Blobs - MATCHING HOME PAGE */}
@@ -99,55 +99,55 @@ const RegisterPage: React.FC = () => {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-slate-50">
-        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-900">
+        <div className="max-w-md w-full bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-slate-900">Create your account</h2>
-            <p className="mt-2 text-sm text-slate-500">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Create your account</h2>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               Start your 14-day free trial. No credit card required.
             </p>
           </div>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md animate-fade-in-up">
-                <p className="text-sm text-red-700 font-medium">{error}</p>
+              <div className="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 p-4 rounded-md animate-fade-in-up">
+                <p className="text-sm text-red-700 dark:text-red-300 font-medium">{error}</p>
                 {/* Debug help for Failed to fetch */}
                 {error.includes('Connection') && (
-                  <p className="text-xs text-red-500 mt-1">API: {(import.meta as any).env.VITE_SUPABASE_URL}</p>
+                  <p className="text-xs text-red-500 dark:text-red-400 mt-1">API: {(import.meta as any).env.VITE_SUPABASE_URL}</p>
                 )}
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Work Email</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Work Email</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <EnvelopeIcon className="h-5 w-5 text-slate-400" />
+                  <EnvelopeIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-3.5 border border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
+                  className="block w-full pl-10 pr-4 py-3.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                   placeholder="name@company.com"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Phone Number</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Phone Number</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <PhoneIcon className="h-5 w-5 text-slate-400" />
+                  <PhoneIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
                   type="tel"
                   required
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-3.5 border border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
+                  className="block w-full pl-10 pr-4 py-3.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                   placeholder="+91 98765 43210"
                 />
               </div>
@@ -155,33 +155,33 @@ const RegisterPage: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="block w-full px-4 py-3.5 border border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
+                    className="block w-full px-4 py-3.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                     placeholder="••••••••"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Confirm</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Confirm</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
-                    className="block w-full px-4 py-3.5 pr-10 border border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
+                    className="block w-full px-4 py-3.5 pr-10 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all font-medium text-base"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
                   >
                     {showPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                   </button>
@@ -210,7 +210,7 @@ const RegisterPage: React.FC = () => {
             </div>
 
             <div className="text-center mt-6">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 Already have an account?{' '}
                 <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-500 transition-colors">
                   Sign in
@@ -218,8 +218,8 @@ const RegisterPage: React.FC = () => {
               </p>
             </div>
 
-            <p className="text-xs text-center text-slate-400 mt-6 px-4">
-              By joining, you agree to our <a href="#" className="underline hover:text-slate-600">Terms</a> and <a href="#" className="underline hover:text-slate-600">Privacy Policy</a>
+            <p className="text-xs text-center text-slate-400 dark:text-slate-500 mt-6 px-4">
+              By joining, you agree to our <a href="#" className="underline hover:text-slate-600 dark:hover:text-slate-300">Terms</a> and <a href="#" className="underline hover:text-slate-600 dark:hover:text-slate-300">Privacy Policy</a>
             </p>
           </form>
         </div>
