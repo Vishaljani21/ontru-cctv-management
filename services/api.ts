@@ -376,6 +376,39 @@ export const api = {
     },
 
     deleteCustomer: async (customerId: number): Promise<void> => {
+        // Try to use the server-side function first (safer, cleaner)
+        const { error: rpcError } = await supabase.rpc('delete_customer_cascade', { p_customer_id: customerId });
+
+        if (!rpcError) return;
+
+        // If RPC failed (e.g. function doesn't exist), try client-side cascade delete
+        console.warn("RPC delete_customer_cascade failed, attempting client-side cascade...", rpcError);
+
+        // 1. Delete Job Cards & Complaints
+        const { data: complaints } = await supabase.from('complaints').select('id').eq('customer_id', customerId);
+        if (complaints && complaints.length > 0) {
+            const complaintIds = complaints.map(c => c.id);
+            await supabase.from('job_cards').delete().in('complaint_id', complaintIds);
+            await supabase.from('complaints').delete().in('id', complaintIds);
+        }
+
+        // 2. Delete Invoices & Items
+        const { data: invoices } = await supabase.from('invoices').select('id').eq('customer_id', customerId);
+        if (invoices && invoices.length > 0) {
+            const invoiceIds = invoices.map(i => i.id);
+            await supabase.from('invoice_items').delete().in('invoice_id', invoiceIds);
+            await supabase.from('invoices').delete().in('id', invoiceIds);
+        }
+
+        // 3. Delete Visits & Items
+        const { data: visits } = await supabase.from('visits').select('id').eq('customer_id', customerId);
+        if (visits && visits.length > 0) {
+            const visitIds = visits.map(v => v.id);
+            await supabase.from('visit_items').delete().in('visit_id', visitIds);
+            await supabase.from('visits').delete().in('id', visitIds);
+        }
+
+        // 4. Finally Delete Customer
         const { error } = await supabase
             .from('customers')
             .delete()
